@@ -139,7 +139,8 @@ object PanelOperation {
     private var job: Job? = null
     @Volatile private var ssh: PanelSsh? = null
     @Volatile private var trustReply: CompletableDeferred<Boolean>? = null
-    private val steps = listOf("Проверка совместимости", "Установка пакетов", "Сборка ядер протоколов", "Сборка панели", "Настройка служб", "Публикация панели")
+    // Ready cores are downloaded; built on the VPS only without them, at the same point of the install.
+    private val steps = listOf("Проверка совместимости", "Установка пакетов", "Загрузка ядер протоколов", "Сборка панели", "Настройка служб", "Публикация панели")
 
     fun approve(accepted: Boolean) { trustReply?.complete(accepted) }
 
@@ -162,7 +163,8 @@ object PanelOperation {
                 }
                 DeployStore.save(copy)
                 saved(copy)
-                state.update { it.copy(running = false, percent = if (it.percent > 0) 100 else 0, finished = System.currentTimeMillis()) }
+                state.update { it.copy(running = false, percent = if (it.percent > 0) 100 else 0, finished = System.currentTimeMillis(),
+                    step = if (action == "install" || action.startsWith("uninstall")) "Готово" else it.step) }
             } catch (e: Throwable) {
                 // Stop closes the connection under a running command: that is the stop, not a failure.
                 val message = if (e is kotlinx.coroutines.CancellationException || !isActive) "Операция остановлена" else friendly(e)
@@ -187,7 +189,7 @@ object PanelOperation {
         fun log(line: String) {
             val step = PanelCommands.step(line)
             state.update { s ->
-                val index = steps.indexOf(step)
+                val index = steps.indexOf(if (step == "Сборка ядер протоколов") "Загрузка ядер протоколов" else step)
                 s.copy(log = (s.log + line + "\n").takeLast(200_000), step = step ?: s.step,
                     percent = if (index >= 0) maxOf(s.percent, 10 + index * 15) else s.percent)
             }

@@ -352,11 +352,13 @@ class PanelDeployActivity : ServerScreenActivity() {
         logText = log
         logScroll = ScrollView(this).apply { background = ui.well(); addView(log) }
         body.addView(logScroll, LinearLayout.LayoutParams(-1, ui.dp(320)).apply { topMargin = ui.dp(8) })
-        // One button at a time, full width as the other screens' buttons: stop while it runs, the server once it ended.
+        // Stop while it runs; «К серверу» stays dim and untouchable until the operation has ended, then takes the row.
+        val actions = LinearLayout(this)
         stopButton = ui.button("Остановить", danger = true) { confirmStop() }
-        body.addView(stopButton, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(12) })
+        actions.addView(stopButton, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = ui.dp(6) })
         serverButton = ui.button("К серверу", primary = true) { if (!busy) show(Screen.SERVER) }
-        body.addView(serverButton, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(12) })
+        actions.addView(serverButton, LinearLayout.LayoutParams(0, -2, 1f).apply { marginStart = ui.dp(6) })
+        body.addView(actions, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(12) })
     }
 
     private fun serverPage(body: LinearLayout) {
@@ -520,7 +522,7 @@ class PanelDeployActivity : ServerScreenActivity() {
             if (log.text.length != text.length) { log.text = text; logScroll?.post { logScroll?.fullScroll(View.FOCUS_DOWN) } }
         }
         stopButton?.visibility = if (state.running) View.VISIBLE else View.GONE
-        serverButton?.visibility = if (state.running) View.GONE else View.VISIBLE
+        serverButton?.apply { isEnabled = !state.running; alpha = if (state.running) .4f else 1f }
         checkBody?.text = when {
             model.pending == "check" && state.running -> "Проверка…"
             state.error.isNotEmpty() && model.pending == "check" -> state.error
@@ -561,7 +563,7 @@ class PanelDeployActivity : ServerScreenActivity() {
                 if (pending == "domain") afterDomain() else show(Screen.CHECK)
             }
             "check" -> { primary?.isEnabled = state.checkOk; primary?.alpha = if (state.checkOk) 1f else .5f }
-            "install", "uninstall" -> if (model.screen == Screen.PROGRESS) show(Screen.SERVER)
+            "install", "uninstall" -> Unit
             "credentials" -> { Toast.makeText(this, "Логин и пароль панели изменены", Toast.LENGTH_SHORT).show(); if (model.screen == Screen.SERVER) show(Screen.SERVER, remember = false, animate = false) }
             "refresh" -> show(Screen.SERVER, remember = false, animate = false)
         }
