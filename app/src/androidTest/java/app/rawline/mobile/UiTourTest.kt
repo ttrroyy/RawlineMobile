@@ -335,7 +335,7 @@ class UiTourTest {
             instrumentation.runOnMainSync {
                 val views = java.util.ArrayList<android.view.View>()
                 resumed().window.decorView.findViewsWithText(views, context.getString(R.string.qmobile_layout_swap), android.view.View.FIND_VIEWS_WITH_CONTENT_DESCRIPTION)
-                check(views.any { view -> view.isShown && generateSequence(view) { it.parent as? android.view.View }.all { it.alpha > .99f } }) { "the selected part's buttons are not shown" }
+                check(views.any { view -> view.isShown && view.width > 0 && view.height > 0 && view.getGlobalVisibleRect(android.graphics.Rect()) && generateSequence(view) { it.parent as? android.view.View }.all { it.alpha > .99f } }) { "the selected part's buttons are not shown" }
             }
         },
     ) + (0..5).map { step ->

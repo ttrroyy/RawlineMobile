@@ -218,10 +218,11 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         selected = part
         // A part without buttons (the subscription row at the bottom) keeps its outline as it is.
         parts.forEach { (each, frame) -> padFrame(frame, each == part && ((strips[each] as? ViewGroup)?.childCount ?: 0) > 0) }
+        // The buttons are always laid out and only fade: one gone until now was never laid out while the outline's
+        // transition held the layout, and stayed a strip of no size, there but never seen.
         strips.forEach { (each, strip) ->
             strip.animate().cancel()
-            if (each == part) { strip.alpha = 0f; strip.visibility = View.VISIBLE; strip.animate().alpha(1f).setStartDelay(120).setDuration(120).start() }
-            else { strip.alpha = 1f; strip.visibility = View.GONE }
+            if (each == part) strip.animate().alpha(1f).setStartDelay(120).setDuration(120).start() else strip.alpha = 0f
         }
     }
 
@@ -316,7 +317,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             Part.CONTROL -> button(R.drawable.ic_layout_swap, R.string.qmobile_layout_swap) { setSwitches(!MobileHomeLayout.controlSwitches) }
         }
         // In the grown top of a selected outline: 6 dp under the outline and clear of its corner, 8 dp above the part.
-        strip.visibility = if (selected == part) View.VISIBLE else View.GONE
+        strip.alpha = if (selected == part) 1f else 0f
         box.addView(strip, FrameLayout.LayoutParams(-2, dp(26), Gravity.TOP or Gravity.END).apply { topMargin = -dp(34); marginEnd = dp(6) })
         strips[part] = strip
         actions[part] = items
@@ -464,7 +465,10 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     private fun actionAt(x: Float, y: Float): (() -> Unit)? {
         val margin = dp(8)
         return actions.values.flatten().firstOrNull { (view, _) ->
-            view.isShown && boundsOf(view).apply { inset(-margin, -margin) }.contains(x.toInt(), y.toInt())
+            // The buttons of a part not selected are there but unseen: not touchable.
+            val strip = view.parent as? View
+            view.isShown && (strip !in strips.values || strip?.alpha == 1f || strip === strips[selected]) &&
+                boundsOf(view).apply { inset(-margin, -margin) }.contains(x.toInt(), y.toInt())
         }?.second
     }
 
