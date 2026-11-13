@@ -24,7 +24,7 @@ class VkRelayActivity : ThemedActivity() {
         super.onCreate(state)
         val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(MobilePalette.screen) }
         val toolbar = Toolbar(this).apply {
-            title = "Настройки VK-релея"; setTitleTextColor(MobilePalette.text)
+            title = "Деплой протоколов"; setTitleTextColor(MobilePalette.text)
             setNavigationIcon(R.drawable.baseline_arrow_back_24); setNavigationOnClickListener { finish() }
         }
         val content = FrameLayout(this).apply { id = android.R.id.content + 2 }
@@ -148,9 +148,20 @@ class VkRelayActivity : ThemedActivity() {
         }
         private fun build() {
             preferenceScreen.removeAll()
-            val account = PreferenceCategory(requireContext()).apply { title = "Аккаунт и хеши" }
-            accountGroup=account
-            preferenceScreen.addPreference(account);VkRelayPreferences.bind(this,account)
+            // The deploy first, then the modes of new profiles, then the VK / MAX bindings and the call hashes.
+            val deploy = PreferenceCategory(requireContext()).apply { title = "Управление серверами" }
+            preferenceScreen.addPreference(deploy)
+            deploy.addPreference(Preference(requireContext()).apply {
+                title = "Деплой";summary = "WDTT Panel и нода на вашем VPS"
+                setIcon(R.drawable.ic_mobile_server);widgetLayoutResource=R.layout.qmobile_preference_arrow
+                fragment=DeployListFragment::class.java.name
+                // Outside the settings this screen has its own window: the list opens in it.
+                setOnPreferenceClickListener {
+                    if(parentFragment is SettingsFragment) false else {
+                        parentFragmentManager.beginTransaction().replace((requireView().parent as android.view.View).id,DeployListFragment()).addToBackStack(null).commit();true
+                    }
+                }
+            })
             // The mode each relay protocol takes when a link or a new profile names none.
             val modes = PreferenceCategory(requireContext()).apply { title = "Режимы по умолчанию";summary="Для новых и импортированных профилей, если ссылка режим не задаёт" }
             preferenceScreen.addPreference(modes)
@@ -166,19 +177,9 @@ class VkRelayActivity : ThemedActivity() {
             choice("CSQTT: транспорт TURN",listOf("udp","tcp_tls"),listOf("UDP (по умолчанию)","TCP/TLS"),{ DataStore.relayDefaultCsqttTransport }) { DataStore.relayDefaultCsqttTransport=it }
             choice("CSQTT: режим SRTP",listOf("auto","wrap","dtls"),listOf("Автоматически (по умолчанию)","WRAP-SRTP","DTLS-SRTP"),{ DataStore.relayDefaultCsqttSrtp }) { DataStore.relayDefaultCsqttSrtp=it }
             choice("MRTT: транспорт TURN",listOf("udp","tcp_tls"),listOf("UDP (по умолчанию)","TCP/TLS"),{ DataStore.relayDefaultMrttTransport }) { DataStore.relayDefaultMrttTransport=it }
-            val deploy = PreferenceCategory(requireContext()).apply { title = "Управление серверами" }
-            preferenceScreen.addPreference(deploy)
-            deploy.addPreference(Preference(requireContext()).apply {
-                title = "Деплой";summary = "WDTT Panel и нода на вашем VPS"
-                setIcon(R.drawable.ic_mobile_core);widgetLayoutResource=R.layout.qmobile_preference_arrow
-                fragment=DeployListFragment::class.java.name
-                // Outside the settings this screen has its own window: the list opens in it.
-                setOnPreferenceClickListener {
-                    if(parentFragment is SettingsFragment) false else {
-                        parentFragmentManager.beginTransaction().replace((requireView().parent as android.view.View).id,DeployListFragment()).addToBackStack(null).commit();true
-                    }
-                }
-            })
+            val account = PreferenceCategory(requireContext()).apply { title = "Привязки VK и MAX, хеши" }
+            accountGroup=account
+            preferenceScreen.addPreference(account);VkRelayPreferences.bind(this,account)
         }
     }
 }

@@ -212,7 +212,7 @@ internal class ServerUi(private val context: Context) {
     fun pickCreatedCalls(limit: Int, chosen: (List<String>) -> Unit) {
         val created = runCatching { app.rawline.mobile.bg.carrier.VkRelayAccount.cachedHashes() }.getOrDefault(emptyList())
         if (created.isEmpty()) {
-            android.widget.Toast.makeText(context, "Созданных звонков нет: создайте их в «Хешах» настроек VK-релея", android.widget.Toast.LENGTH_LONG).show(); return
+            android.widget.Toast.makeText(context, "Созданных звонков нет: создайте их в «Хешах» раздела «Деплой протоколов»", android.widget.Toast.LENGTH_LONG).show(); return
         }
         val checks = BooleanArray(created.size)
         MobileAlertDialogBuilder(context).setTitle("Созданные звонки").setMultiChoiceItems(created.toTypedArray(), checks) { _, index, on -> checks[index] = on }

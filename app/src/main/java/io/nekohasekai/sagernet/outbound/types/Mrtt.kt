@@ -93,7 +93,7 @@ class Mrtt:Qwdtt() {
                 config["workers"]=(if(jitsiSeats>0) jitsiSeats else jitsiWorkers).coerceIn(MIN_JITSI_WORKERS,MAX_JITSI_WORKERS)
             }
             "max" -> {
-                val account=MaxAccount.current() ?: error("Чтобы подключиться через MAX, привяжите MAX в настройках VK-релея")
+                val account=MaxAccount.current() ?: error("Чтобы подключиться через MAX, привяжите MAX в разделе «Деплой протоколов»")
                 config["max_token"]=account.token
                 config["max_group"]=maxGroup.ifEmpty { account.group }
                 config["workers"]=normalizeWorkers(workers,0,true)

@@ -448,7 +448,7 @@ class NativeTransportSettingsActivity : ProfileSettingsActivity<Outbound>() {
             hashPick.isVisible=source=="auto" && editingOutbound.type!="freeturn"
             if(hashPick.isVisible) refreshHashPick()
             editors["vk_access_token"]?.isVisible=source=="auto_js"
-            (editors["vk_access_token"] as? EditTextPreference)?.dialogMessage="Необязательно: если поле пустое, токен берётся из общей привязки VK в настройках VK-релея."
+            (editors["vk_access_token"] as? EditTextPreference)?.dialogMessage="Необязательно: если поле пустое, токен берётся из общей привязки VK в разделе «Деплой протоколов»."
             editors["rt_masque_server_bootstrap"]?.isEnabled=DataStore.profileCacheStore.getString(cache("rt_masque")) == "true"
             editors.filterKeys { it.startsWith("hash_") && it != "hash_source" }.values.forEach { it.isVisible = !automatic }
             checkButton.isVisible=!automatic && editingOutbound.type!="freeturn"

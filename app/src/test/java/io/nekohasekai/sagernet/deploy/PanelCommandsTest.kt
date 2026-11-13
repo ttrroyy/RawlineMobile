@@ -120,6 +120,17 @@ class PanelCommandsTest {
         assertTrue(PanelCommands.env(p).contains("WDTT_DOMAIN='p.example.org'"))
     }
 
+    @Test fun updatingInstallsAgainWithWhatIsInstalled() {
+        val s = server("installedRole" to "node", "mode" to "", "installedProtocols" to "wdtt,dnstt", "installedZone" to "t.example.org", "installedNs" to "ns.example.org")
+        PanelCommands.prepareReinstall(s)
+        assertEquals("node", s["role"]); assertEquals("local", s["access"]); assertEquals("wdtt,dnstt", s["protocols"]); assertEquals("ns.example.org", s["dnsNs"])
+        val c = server("installedRole" to "combined", "mode" to "caddy", "installedDomain" to "p.example.org", "installedProtocols" to "qwdtt")
+        PanelCommands.prepareReinstall(c)
+        assertTrue(PanelCommands.install(c).contains("WDTT_FRONTEND=caddy"))
+        assertTrue(PanelCommands.install(c).contains("wdtt-install.sh combined"))
+        assertTrue(PanelCommands.install(c).contains("qwdtt"))
+    }
+
     @Test fun newServerIsAPanelServerAndNotADraft() {
         val s = PanelCommands.newServer()
         assertEquals("panel", s.kind); assertEquals("root", s["user"]); assertEquals("22", s["sshPort"])

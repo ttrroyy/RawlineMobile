@@ -24,6 +24,8 @@ object VkRelayPreferences {
             group.addPreference(Preference(fragment.requireContext()).apply {
                 key="vkRelayAccount"; title="Привязать аккаунт VK"; setIcon(R.drawable.ic_mobile_vk); isSelectable=false
             })
+            // Read without the network, so the row is there before the VK account loads and nothing jumps.
+            group.addPreference(maxPreference(fragment,group))
             group.addPreference(Preference(fragment.requireContext()).apply {
                 key="vkRelayDefaultHashes"; title="Хеши новых профилей qWDTT, CSQTT, MRTT и WDTT Plus"
                 summary="Загрузка…"; isSingleLineTitle=false; setIcon(R.drawable.ic_mobile_hash); isSelectable=false

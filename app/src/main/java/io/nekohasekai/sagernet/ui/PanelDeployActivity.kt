@@ -314,12 +314,15 @@ class PanelDeployActivity : ServerScreenActivity() {
     }
 
     private fun check(body: LinearLayout) {
+        if (model.goal == "reinstall") intro(body, "Обновление с теми же параметрами: " + PanelCommands.roleTitle(server["role"]).lowercase() + ", " +
+            PanelCommands.accessTitle(server["access"]) + server["domain"].let { if (it.isEmpty()) "" else ", $it" } +
+            ". Пользователи, подписки и настройки панели сохранятся.")
         intro(body, "Скрипт панели проверяет VPS, ничего не меняя: порты, сетевые права, подсети, прокси, DNS-записи и место на диске.")
         val box = card(body)
         checkBody = ui.text("", 13f, mono = true).apply { setTextIsSelectable(true) }
         box.addView(checkBody)
         body.addView(ui.textButton("Проверить снова") { if (!busy) runCheck() })
-        footer(body, "Установить") { install() }
+        footer(body, if (model.goal == "reinstall") "Установить заново" else "Установить") { install() }
     }
 
     private fun runCheck() { begin("check", "check") }
@@ -353,6 +356,8 @@ class PanelDeployActivity : ServerScreenActivity() {
         if (role == "combined" || role == "node") summary.addView(ui.stat("Протоколы", PanelCommands.protocolTitles(PanelCommands.split(server["installedProtocols"]))).apply { setPadding(0, ui.dp(10), 0, 0) })
         if (role.isNotEmpty()) summary.addView(ui.stat("Доступ", PanelCommands.accessTitle(server["mode"]) + server["installedDomain"].let { if (it.isEmpty()) "" else ", $it" }).apply { setPadding(0, ui.dp(10), 0, 0) })
         if (server["version"].isNotEmpty()) summary.addView(ui.stat("Версия WDTT Panel", server["version"]).apply { setPadding(0, ui.dp(10), 0, 0) })
+        // Updating is installing again with what is installed: nothing to choose, users and settings stay.
+        if (role.isNotEmpty()) body.addView(ui.button("Установить заново (обновить)", primary = true) { reinstall() }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(8) })
         if (role == "combined" || role == "panel") {
             body.addView(ui.section("Панель"))
             val panel = ui.card(); body.addView(panel)
@@ -360,7 +365,7 @@ class PanelDeployActivity : ServerScreenActivity() {
             else panel.addView(ui.linkRow("Адрес", server["panelUrl"]))
             panel.addView(ui.linkRow("Логин", server["panelUser"], lines = 1))
             panel.addView(secretRow("Пароль", server["panelPassword"]))
-            body.addView(ui.button("Открыть панель", primary = true) { openPanel() }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(8) })
+            body.addView(ui.button("Открыть панель") { openPanel() }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(8) })
             body.addView(ui.button("Сменить логин и пароль") { changeLogin() }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(8) })
         }
         if (role.isEmpty()) {
@@ -424,6 +429,13 @@ class PanelDeployActivity : ServerScreenActivity() {
     }
 
     // Actions on the server page
+    private fun reinstall() {
+        if (busy) return
+        model.goal = "reinstall"
+        PanelCommands.prepareReinstall(server)
+        show(Screen.CHECK)
+    }
+
     private fun startAdd(part: String) {
         model.goal = if (part == "node") "add-node" else "add-panel"
         PanelCommands.prepareAdd(server, part)

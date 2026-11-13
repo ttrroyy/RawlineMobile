@@ -36,7 +36,7 @@ object MobileSettingsStyle {
                 if(fragment is SettingsPreferenceFragment && preference !is PreferenceCategory) {
                     val icon=when {
                         preference.key=="qmobileLogs" -> app.rawline.mobile.R.drawable.ic_mobile_logs
-                        preference.key=="qmobileVkRelay" -> app.rawline.mobile.R.drawable.ic_mobile_vk
+                        preference.key=="qmobileVkRelay" -> app.rawline.mobile.R.drawable.ic_mobile_server
                         preference.key=="qmobileTun" -> app.rawline.mobile.R.drawable.ic_mobile_tun
                         preference.key=="qmobileCore" -> app.rawline.mobile.R.drawable.ic_mobile_core
                         preference.key=="settingsBackup" -> app.rawline.mobile.R.drawable.ic_mobile_backup

@@ -181,6 +181,12 @@ object PanelCommands {
         server["dnsNs"] = server["installedNs"]
     }
 
+    /** Installing again over what the VPS runs: the same role, access, domain, protocols and DNS zone. */
+    fun prepareReinstall(server: DeployServer) {
+        prepareAdd(server, server["installedRole"])
+        server["protocols"] = server["installedProtocols"]
+    }
+
     fun randomSecret(length: Int = 20): String {
         val alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789"
         val random = java.security.SecureRandom()
