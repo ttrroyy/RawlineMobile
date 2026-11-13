@@ -193,6 +193,8 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     private fun frameFor(part: Part) = FrameLayout(this).apply {
         // Snug round the part; selected, the top grows to hold its buttons inside the outline (select).
         padFrame(this, false)
+        // The buttons sit in the grown top padding: clipped to the padding, they were laid out but never drawn.
+        clipToPadding = false
         val dash = GradientDrawable().apply {
             cornerRadius = dp(MobilePalette.rowDp + 4).toFloat()
             setStroke(dp(2), MobilePalette.text, dp(7).toFloat(), dp(5).toFloat())
