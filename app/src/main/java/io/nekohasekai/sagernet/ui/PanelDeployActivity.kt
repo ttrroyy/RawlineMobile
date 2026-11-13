@@ -38,6 +38,11 @@ import kotlinx.coroutines.withContext
 class PanelDeployActivity : ServerScreenActivity() {
     enum class Screen { CONNECT, ROLE, PROTOCOLS, ACCESS, DOMAIN, DNS, CHECK, PROGRESS, SERVER }
 
+    companion object {
+        /** The VPS, screen and awaited result left by «Назад» while an operation ran. */
+        private var left: Triple<String, Screen, String>? = null
+    }
+
     class Model : ViewModel() {
         var server: DeployServer? = null
         val history = ArrayList<Screen>()
@@ -66,6 +71,7 @@ class PanelDeployActivity : ServerScreenActivity() {
     private var logScroll: ScrollView? = null
     private var checkBody: TextView? = null
     private var stopButton: TextView? = null
+    private var serverButton: TextView? = null
     private val busy get() = PanelOperation.state.value.running
 
     private val keyPicker = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -95,6 +101,11 @@ class PanelDeployActivity : ServerScreenActivity() {
                 model.server = if (id == null) PanelCommands.newServer() else withContext(Dispatchers.IO) { runCatching { DeployStore.all().firstOrNull { it.id == id } }.getOrNull() }
                 if (model.server == null) { Toast.makeText(this@PanelDeployActivity, "Не удалось открыть VPS", Toast.LENGTH_LONG).show(); finish(); return@launch }
                 model.screen = if (server["connectedHost"].isEmpty()) Screen.CONNECT else Screen.SERVER
+                // A VPS left by «Назад» while its operation ran opens again on the screen it was left on, following it to its end.
+                left.takeIf { it?.first == id && PanelOperation.state.value.serverId == id }?.let { (_, screen, pending) ->
+                    model.screen = screen; model.pending = pending
+                }
+                left = null
             }
             show(model.screen, remember = false, animate = false)
             repeatOnLifecycle(Lifecycle.State.STARTED) { PanelOperation.state.collect { render(it) } }
@@ -106,7 +117,7 @@ class PanelDeployActivity : ServerScreenActivity() {
         if (remember && model.screen != screen && model.screen != Screen.PROGRESS) model.history += model.screen
         if (screen == Screen.SERVER) model.history.clear()
         model.screen = screen
-        stepText = null; bar = null; logText = null; logScroll = null; checkBody = null; stopButton = null
+        stepText = null; bar = null; logText = null; logScroll = null; checkBody = null; stopButton = null; serverButton = null
         val body = ui.column().apply { setPadding(ui.dp(16), ui.dp(8), ui.dp(16), ui.dp(24)) }
         val scroll = ScrollView(this).apply { isFillViewport = true; setBackgroundColor(MobilePalette.screen); addView(body) }
         toolbar.title = when (screen) {
@@ -144,8 +155,8 @@ class PanelDeployActivity : ServerScreenActivity() {
     private fun reducedMotion() = android.provider.Settings.Global.getFloat(contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
 
     private fun back() {
-        if (busy && model.screen in listOf(Screen.PROGRESS, Screen.CHECK)) { confirmStop(); return }
-        if (busy) return
+        // Leaving does not stop an operation: it goes on on the VPS and this VPS opens again where it was left; only «Остановить» stops it.
+        if (busy) { left = Triple(server.id, model.screen, model.pending); finish(); return }
         val previous = model.history.removeLastOrNull() ?: return finish()
         show(previous, remember = false, forward = false)
     }
@@ -333,7 +344,7 @@ class PanelDeployActivity : ServerScreenActivity() {
     }
 
     private fun progress(body: LinearLayout) {
-        intro(body, "Сборка ядер на VPS занимает от 5 до 40 минут в зависимости от процессора. Можно свернуть приложение: установка продолжится, пока Rawline работает.")
+        intro(body, "Можно выйти назад или свернуть приложение: установка продолжится, пока Rawline работает. Остановить её можно только кнопкой «Остановить».")
         val box = card(body)
         stepText = ui.text("", 16f, bold = true); box.addView(stepText)
         bar = MobileProgress.bar(this); box.addView(bar, LinearLayout.LayoutParams(-1, ui.dp(8)).apply { topMargin = ui.dp(10); bottomMargin = ui.dp(4) })
@@ -341,12 +352,11 @@ class PanelDeployActivity : ServerScreenActivity() {
         logText = log
         logScroll = ScrollView(this).apply { background = ui.well(); addView(log) }
         body.addView(logScroll, LinearLayout.LayoutParams(-1, ui.dp(320)).apply { topMargin = ui.dp(8) })
-        val actions = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-        stopButton = ui.textButton("Остановить", danger = true) { confirmStop() }
-        actions.addView(stopButton)
-        actions.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
-        actions.addView(ui.textButton("К серверу") { if (!busy) show(Screen.SERVER) })
-        body.addView(actions)
+        // One button at a time, full width as the other screens' buttons: stop while it runs, the server once it ended.
+        stopButton = ui.button("Остановить", danger = true) { confirmStop() }
+        body.addView(stopButton, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(12) })
+        serverButton = ui.button("К серверу", primary = true) { if (!busy) show(Screen.SERVER) }
+        body.addView(serverButton, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(12) })
     }
 
     private fun serverPage(body: LinearLayout) {
@@ -509,7 +519,8 @@ class PanelDeployActivity : ServerScreenActivity() {
             val text = state.log.takeLast(20_000)
             if (log.text.length != text.length) { log.text = text; logScroll?.post { logScroll?.fullScroll(View.FOCUS_DOWN) } }
         }
-        stopButton?.visibility = if (state.running) View.VISIBLE else View.INVISIBLE
+        stopButton?.visibility = if (state.running) View.VISIBLE else View.GONE
+        serverButton?.visibility = if (state.running) View.GONE else View.VISIBLE
         checkBody?.text = when {
             model.pending == "check" && state.running -> "Проверка…"
             state.error.isNotEmpty() && model.pending == "check" -> state.error
