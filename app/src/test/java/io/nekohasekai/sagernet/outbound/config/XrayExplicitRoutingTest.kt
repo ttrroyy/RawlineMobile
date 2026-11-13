@@ -71,8 +71,9 @@ class XrayExplicitRoutingTest {
         val (core, xray) = build(appRule = true)
         val outbounds = core.array("outbounds").filterIsInstance<JsonObject>()
         val explicit = outbounds.single { it.string("tag") == Tags.PROXY_EXPLICIT }
-        // A plain or a logical rule, depending on whether the package is installed.
-        val rule = core.obj("route").array("rules").filterIsInstance<JsonObject>().single { it.toCompact().contains("ru.fourpda.client") }
+        // A plain or a logical rule, depending on whether the package is installed; its QUIC reject twin goes first.
+        val rule = core.obj("route").array("rules").filterIsInstance<JsonObject>()
+            .single { it.toCompact().contains("ru.fourpda.client") && it.string("action") != "reject" }
         assertEquals(Tags.PROXY_EXPLICIT, rule.string("outbound"))
         // Everything else still enters the provider's routing through the usual bridge.
         assertEquals(Tags.PROXY, core.obj("route").string("final"))

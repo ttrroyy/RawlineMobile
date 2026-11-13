@@ -598,8 +598,8 @@ class MobileHomeFragment : ToolbarFragment() {
     }
     /** What decides the routing of the subscription in use, and where to change it, above the profiles. */
     private fun routeSourceNotice(source: app.rawline.mobile.route.RouteSource.Info, close: () -> Unit)=LinearLayout(requireContext()).apply {
-        orientation=LinearLayout.VERTICAL;setPadding(dp(16),dp(10),dp(16),dp(10));background=tile()
-        addView(text(routeText(source),14f).apply { setTypeface(typeface,Typeface.BOLD) })
+        orientation=LinearLayout.VERTICAL;minimumHeight=dp(52);gravity=Gravity.CENTER_VERTICAL;setPadding(dp(16),dp(8),dp(12),dp(8));background=tile(source.providerLocked)
+        addView(text(routeText(source),15f).apply { setTypeface(typeface,Typeface.BOLD) })
         addView(text(getString(if(source.providerLocked) R.string.qmobile_route_locked else R.string.qmobile_route_group_hint),12f,muted).apply { setPadding(0,dp(4),0,0) })
         if(source.providerLocked) { isFocusable=true;setOnClickListener { close();openProviderRouting() };MobileFeedback.apply(this) }
     }
@@ -615,7 +615,7 @@ class MobileHomeFragment : ToolbarFragment() {
             body.addView(handle,LinearLayout.LayoutParams(dp(36),dp(4)).apply { gravity=Gravity.CENTER_HORIZONTAL;bottomMargin=dp(14) })
             val list=LinearLayout(requireContext()).apply { orientation=LinearLayout.VERTICAL }
             val scroller=androidx.core.widget.NestedScrollView(requireContext()).apply { isVerticalScrollBarEnabled=false;addView(list) }
-            if(source!=null && source.kind!=app.rawline.mobile.route.RouteSource.Kind.CLIENT) body.addView(routeSourceNotice(source) { sheet.dismiss() },LinearLayout.LayoutParams(-1,-2).apply { bottomMargin=dp(10) })
+            if(source!=null && source.kind!=app.rawline.mobile.route.RouteSource.Kind.CLIENT) body.addView(routeSourceNotice(source) { sheet.dismiss() },LinearLayout.LayoutParams(-1,-2).apply { bottomMargin=dp(12) })
             val drag=MobileReorder(list,scroller,{},{ ids ->
                 viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                     // Profiles the sheet does not show keep their places.
@@ -627,8 +627,9 @@ class MobileHomeFragment : ToolbarFragment() {
                 val row=LinearLayout(requireContext()).apply {
                     // One line each, the current one lit: a caption under it only made that row taller than the rest.
                     orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER_VERTICAL;minimumHeight=dp(52);setPadding(dp(16),dp(6),dp(12),dp(6))
-                    background=tile(route.id==DataStore.currentRouteId);isFocusable=true
-                    contentDescription=route.name+if(route.id==DataStore.currentRouteId) ", "+getString(R.string.route_profile_current) else ""
+                    // While the provider's routing decides, no client profile is shown as the current one.
+                    background=tile(!locked && route.id==DataStore.currentRouteId);isFocusable=true
+                    contentDescription=route.name+if(!locked && route.id==DataStore.currentRouteId) ", "+getString(R.string.route_profile_current) else ""
                     addView(text(route.name,15f).apply { setTypeface(typeface,Typeface.BOLD);maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END })
                     if(locked) alpha=.45f
                     setOnClickListener {
@@ -1390,7 +1391,7 @@ class MobileHomeFragment : ToolbarFragment() {
                 head.addView(title)
                 // Which routing this subscription's servers run with, one line above its card and notes.
                 if (signature.route.isNotEmpty()) head.addView(text(signature.route,11f,muted).apply {
-                    maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END;includeFontPadding=!MobileStyle.new
+                    maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END
                     setPadding(dp(14),0,dp(14),dp(8));compoundDrawablePadding=dp(6);gravity=Gravity.CENTER_VERTICAL
                     val icon=androidx.core.content.ContextCompat.getDrawable(requireContext(),R.drawable.ic_mobile_route)?.mutate()?.apply { setTint(muted);setBounds(0,0,dp(14),dp(14)) }
                     setCompoundDrawablesRelative(icon,null,null,null)
