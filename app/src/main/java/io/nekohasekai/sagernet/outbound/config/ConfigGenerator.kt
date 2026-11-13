@@ -818,7 +818,6 @@ class ConfigGenerator @JvmOverloads constructor(
                     singToXrayPort = if (bridges.singToXray) bridgePorts[portIdx++] else -1,
                     xrayToSingPort = if (bridges.xrayToSing) bridgePorts[portIdx++] else -1,
                     xrayFullConfigPort = if (bridges.xrayFullConfig) bridgePorts[portIdx++] else -1,
-                    soleXrayInbound = bridges.xrayFullConfig,
                     origin = planned.origin,
                 ),
             )

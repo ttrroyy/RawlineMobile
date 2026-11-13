@@ -21,8 +21,6 @@ internal class ChainRequest(
     val singToXrayPort: Int = -1,
     val xrayToSingPort: Int = -1,
     val xrayFullConfigPort: Int = -1,
-    /** Drops the user's own inbounds from a custom Xray full config (siblings would repeat the ports). */
-    val soleXrayInbound: Boolean = false,
     /** Hop 0 is the WARP hop: it becomes `proxy` dialing through hop 1, which becomes `warp-bypass`. */
     val warpWrap: Boolean = false,
     val origin: HopOrigin = HopOrigin.NONE,
@@ -323,7 +321,9 @@ internal class ChainBuilder(
             )
             val inbounds = JsonArray()
             inbounds.add(bridgeInbound)
-            if (!state.forTest && !req.soleXrayInbound) for (item in userXrayConfig.array("inbounds")) inbounds.add(item)
+            // The config's own inbounds are never started: a provider's SOCKS on 127.0.0.1:10808 without a password is
+            // open to every app on the phone, those outside the tunnel too, and shows them the server (issue #30).
+            // Rawline reaches the config only through its own bridges, each with a random password.
             // Only the main server alone: behind WARP or other hops the config sees their servers, not the sites.
             if (req.includeProxy && !req.warpWrap && hops.size == 1 && !state.forTest && XrayExplicitRouting.needed(userXrayConfig)) {
                 val explicitPort = state.ports.reserve(1, custom.bridgeHost)[0]

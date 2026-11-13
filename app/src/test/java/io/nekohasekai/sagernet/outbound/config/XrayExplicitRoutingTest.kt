@@ -13,6 +13,8 @@ import org.junit.Test
 
 class XrayExplicitRoutingTest {
     private val provider = """{
+        "inbounds":[{"tag":"socks-in","protocol":"socks","listen":"127.0.0.1","port":10808,"settings":{"auth":"noauth","udp":true}},
+            {"tag":"http-in","protocol":"http","listen":"127.0.0.1","port":10809}],
         "outbounds":[{"tag":"proxy","protocol":"vless","settings":{}},{"tag":"de","protocol":"vless","settings":{}},
             {"tag":"direct","protocol":"freedom"},{"tag":"block","protocol":"blackhole"}],
         "routing":{"balancers":[{"tag":"auto","selector":["proxy","de"]}],"rules":[
@@ -82,6 +84,18 @@ class XrayExplicitRoutingTest {
         assertNotEquals(outbounds.single { it.string("tag") == Tags.PROXY }.int("server_port"), inbound.int("port"))
         assertTrue(inbound.obj("sniffing").bool("enabled"))
         assertEquals(Tags.XRAY_EXPLICIT_IN, rules(xray).first().array("inboundTag").strings().single())
+    }
+
+    @Test fun theProviderInboundsAreNeverStarted() {
+        // Its open SOCKS / HTTP on loopback would let any app outside the tunnel see the server (issue #30).
+        for (appRule in listOf(true, false)) {
+            val (_, xray) = build(appRule)
+            val inbounds = xray.array("inbounds").filterIsInstance<JsonObject>()
+            assertTrue(inbounds.none { it.string("tag") in listOf("socks-in", "http-in") || it.int("port") in listOf(10808, 10809) })
+            assertTrue(inbounds.isNotEmpty() && inbounds.all { it.obj("settings").array("accounts").filterIsInstance<JsonObject>().any { account -> account.string("pass").length >= 32 } })
+            // The start refuses any other listener (BoxInstance): what Rawline builds must pass it.
+            app.rawline.mobile.bg.carrier.VpnListenerPolicy.checkXray(xray.toCompact())
+        }
     }
 
     @Test fun theBridgeAloneStaysWhenNoRuleNamesProxy() {

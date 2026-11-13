@@ -88,6 +88,9 @@ abstract class BoxInstance(
         if(DataStore.serviceMode==app.rawline.mobile.Key.MODE_VPN) {
             app.rawline.mobile.bg.carrier.VpnListenerPolicy.check(config.coreConfig, DataStore.lanSharingEnabled)
         }
+        // Every app on the phone shares loopback: an Xray listener without a strong password never starts, in any mode.
+        app.rawline.mobile.bg.carrier.VpnListenerPolicy.checkXray(config.xrayConfig.orEmpty())
+        config.xrayFullConfigs.forEach { app.rawline.mobile.bg.carrier.VpnListenerPolicy.checkXray(it) }
     }
 
     protected open suspend fun loadConfig() {
