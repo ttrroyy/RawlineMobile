@@ -331,6 +331,12 @@ class UiTourTest {
             touch(android.view.MotionEvent.ACTION_DOWN, control.exactCenterX(), control.exactCenterY(), at)
             touch(android.view.MotionEvent.ACTION_UP, control.exactCenterX(), control.exactCenterY(), at)
             Thread.sleep(1200)
+            // The selected part's buttons are shown and opaque: they were once laid out but never drawn.
+            instrumentation.runOnMainSync {
+                val views = java.util.ArrayList<android.view.View>()
+                resumed().window.decorView.findViewsWithText(views, context.getString(R.string.qmobile_layout_swap), android.view.View.FIND_VIEWS_WITH_CONTENT_DESCRIPTION)
+                check(views.any { view -> view.isShown && generateSequence(view) { it.parent as? android.view.View }.all { it.alpha > .99f } }) { "the selected part's buttons are not shown" }
+            }
         },
     ) + (0..5).map { step ->
         // Each tutorial step half way through its loop.
@@ -340,7 +346,10 @@ class UiTourTest {
             repeat(step) { tap(R.string.qmobile_layout_tutorial_next) }
             Thread.sleep(2100L - if (step > 0) 2000L else 0L)
         }
-    }
+    } + listOf(
+        // The control joined to the list: one dashed outline round both.
+        "layout-editor-joined" to { layout(); MobileHomeLayout.scrollParts = setOf("control"); editor(); Thread.sleep(800) },
+    )
 
     /** The editor's choices back to the defaults, then [hiddenSwitch], [hiddenTiles] and [compact]. */
     private fun layout(hiddenSwitch: String = "", hiddenTiles: Set<String> = emptySet(), compact: Boolean = false) {
