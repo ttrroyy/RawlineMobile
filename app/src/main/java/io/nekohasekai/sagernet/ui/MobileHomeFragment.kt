@@ -1664,8 +1664,7 @@ class MobileHomeFragment : ToolbarFragment() {
                 val room=(width-totalPaddingLeft-totalPaddingRight).toFloat()
                 val label=listOf(caption.ifEmpty { getString(R.string.qmobile_orb_idle) }+(if(state.connected) "  $elapsed" else "")+workers,group,server)
                     .filter { it.isNotEmpty() }
-                    .joinToString("
-") { if(room>0f) android.text.TextUtils.ellipsize(it,paint,room,android.text.TextUtils.TruncateAt.END).toString() else it }
+                    .joinToString("\n") { if(room>0f) android.text.TextUtils.ellipsize(it,paint,room,android.text.TextUtils.TruncateAt.END).toString() else it }
                 if(text.toString()!=label) text=label
             }
             val fontSize=textSize
