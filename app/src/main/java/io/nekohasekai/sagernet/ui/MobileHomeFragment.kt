@@ -1047,6 +1047,13 @@ class MobileHomeFragment : ToolbarFragment() {
                     setOnFocusChangeListener { button,focused -> (button.background as? MobilePowerArtwork)?.focused=focused }
                     var pressAnimator: android.animation.ValueAnimator? = null
                     setOnTouchListener { _, event ->
+                        // The new button spans its row for the line under it: only a touch on the disc presses it.
+                        if(MobileStyle.new && event.actionMasked==android.view.MotionEvent.ACTION_DOWN) {
+                            val disc=dp(MobileHomeLayout.orbSize(true))
+                            val reach=MobileOrbArtwork.radius(disc)*1.35f
+                            val dx=event.x-width/2f; val dy=event.y-MobileOrbArtwork.centerY(disc)
+                            if(dx*dx+dy*dy>reach*reach) return@setOnTouchListener true
+                        }
                         val artwork=background as? MobilePowerArtwork
                         val target=when(event.actionMasked) {
                             android.view.MotionEvent.ACTION_DOWN -> if(MobileStyle.new) .92f else .94f
@@ -1067,10 +1074,17 @@ class MobileHomeFragment : ToolbarFragment() {
                 }
                 if(MobileStyle.new) {
                     // A smaller button right under the subscription: the servers and the subscription's actions keep the screen.
+                    // The view spans the row and is 16 dp taller than the disc: the subscription and server line has the width.
                     val orb=MobileHomeLayout.orbSize(true)
-                    centre.addView(power, FrameLayout.LayoutParams(dp(orb), dp(orb), Gravity.TOP or Gravity.CENTER_HORIZONTAL))
-                    if(dockBottom) centre.background=MobileDockGlass(MobilePalette.cardDp*resources.displayMetrics.density,MobileOrbArtwork.centerY(dp(orb)),MobileOrbArtwork.radius(dp(orb))*1.26f,dp(104*orb/190).toFloat())
-                    controlParent.addView(centre, LinearLayout.LayoutParams(-1, dp(if(dockBottom) orb+4 else orb)).apply { topMargin=dp(4) })
+                    val artwork=power?.background as? MobileOrbArtwork
+                    artwork?.discSize=dp(orb)
+                    centre.addView(power, FrameLayout.LayoutParams(-1, dp(orb+16), Gravity.TOP or Gravity.CENTER_HORIZONTAL))
+                    if(dockBottom) {
+                        centre.background=MobileDockGlass(MobilePalette.cardDp*resources.displayMetrics.density,MobileOrbArtwork.centerY(dp(orb)),MobileOrbArtwork.radius(dp(orb))*1.26f,dp(104*orb/190).toFloat())
+                        // The check and the speed hold the dock's lower corners: the line keeps between them.
+                        power?.addOnLayoutChangeListener { view,_,_,_,_,_,_,_,_ -> artwork?.textRoom=(view.width-2*dp(14+92+6)).toFloat() }
+                    }
+                    controlParent.addView(centre, LinearLayout.LayoutParams(-1, dp(if(dockBottom) orb+20 else orb+16)).apply { topMargin=dp(4) })
                 } else {
                 val orb=MobileHomeLayout.orbSize(false)
                 centre.addView(power, FrameLayout.LayoutParams(dp(orb), dp(orb), Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply { topMargin=dp(8) })
@@ -1674,7 +1688,11 @@ class MobileHomeFragment : ToolbarFragment() {
                 elapsedText=String.format(java.util.Locale.ROOT,"%02d:%02d:%02d",seconds/3600,seconds/60%60,seconds%60)
                 // Running workers out of those started, as the original WDTT/qWDTT/CSQTT apps show them.
                 workersText=snapshot?.takeIf { it.total>0 && !testing }?.let { "${it.active}/${it.total}" }.orEmpty()
-                serverText=if(state.connected) runningServer().let { (group,server) -> if(group.isEmpty()) server else "[$group] $server" } else ""
+                if(this is MobileOrbArtwork) {
+                    // The selected subscription and server, connected or not, on their own line under the button.
+                    val (group,server)=runningServer()
+                    groupText=group;serverText=server
+                } else serverText=if(state.connected) runningServer().let { (group,server) -> if(group.isEmpty()) server else "[$group] $server" } else ""
             }
         }
     }

@@ -322,7 +322,7 @@ class PanelDeployActivity : ServerScreenActivity() {
         checkBody = ui.text("", 13f, mono = true).apply { setTextIsSelectable(true) }
         box.addView(checkBody)
         body.addView(ui.textButton("Проверить снова") { if (!busy) runCheck() })
-        footer(body, if (model.goal == "reinstall") "Установить заново" else "Установить") { install() }
+        footer(body, if (model.goal == "reinstall") "Установить / Обновить" else "Установить") { install() }
     }
 
     private fun runCheck() { begin("check", "check") }
@@ -357,7 +357,7 @@ class PanelDeployActivity : ServerScreenActivity() {
         if (role.isNotEmpty()) summary.addView(ui.stat("Доступ", PanelCommands.accessTitle(server["mode"]) + server["installedDomain"].let { if (it.isEmpty()) "" else ", $it" }).apply { setPadding(0, ui.dp(10), 0, 0) })
         if (server["version"].isNotEmpty()) summary.addView(ui.stat("Версия WDTT Panel", server["version"]).apply { setPadding(0, ui.dp(10), 0, 0) })
         // Updating is installing again with what is installed: nothing to choose, users and settings stay.
-        if (role.isNotEmpty()) body.addView(ui.button("Установить заново (обновить)", primary = true) { reinstall() }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(8) })
+        if (role.isNotEmpty()) body.addView(ui.button("Установить / Обновить", primary = true) { reinstall() }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(8) })
         if (role == "combined" || role == "panel") {
             body.addView(ui.section("Панель"))
             val panel = ui.card(); body.addView(panel)

@@ -415,16 +415,18 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         }
         val size = dp(MobileHomeLayout.orbSize(new))
         val orb = View(this).apply {
-            background = if (new) MobileOrbArtwork(context, getString(R.string.qmobile_orb_idle))
-                else MobilePowerArtwork(accent).apply { statusText = getString(R.string.qmobile_connect) }
+            // As the home screen draws it: the disc, the caption and the subscription and server line under them.
+            background = if (new) MobileOrbArtwork(context, getString(R.string.qmobile_orb_idle)).apply {
+                discSize = size; groupText = getString(R.string.subscription); serverText = Locale("", "de").displayCountry
+            } else MobilePowerArtwork(accent).apply { statusText = getString(R.string.qmobile_connect) }
         }
         val centre = FrameLayout(this)
-        centre.addView(orb, FrameLayout.LayoutParams(size, size, Gravity.TOP or Gravity.CENTER_HORIZONTAL))
+        centre.addView(orb, if (new) FrameLayout.LayoutParams(-1, size + dp(16), Gravity.TOP) else FrameLayout.LayoutParams(size, size, Gravity.TOP or Gravity.CENTER_HORIZONTAL))
         if (new && bottom) {
             centre.background = MobileDockGlass(MobilePalette.cardDp * resources.displayMetrics.density, MobileOrbArtwork.centerY(size), MobileOrbArtwork.radius(size) * 1.26f, dp(104).toFloat() * size / dp(190))
             centre.addView(check().apply { maxLines = 3 }, FrameLayout.LayoutParams(dp(92), -2, Gravity.START or Gravity.BOTTOM).apply { marginStart = dp(14); bottomMargin = dp(14) })
         }
-        box.addView(centre, LinearLayout.LayoutParams(-1, if (new) size + dp(4) else size + dp(18)))
+        box.addView(centre, LinearLayout.LayoutParams(-1, if (new) size + dp(if (bottom) 20 else 16) else size + dp(18)))
         if (new && !bottom) status()
         return box
     }

@@ -27,6 +27,13 @@ class MobileOrbArtwork(context: Context, private val idleText: String) : MobileP
     private var angle = 0f
     private var phase = 0f
     private val waitForFocus = Runnable { invalidateSelf() }
+    /** The disc's square, when the view is wider and taller than it: the text under it then has the view's width. */
+    var discSize = 0
+    /** The subscription in use, beside [serverText] on the line under the caption; shown connected or not. */
+    var groupText = ""
+        set(value) { if (field != value) { field = value; invalidateSelf() } }
+    /** How wide the text under the disc may be, 0 for the view's width (the dock keeps its corners for the check and speed). */
+    var textRoom = 0f
     override var connected = false
         set(value) { if (field != value) { field = value; invalidateSelf() } }
     override var focused = false
@@ -86,10 +93,11 @@ class MobileOrbArtwork(context: Context, private val idleText: String) : MobileP
         } else { wave = waveTo; spin = spinTo; lit = litTo }
 
         val cx = bounds.exactCenterX()
-        val rest = radius(minOf(bounds.width(), bounds.height()))
+        val disc = if (discSize > 0) discSize else minOf(bounds.width(), bounds.height())
+        val rest = radius(disc)
         val base = rest * pressScale
         // The rings fade out inside the view: it clips whatever leaves it.
-        val cy = bounds.top + centerY(minOf(bounds.width(), bounds.height()))
+        val cy = bounds.top + centerY(disc)
         val ink = MobilePalette.text
         val day = MobilePalette.light
         shaders(cx, cy, base, day, ink)
@@ -164,11 +172,12 @@ class MobileOrbArtwork(context: Context, private val idleText: String) : MobileP
 
         // Caption under the waves, with the workers of WDTT, qWDTT and CSQTT beside the time.
         paint.style = Paint.Style.FILL; paint.textAlign = Paint.Align.CENTER; paint.typeface = font
-        // A smaller button keeps the caption and the time inside it, at the same proportions, whatever the state:
-        // the two lines take 51 dp under the disc.
-        val fit = ((bounds.bottom - cy - rest) / (51f * density)).coerceIn(.6f, 1f)
+        // A smaller button keeps its lines inside it, at the same proportions whatever the state: the caption and the
+        // time take 51 dp under the disc, the subscription and server line 19 more.
+        val withServer = serverText.isNotEmpty() || groupText.isNotEmpty()
+        val fit = ((bounds.bottom - cy - rest) / ((if (withServer) 70f else 51f) * density)).coerceIn(.6f, 1f)
         val top = cy + rest + 22f * density * fit
-        val wide = bounds.width() * .94f
+        val wide = (if (textRoom > 0f) minOf(textRoom, bounds.width().toFloat()) else bounds.width().toFloat()) * .94f
         fun line(text: String, size: Float, y: Float) {
             paint.textSize = size * density * fit
             val measured = paint.measureText(text)
@@ -181,16 +190,12 @@ class MobileOrbArtwork(context: Context, private val idleText: String) : MobileP
             paint.color = ink; paint.isFakeBoldText = true
             line(if (workersText.isEmpty()) elapsedText else "$elapsedText   $workersText", 16f, top + 25f * density * fit)
             paint.isFakeBoldText = false
-            // The server in use under the time, when the button leaves room for it.
-            if (serverText.isNotEmpty() && top + 44f * density * fit <= bounds.bottom) {
-                paint.textSize = 12f * density * fit; paint.color = MobilePalette.muted
-                val text = android.text.TextUtils.ellipsize(serverText, android.text.TextPaint(paint), wide, android.text.TextUtils.TruncateAt.END).toString()
-                canvas.drawText(text, cx, top + 44f * density * fit, paint)
-            }
         } else if (workersText.isNotEmpty()) {
             paint.color = MobilePalette.muted
             line(workersText, 13f, top + 22f * density * fit)
         }
+        // The subscription and the server in use, under the time, or under the caption while idle.
+        if (withServer) serverLine(canvas, cx, top + (if (connected || workersText.isNotEmpty()) 44f else 22f) * density * fit, 12f * density * fit, wide, ink)
         // A slow wave needs no more than 60 frames a second, whatever the screen's rate; a window over it,
         // a screen change or a scrolling list pauses it, so that all the frame time is theirs.
         if (animated) {
@@ -198,6 +203,23 @@ class MobileOrbArtwork(context: Context, private val idleText: String) : MobileP
             val free = !frozen && now >= scrollingUntil && (callback as? android.view.View)?.hasWindowFocus() != false
             scheduleSelf(waitForFocus, now + if (free) 16L else 150L)
         }
+    }
+
+    /** "Subscription · server": the subscription muted and cut first, to at most 40 % of the line, then the server. */
+    private fun serverLine(canvas: Canvas, cx: Float, y: Float, size: Float, wide: Float, ink: Int) {
+        val text = android.text.TextPaint(paint).apply { textSize = size; textAlign = Paint.Align.LEFT; isFakeBoldText = false }
+        val separator = if (groupText.isNotEmpty() && serverText.isNotEmpty()) "  ·  " else ""
+        var group = groupText
+        var server = serverText
+        if (text.measureText(group + separator + server) > wide && group.isNotEmpty())
+            group = android.text.TextUtils.ellipsize(group, text, minOf(text.measureText(group), wide * .4f), android.text.TextUtils.TruncateAt.END).toString()
+        val head = group + separator
+        if (text.measureText(head + server) > wide)
+            server = android.text.TextUtils.ellipsize(server, text, (wide - text.measureText(head)).coerceAtLeast(0f), android.text.TextUtils.TruncateAt.END).toString()
+        var x = cx - text.measureText(head + server) / 2
+        text.color = MobilePalette.muted; canvas.drawText(head, x, y, text)
+        x += text.measureText(head)
+        text.color = ink; canvas.drawText(server, x, y, text)
     }
 
     companion object {
