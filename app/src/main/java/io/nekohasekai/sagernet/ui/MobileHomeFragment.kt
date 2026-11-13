@@ -843,7 +843,9 @@ class MobileHomeFragment : ToolbarFragment() {
                     !byGroups && !group.isSubscription && group.name==SagerDatabase.defaultGroupName() && profiles.isEmpty()
                 }
                 val windows=groups.associate { (group,profiles) -> group.id to MobileProfilePaging.window(profiles.map { it.id },pageSnapshot[group.id],selected) }
-                val keys=groups.map { (group,profiles) -> GroupContent(group.copy(subOptions=group.subOptions.copy()),profiles.map { ProfileContent(it.id,it.type,it.name,it.outboundJson) },!byGroups && group.subOptions.allowCollapse && group.id in collapsedSnapshot,windows.getValue(group.id).page,colors,routeLabel(group,profiles.firstOrNull { it.id==selected } ?: profiles.firstOrNull())) }
+                val keys=groups.map { (group,profiles) -> GroupContent(group.copy(subOptions=group.subOptions.copy()),profiles.map { ProfileContent(it.id,it.type,it.name,it.outboundJson) },!byGroups && group.subOptions.allowCollapse && group.id in collapsedSnapshot,windows.getValue(group.id).page,colors,
+                    // Only the cards on the screen carry the line: grouped, that is the focused subscription alone.
+                    if(!byGroups || group.id==focusedGroup) routeLabel(group,profiles.firstOrNull { it.id==selected } ?: profiles.firstOrNull()) else "") }
                 focusedRoute=runCatching { app.rawline.mobile.route.RouteSource.of(GroupRepo.get(if(byGroups) focusedGroup else GroupRepo.currentId())) }.getOrNull()
                 // Parse only displayed profiles off the UI thread. A collapsed subscription creates no rows.
                 if(previousStructure != keys) groups.forEach { (group,profiles) ->
@@ -956,10 +958,13 @@ class MobileHomeFragment : ToolbarFragment() {
                 header.gravity = Gravity.CENTER
                 header.addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
                     if (right - left != oldRight - oldLeft) {
-                        val size = minOf(dp(MobileHomeLayout.tileSize()), ((right - left - dp(8) * (tiles.size - 1)) / tiles.size).coerceAtLeast(1))
+                        val full = dp(MobileHomeLayout.tileSize())
+                        val size = minOf(full, ((right - left - dp(8) * (tiles.size - 1)) / tiles.size).coerceAtLeast(1))
+                        // The tile bar spans the row whatever tiles were taken away; the standard pair stays square in the corners.
+                        val stretch = extended && size == full
                         tiles.forEach { button ->
                             button.layoutParams = (button.layoutParams as LinearLayout.LayoutParams).apply {
-                                width = size; height = size; weight = 0f
+                                width = if (stretch) 0 else size; height = size; weight = if (stretch) 1f else 0f
                             }
                         }
                     }
@@ -1019,14 +1024,14 @@ class MobileHomeFragment : ToolbarFragment() {
                     }
                     rows.addView(pair,LinearLayout.LayoutParams(-1,-2))
                     modeSwitches=switches.toMap()
-                    power=text("",13f,muted).apply { gravity=Gravity.CENTER;maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END }
+                    // The state, the subscription and the server, a line each in one size (updateState trims each line).
+                    power=text("",12f,muted).apply { gravity=Gravity.CENTER;maxLines=3;includeFontPadding=false }
                     if(switches.size==1) {
                         // The removed switch's half shows the state and the server in use, so no gap is left.
                         power?.let { cell ->
                             cell.tag=SWITCH_CELL;cell.gravity=Gravity.START or Gravity.CENTER_VERTICAL;cell.setPadding(dp(10),dp(2),dp(6),dp(2));cell.minimumHeight=switchHeight
                             // Free room, not a button: the text sits on the screen beside the remaining switch.
-                            cell.background=null;cell.maxLines=2;cell.ellipsize=android.text.TextUtils.TruncateAt.END;cell.setLineSpacing(dp(2).toFloat(),1f)
-                            androidx.core.widget.TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(cell,9,13,1,android.util.TypedValue.COMPLEX_UNIT_SP)
+                            cell.background=null
                             pair.addView(cell,if(landscape) LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(6) } else LinearLayout.LayoutParams(0,-1,1f).apply { marginStart=dp(8) })
                         }
                     }
@@ -1239,17 +1244,18 @@ class MobileHomeFragment : ToolbarFragment() {
                     val check=status.childrenList().firstOrNull { it!==sheetDown && it!==sheetUp }
                     status.removeAllViews()
                     stateLine.tag=SWITCH_CELL;stateLine.gravity=Gravity.START or Gravity.CENTER_VERTICAL;stateLine.setPadding(0,0,dp(8),0)
-                    androidx.core.widget.TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(stateLine,9,13,1,android.util.TypedValue.COMPLEX_UNIT_SP)
                     status.addView(stateLine,LinearLayout.LayoutParams(0,-1,1f))
                     val speeds=LinearLayout(requireContext()).apply { gravity=Gravity.END;listOfNotNull(sheetDown,sheetUp).forEach { addView(it,LinearLayout.LayoutParams(dp(78),dp(20))) } }
                     status.addView(LinearLayout(requireContext()).apply {
                         orientation=LinearLayout.VERTICAL;gravity=Gravity.END or Gravity.CENTER_VERTICAL
-                        check?.let { addView(it,LinearLayout.LayoutParams(dp(156),dp(22))); currentCheck?.gravity=Gravity.END or Gravity.CENTER_VERTICAL }
+                        check?.let { addView(it,LinearLayout.LayoutParams(dp(156),-2)); currentCheck?.gravity=Gravity.END or Gravity.CENTER_VERTICAL }
                         addView(speeds,LinearLayout.LayoutParams(-2,-2))
                     },LinearLayout.LayoutParams(-2,-1))
                     // Only the speed hides while disconnected; the state stays readable.
                     sheetSpeed=speeds
-                    status.layoutParams=status.layoutParams.apply { height=dp(46) }
+                    // As tall as its three lines or the check over the speed, whichever is taller.
+                    status.minimumHeight=dp(46);status.setPadding(status.paddingLeft,dp(4),status.paddingRight,dp(4))
+                    status.layoutParams=status.layoutParams.apply { height=-2 }
                 }
                 // The parts chosen in the editor move from above the list into its own scroll, in their order; the others
                 // stay on the screen. What belongs to no part (the check line, the geo notice) goes with the list.
@@ -1653,9 +1659,13 @@ class MobileHomeFragment : ToolbarFragment() {
             if(background !is MobilePowerArtwork) {
                 val elapsed=String.format(java.util.Locale.ROOT,"%02d:%02d:%02d",seconds/3600,seconds/60%60,seconds%60)
                 val workers=snapshot?.takeIf { it.total>0 && !testing }?.let { "  ${it.active}/${it.total}" }.orEmpty()
-                val server=if(state.connected) runningServerName() else ""
-                val label=caption.ifEmpty { getString(R.string.qmobile_orb_idle) }+(if(state.connected) "  $elapsed" else "")+workers+
-                    (if(server.isNotEmpty()) "\n$server" else "")
+                val (group,server)=if(state.connected) runningServer() else "" to ""
+                // A line each, cut to the width on its own: a long subscription name no longer pushes the server out.
+                val room=(width-totalPaddingLeft-totalPaddingRight).toFloat()
+                val label=listOf(caption.ifEmpty { getString(R.string.qmobile_orb_idle) }+(if(state.connected) "  $elapsed" else "")+workers,group,server)
+                    .filter { it.isNotEmpty() }
+                    .joinToString("
+") { if(room>0f) android.text.TextUtils.ellipsize(it,paint,room,android.text.TextUtils.TruncateAt.END).toString() else it }
                 if(text.toString()!=label) text=label
             }
             val fontSize=textSize
@@ -1665,22 +1675,21 @@ class MobileHomeFragment : ToolbarFragment() {
                 elapsedText=String.format(java.util.Locale.ROOT,"%02d:%02d:%02d",seconds/3600,seconds/60%60,seconds%60)
                 // Running workers out of those started, as the original WDTT/qWDTT/CSQTT apps show them.
                 workersText=snapshot?.takeIf { it.total>0 && !testing }?.let { "${it.active}/${it.total}" }.orEmpty()
-                serverText=if(state.connected) runningServerName() else ""
+                serverText=if(state.connected) runningServer().let { (group,server) -> if(group.isEmpty()) server else "[$group] $server" } else ""
             }
         }
     }
-    private var runningServer: Pair<Long,String>?=null
-    /** The server in use under the state line, "[subscription] server" as on the desktop, looked up once per selection. */
-    private fun runningServerName(): String {
+    private var runningServerCache: Pair<Long,Pair<String,String>>?=null
+    /** The subscription and the server in use, looked up once per selection. */
+    private fun runningServer(): Pair<String,String> {
         val id=DataStore.currentProfile.takeIf { it>0 } ?: DataStore.selectedProxy
-        runningServer?.takeIf { it.first==id }?.let { return it.second }
-        val name=runCatching {
-            val profile=app.rawline.mobile.database.SagerDatabase.proxyDao.getById(id) ?: return@runCatching ""
-            val group=app.rawline.mobile.database.SagerDatabase.groupDao.getById(profile.groupId)?.displayName().orEmpty()
-            (if(group.isNotEmpty()) "[$group] " else "")+profile.displayName()
-        }.getOrNull().orEmpty()
-        runningServer=id to name
-        return name
+        runningServerCache?.takeIf { it.first==id }?.let { return it.second }
+        val names=runCatching {
+            val profile=app.rawline.mobile.database.SagerDatabase.proxyDao.getById(id) ?: return@runCatching "" to ""
+            app.rawline.mobile.database.SagerDatabase.groupDao.getById(profile.groupId)?.displayName().orEmpty() to profile.displayName()
+        }.getOrNull() ?: ("" to "")
+        runningServerCache=id to names
+        return names
     }
     private fun updateLatencies() {
         val state=TestSessionClient.state.value

@@ -164,23 +164,32 @@ class MobileOrbArtwork(context: Context, private val idleText: String) : MobileP
 
         // Caption under the waves, with the workers of WDTT, qWDTT and CSQTT beside the time.
         paint.style = Paint.Style.FILL; paint.textAlign = Paint.Align.CENTER; paint.typeface = font
-        val top = cy + rest + 22f * density
-        paint.textSize = 13f * density
+        // A smaller button keeps the caption and the time inside it, at the same proportions, whatever the state:
+        // the two lines take 51 dp under the disc.
+        val fit = ((bounds.bottom - cy - rest) / (51f * density)).coerceIn(.6f, 1f)
+        val top = cy + rest + 22f * density * fit
+        val wide = bounds.width() * .94f
+        fun line(text: String, size: Float, y: Float) {
+            paint.textSize = size * density * fit
+            val measured = paint.measureText(text)
+            if (measured > wide) paint.textSize *= wide / measured
+            canvas.drawText(text, cx, y, paint)
+        }
         paint.color = MobilePalette.muted
-        canvas.drawText(statusText.ifEmpty { idleText }, cx, top, paint)
+        line(statusText.ifEmpty { idleText }, 13f, top)
         if (connected) {
-            paint.textSize = 16f * density; paint.color = ink; paint.isFakeBoldText = true
-            canvas.drawText(if (workersText.isEmpty()) elapsedText else "$elapsedText   $workersText", cx, top + 25f * density, paint)
+            paint.color = ink; paint.isFakeBoldText = true
+            line(if (workersText.isEmpty()) elapsedText else "$elapsedText   $workersText", 16f, top + 25f * density * fit)
             paint.isFakeBoldText = false
             // The server in use under the time, when the button leaves room for it.
-            if (serverText.isNotEmpty() && top + 44f * density <= bounds.bottom) {
-                paint.textSize = 12f * density; paint.color = MobilePalette.muted
-                val line = android.text.TextUtils.ellipsize(serverText, android.text.TextPaint(paint), bounds.width() * .9f, android.text.TextUtils.TruncateAt.END).toString()
-                canvas.drawText(line, cx, top + 44f * density, paint)
+            if (serverText.isNotEmpty() && top + 44f * density * fit <= bounds.bottom) {
+                paint.textSize = 12f * density * fit; paint.color = MobilePalette.muted
+                val text = android.text.TextUtils.ellipsize(serverText, android.text.TextPaint(paint), wide, android.text.TextUtils.TruncateAt.END).toString()
+                canvas.drawText(text, cx, top + 44f * density * fit, paint)
             }
         } else if (workersText.isNotEmpty()) {
-            paint.textSize = 13f * density; paint.color = MobilePalette.muted
-            canvas.drawText(workersText, cx, top + 22f * density, paint)
+            paint.color = MobilePalette.muted
+            line(workersText, 13f, top + 22f * density * fit)
         }
         // A slow wave needs no more than 60 frames a second, whatever the screen's rate; a window over it,
         // a screen change or a scrolling list pauses it, so that all the frame time is theirs.

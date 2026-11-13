@@ -1,5 +1,6 @@
 package app.rawline.mobile.route
 
+import app.rawline.mobile.database.DataStore
 import app.rawline.mobile.database.ProxyGroup
 import app.rawline.mobile.database.RouteManager
 import app.rawline.mobile.group.ProviderApps
@@ -19,13 +20,15 @@ object RouteSource {
     }
 
     fun of(group: ProxyGroup?): Info {
-        val global = RouteManager.current()
+        // Rows without their rules: the home screen asks this for every card on each refresh.
+        val global = RouteManager.header(DataStore.currentRouteId)?.takeUnless { it.isRaw }
+            ?: RouteManager.current().let { RouteManager.header(it.id) } ?: return Info(Kind.CLIENT, "", null)
         if (group == null) return Info(Kind.CLIENT, global.name, null)
         val options = group.subOptions
         val apps = options.takeUnless { it.providerIgnoreImport }?.providerApps?.let { ProviderApps.fromJson(it) }
-        val own = RouteManager.routeFor(group.id)
-        // A raw group profile is skipped by buildMainWith, so it does not decide the routing either.
-        if (own.id != global.id && !own.is_raw) return Info(Kind.GROUP, own.name, apps)
+        // A raw group profile is skipped by buildMainWith (RouteManager.routeFor), so it does not decide the routing either.
+        val own = RouteManager.groupRouteId(group).takeIf { it > 0L && it != global.id }?.let { RouteManager.header(it) }?.takeUnless { it.isRaw }
+        if (own != null) return Info(Kind.GROUP, own.name, apps)
         return kind(options.routingProvider, options.providerRoutingEnabled, options.providerRouting, global.name, apps)
     }
 

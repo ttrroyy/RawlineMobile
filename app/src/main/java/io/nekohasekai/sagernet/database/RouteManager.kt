@@ -109,8 +109,13 @@ object RouteManager {
     // The group editor stores its choice in the subscription options; the routeId column takes over once set.
     private fun groupRouteId(gid: Long): Long {
         val group = (if (gid > 0L) SagerDatabase.groupDao.getById(gid) else null) ?: return -1L
-        return group.routeId.takeIf { it > 0L } ?: group.subOptions.routeProfileId
+        return groupRouteId(group)
     }
+
+    fun groupRouteId(group: ProxyGroup): Long = group.routeId.takeIf { it > 0L } ?: group.subOptions.routeProfileId
+
+    /** A profile's row without its rules: for labels that are redrawn with the home screen. */
+    fun header(id: Long): RouteProfileEntity? = if (id > 0L) dao.getProfile(id) else null
 
     private fun globalRouteId(): Long = DataStore.currentRouteId.takeIf { isUsable(it) } ?: current().id
 

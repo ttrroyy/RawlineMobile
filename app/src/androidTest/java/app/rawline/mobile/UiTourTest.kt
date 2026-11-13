@@ -128,7 +128,7 @@ class UiTourTest {
         if (!readme) ProviderGeoAssets.states.value = mapOf(group.id to ProviderGeoAssets.Status(complete = true))
         Thread.sleep(1000)
     }
-    private fun orb(connected: Boolean, bottom: Boolean = false, control: String = "button", readme: Boolean = false) {
+    private fun orb(connected: Boolean, bottom: Boolean = false, control: String = "button", readme: Boolean = false, lines: Boolean = false) {
         home("groups", control, bottom = bottom, readme = readme)
         // The home screen rewrites the state every second from the real service, so it is held here until the picture.
         repeat(24) {
@@ -146,6 +146,9 @@ class UiTourTest {
                         if (readme && label.startsWith("↑")) view.text = "↑ 312 КБ/s"
                         if (readme && label.startsWith("Нажмите")) view.text = "Подключено · 00:12:49"
                         if (label == context.getString(R.string.qmobile_check_connection)) view.visibility = android.view.View.VISIBLE
+                        // The three lines a live connection writes beside the switches, a long subscription name among them.
+                        if (lines && view.tag == "switchCell") view.text = listOf("Подключено  00:12:49", "svc-cdn.cloud-node.uk подписка с длинным именем", "🇸🇪 se-tcp-reality-long-server-name")
+                            .joinToString("\n") { android.text.TextUtils.ellipsize(it, view.paint, (view.width - view.totalPaddingLeft - view.totalPaddingRight).toFloat().coerceAtLeast(1f), android.text.TextUtils.TruncateAt.END).toString() }
                     }
                     if (view is android.view.ViewGroup) for (index in 0 until view.childCount) walk(view.getChildAt(index))
                 }
@@ -313,7 +316,39 @@ class UiTourTest {
         "home-route-chip" to { RouteManager.ensureDefault(); home("groups", routeChip = true); click(R.string.qmobile_route_chip) },
         "readme-top" to { orb(true, readme = true) },
         "readme-switches" to { orb(true, bottom = true, control = "switches", readme = true) },
-    )
+        // The connected home screen in each control layout, the state lines as updateState writes them.
+        "home-switches-connected" to { layout(); orb(true, control = "switches", lines = true) },
+        "home-switch-removed-connected" to { layout(hiddenSwitch = app.rawline.mobile.Key.MODE_PROXY); orb(true, control = "switches", lines = true) },
+        "home-compact-connected" to { layout(compact = true); orb(true) },
+        "home-compact-idle" to { layout(compact = true); home("groups") },
+        "home-tile-removed" to { layout(hiddenTiles = setOf("groups")); home("groups", tiles = "on") },
+        "layout-editor-selected" to {
+            layout(); editor()
+            val control = frameOf(R.string.qmobile_layout_control)
+            val at = android.os.SystemClock.uptimeMillis()
+            touch(android.view.MotionEvent.ACTION_DOWN, control.exactCenterX(), control.exactCenterY(), at)
+            touch(android.view.MotionEvent.ACTION_UP, control.exactCenterX(), control.exactCenterY(), at)
+            Thread.sleep(1200)
+        },
+    ) + (0..5).map { step ->
+        // Each tutorial step half way through its loop.
+        "layout-tutorial-$step" to {
+            layout()
+            DataStore.configurationStore.putBoolean("qmobileLayoutTutorialSeen", false)
+            editor()
+            repeat(step) { tap(R.string.qmobile_layout_tutorial_next) }
+            Thread.sleep(2100L - if (step > 0) 2000L else 0L)
+        }
+    }
+
+    /** The editor's choices back to the defaults, then [hiddenSwitch], [hiddenTiles] and [compact]. */
+    private fun layout(hiddenSwitch: String = "", hiddenTiles: Set<String> = emptySet(), compact: Boolean = false) {
+        MobileHomeLayout.hiddenSwitch = hiddenSwitch
+        MobileHomeLayout.hiddenTiles = hiddenTiles
+        MobileHomeLayout.compactControl = compact
+        MobileHomeLayout.compactTiles = false
+        MobileHomeLayout.scrollParts = emptySet()
+    }
 
     @Test fun photographOneScreen() {
         val arguments = InstrumentationRegistry.getArguments()

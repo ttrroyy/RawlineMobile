@@ -52,6 +52,9 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     private val accent get() = MobilePalette.accent(this)
     private val parts = mutableMapOf<Part, FrameLayout>()
     private val dashes = mutableMapOf<Part, GradientDrawable>()
+    /** The part whose small buttons show: a tap on a part shows them and its outline grows to hold them. */
+    private var selected: Part? = null
+    private val strips = mutableMapOf<Part, View>()
     /** Every small button in the miniature with what it does, by the part it sits on. */
     private val actions = mutableMapOf<Part, List<LayoutAction>>()
     private lateinit var column: LinearLayout
@@ -185,9 +188,8 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     }
 
     private fun frameFor(part: Part) = FrameLayout(this).apply {
-        // The top strip inside the outline holds the part's buttons, so nothing hangs over the edges.
-        // Room on the sides for the corner badges of the tiles and switches, and on top for the strip.
-        setPadding(dp(12), dp(42), dp(12), dp(10))
+        // Snug round the part; selected, the top grows to hold its buttons inside the outline (select).
+        padFrame(this, false)
         val dash = GradientDrawable().apply {
             cornerRadius = dp(MobilePalette.rowDp + 4).toFloat()
             setStroke(dp(2), MobilePalette.text, dp(7).toFloat(), dp(5).toFloat())
@@ -202,6 +204,20 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         setOnFocusChangeListener { view, focused -> view.animate().scaleX(if (focused) 1.02f else 1f).scaleY(if (focused) 1.02f else 1f).setDuration(120).start() }
         addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> if (dragged == part) follow() }
     }
+
+    private fun padFrame(frame: View, open: Boolean) = frame.setPadding(dp(8), dp(if (open) 40 else 8), dp(8), dp(8))
+
+    /** Shows [part]'s buttons, or hides them all for null, the outline growing or shrinking as on a real change. */
+    private fun select(part: Part?) {
+        if (selected == part) return
+        TransitionManager.beginDelayedTransition(column, android.transition.AutoTransition().setDuration(180))
+        selected = part
+        parts.forEach { (each, frame) -> padFrame(frame, each == part) }
+        strips.forEach { (each, strip) -> strip.visibility = if (each == part) View.VISIBLE else View.GONE }
+    }
+
+    /** A change of a part's look, animated as the tutorial plays it. */
+    private fun changing() = TransitionManager.beginDelayedTransition(column, ChangeBounds().setDuration(180))
 
     private fun menu(part: Part, anchor: View) {
         val popup = PopupMenu(this, anchor)
@@ -227,16 +243,19 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     }
 
     private fun setSwitches(switches: Boolean) {
+        changing()
         MobileHomeLayout.controlSwitches = switches
         fill(Part.CONTROL)
     }
 
     private fun setChipExtended(extended: Boolean) {
+        changing()
         MobileHomeLayout.extendedChip = extended
         fill(Part.CHIP)
     }
 
     private fun setExtended(extended: Boolean) {
+        changing()
         MobileHomeLayout.extendedTiles = extended
         fill(Part.TILES)
     }
@@ -287,8 +306,10 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
                 button(if (compact(part)) R.drawable.ic_layout_grow else R.drawable.ic_layout_shrink, R.string.qmobile_layout_size) { setCompact(part, !compact(part)) }
             }
         }
-        // 6 dp under the outline and clear of its rounded corner; 10 dp above the part itself.
-        box.addView(strip, FrameLayout.LayoutParams(-2, dp(26), Gravity.TOP or Gravity.END).apply { topMargin = -dp(36); marginEnd = dp(10) })
+        // In the grown top of a selected outline: 6 dp under the outline and clear of its corner, 8 dp above the part.
+        strip.visibility = if (selected == part) View.VISIBLE else View.GONE
+        box.addView(strip, FrameLayout.LayoutParams(-2, dp(26), Gravity.TOP or Gravity.END).apply { topMargin = -dp(34); marginEnd = dp(6) })
+        strips[part] = strip
         actions[part] = items
     }
 
@@ -332,12 +353,12 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
                     TransitionManager.beginDelayedTransition(column, ChangeBounds().setDuration(160)); fill(Part.TILES)
                 }
             } + if (new) emptyList() else listOf(icon(R.drawable.ic_mobile_add))
-            views.forEachIndexed { index, view -> addView(view, LinearLayout.LayoutParams(size, size).apply { if (index < views.lastIndex) marginEnd = dp(8) }) }
-            // A narrow frame (the side column of a tablet) shrinks the tiles instead of pushing the last past the outline.
+            // Spanning the row as on the home screen; a narrow frame (a tablet's side column) shrinks them instead.
+            views.forEachIndexed { index, view -> addView(view, LinearLayout.LayoutParams(0, size, 1f).apply { if (index < views.lastIndex) marginEnd = dp(8) }) }
             addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
                 if (right - left == oldRight - oldLeft) return@addOnLayoutChangeListener
                 val fit = minOf(size, ((right - left - dp(8) * views.lastIndex) / views.size).coerceAtLeast(1))
-                post { views.forEach { view -> view.layoutParams = (view.layoutParams as LinearLayout.LayoutParams).apply { width = fit; height = fit } } }
+                if (fit < size) post { views.forEach { view -> view.layoutParams = (view.layoutParams as LinearLayout.LayoutParams).apply { width = fit; height = fit; weight = 0f } } }
             }
         } else {
             addView(icon(if (new) R.drawable.ic_mobile_more else R.drawable.ic_mobile_settings), LinearLayout.LayoutParams(size, size))
@@ -373,8 +394,11 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
                 listOf(Key.MODE_VPN to R.string.service_mode_vpn, Key.MODE_PROXY to R.string.service_mode_proxy).forEachIndexed { index, (mode, label) ->
                     val cell: View = if (mode == hidden) {
                         // What the home screen puts in a removed switch's place: the server in use.
-                        ui.text("[" + getString(R.string.subscription) + "] " + Locale("", "de").displayCountry, 13f, MobilePalette.muted).apply {
-                            gravity = Gravity.START or Gravity.CENTER_VERTICAL; maxLines = 2; setPadding(dp(14), dp(2), dp(26), dp(2)); background = MobilePalette.rowShape(context)
+                        // As the home screen writes it there: the state, the subscription and the server, without a frame.
+                        ui.text(getString(R.string.qmobile_connected) + "  00:12:49
+" + getString(R.string.subscription) + "
+" + Locale("", "de").displayCountry, 12f, MobilePalette.muted).apply {
+                            gravity = Gravity.START or Gravity.CENTER_VERTICAL; maxLines = 3; includeFontPadding = false; setPadding(dp(10), dp(2), dp(26), dp(2))
                         }
                     } else LinearLayout(context).apply {
                         gravity = Gravity.CENTER_VERTICAL; setPadding(dp(14), dp(2), dp(8), dp(2)); background = MobilePalette.rowShape(context)
@@ -412,7 +436,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     private fun serverList() = FrameLayout(this).apply {
         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
         addView(LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL; alpha = .55f
+            orientation = LinearLayout.VERTICAL
             if (!MobileStyle.new) addView(check(), LinearLayout.LayoutParams(-1, dp(32)))
             for (code in listOf("de", "fi", "nl", "se", "us", "jp", "gb", "ca", "fr", "pl")) addView(LinearLayout(context).apply {
                 gravity = Gravity.CENTER_VERTICAL; setPadding(dp(12), 0, dp(12), 0); background = MobilePalette.rowShape(context)
@@ -445,6 +469,8 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         fingerY = y
         grabY = y - boundsOf(frame).top
         frame.rotation = 0f
+        // Carried over the list, the part covers it instead of mixing with it.
+        frame.background = GradientDrawable().apply { setColor(MobilePalette.background); cornerRadius = dp(MobilePalette.rowDp + 4).toFloat() }
         frame.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
         frame.animate().scaleX(1.03f).scaleY(1.03f).translationZ(dp(8).toFloat()).setDuration(120).start()
     }
@@ -483,7 +509,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     private fun drop() {
         val frame = dragged?.let(parts::getValue) ?: return
         dragged = null
-        frame.animate().translationY(0f).scaleX(1f).scaleY(1f).translationZ(0f).setDuration(160).start()
+        frame.animate().translationY(0f).scaleX(1f).scaleY(1f).translationZ(0f).setDuration(160).withEndAction { frame.background = null }.start()
     }
 
     /** The whole screen at its own shape and orientation, scaled to the room there is; every touch lands here. */
@@ -517,7 +543,13 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         private val gestures = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onDown(event: MotionEvent) = true
             override fun onSingleTapConfirmed(event: MotionEvent): Boolean {
-                val action = actionAt(event.x / scale, event.y / scale) ?: return false
+                val action = actionAt(event.x / scale, event.y / scale)
+                if (action == null) {
+                    // A part shows its buttons; a tap on the list or on it again hides them.
+                    val part = partAt(event.x / scale, event.y / scale)
+                    select(if (part == selected) null else part)
+                    return true
+                }
                 performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                 action()
                 return true
