@@ -55,6 +55,12 @@ def tap_text(text):
     raise RuntimeError(f'UI control missing: {text}')
 
 def confirm_import_group(new=False):
+    # A shared subscription URL in the groups list mode asks what it is: a new subscription group here.
+    if new and 'Create new subscription group' in screen_xml():
+        capture('36-import-url-choice')
+        tap_text('Create new subscription group')
+        time.sleep(3)
+        return
     # Profiles are imported straight into the current group since the direct import; older builds still ask where.
     if 'Add to an existing group' not in screen_xml():
         return
