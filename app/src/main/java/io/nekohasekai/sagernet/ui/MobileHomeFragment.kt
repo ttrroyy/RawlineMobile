@@ -549,12 +549,14 @@ class MobileHomeFragment : ToolbarFragment() {
     private var routeChipView: TextView?=null
     /** The routing of the subscription in use, for the chip beside it; set off the main thread by refresh(). */
     @Volatile private var focusedRoute: app.rawline.mobile.route.RouteSource.Info?=null
-    private fun routeText(info: app.rawline.mobile.route.RouteSource.Info): String {
-        val base=when(info.kind) {
+    /** [xrayFull]: the subscription's servers are full Xray configs, whose own routing CoreConfigs keeps. */
+    private fun routeText(info: app.rawline.mobile.route.RouteSource.Info, xrayFull: Boolean = false): String {
+        val rest=if(xrayFull) getString(R.string.qmobile_route_label_xray_rest) else ""
+        val base=if(xrayFull && info.providerLocked) getString(R.string.qmobile_route_label_provider_xray) else when(info.kind) {
             app.rawline.mobile.route.RouteSource.Kind.PROVIDER -> getString(R.string.qmobile_route_label_provider,info.name)
             app.rawline.mobile.route.RouteSource.Kind.PROVIDER_OFF -> getString(R.string.qmobile_route_label_provider_off)
-            app.rawline.mobile.route.RouteSource.Kind.GROUP -> getString(R.string.qmobile_route_label_group,info.name)
-            app.rawline.mobile.route.RouteSource.Kind.CLIENT -> getString(R.string.qmobile_route_label_client,info.name)
+            app.rawline.mobile.route.RouteSource.Kind.GROUP -> getString(R.string.qmobile_route_label_group,info.name)+rest
+            app.rawline.mobile.route.RouteSource.Kind.CLIENT -> getString(R.string.qmobile_route_label_client,info.name)+rest
         }
         val apps=info.apps?.let { when {
             it.off -> getString(R.string.qmobile_route_apps_off)
@@ -564,10 +566,10 @@ class MobileHomeFragment : ToolbarFragment() {
         return if(apps==null) base else "$base · $apps"
     }
     /** The card's routing line: every subscription, and a plain group only when it has a routing profile of its own. */
-    private fun routeLabel(group: ProxyGroup): String {
+    private fun routeLabel(group: ProxyGroup, server: ProxyEntity?): String {
         val info=runCatching { app.rawline.mobile.route.RouteSource.of(group) }.getOrNull() ?: return ""
         if(!group.isSubscription && info.kind!=app.rawline.mobile.route.RouteSource.Kind.GROUP) return ""
-        return routeText(info)
+        return routeText(info,runCatching { server?.outbound?.isXrayFullConfig() == true }.getOrDefault(false))
     }
     /** The chip shows the routing the subscription in use really runs with. */
     private fun routeChipText(info: app.rawline.mobile.route.RouteSource.Info?): String? = when(info?.kind) {
@@ -579,7 +581,7 @@ class MobileHomeFragment : ToolbarFragment() {
     /** The routing profile beside the subscription: the same card, its own sheet. */
     private fun routeChip()=text("",16f).apply {
         setTypeface(typeface,Typeface.BOLD);maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END;gravity=Gravity.CENTER_VERTICAL
-        setPadding(dp(14),0,dp(10),0);background=tile();isFocusable=true;compoundDrawablePadding=dp(8)
+        setPadding(dp(16),0,dp(12),0);background=tile();isFocusable=true;compoundDrawablePadding=dp(8)
         contentDescription=getString(R.string.qmobile_route_chip)
         val icon=androidx.core.content.ContextCompat.getDrawable(requireContext(),R.drawable.ic_mobile_route)?.mutate()?.apply { setTint(foregroundColor);setBounds(0,0,dp(20),dp(20)) }
         val arrow=androidx.core.content.ContextCompat.getDrawable(requireContext(),R.drawable.ic_mobile_chevron)?.mutate()?.apply { setBounds(0,0,dp(22),dp(22)) }
@@ -841,7 +843,7 @@ class MobileHomeFragment : ToolbarFragment() {
                     !byGroups && !group.isSubscription && group.name==SagerDatabase.defaultGroupName() && profiles.isEmpty()
                 }
                 val windows=groups.associate { (group,profiles) -> group.id to MobileProfilePaging.window(profiles.map { it.id },pageSnapshot[group.id],selected) }
-                val keys=groups.map { (group,profiles) -> GroupContent(group.copy(subOptions=group.subOptions.copy()),profiles.map { ProfileContent(it.id,it.type,it.name,it.outboundJson) },!byGroups && group.subOptions.allowCollapse && group.id in collapsedSnapshot,windows.getValue(group.id).page,colors,routeLabel(group)) }
+                val keys=groups.map { (group,profiles) -> GroupContent(group.copy(subOptions=group.subOptions.copy()),profiles.map { ProfileContent(it.id,it.type,it.name,it.outboundJson) },!byGroups && group.subOptions.allowCollapse && group.id in collapsedSnapshot,windows.getValue(group.id).page,colors,routeLabel(group,profiles.firstOrNull { it.id==selected } ?: profiles.firstOrNull())) }
                 focusedRoute=runCatching { app.rawline.mobile.route.RouteSource.of(GroupRepo.get(if(byGroups) focusedGroup else GroupRepo.currentId())) }.getOrNull()
                 // Parse only displayed profiles off the UI thread. A collapsed subscription creates no rows.
                 if(previousStructure != keys) groups.forEach { (group,profiles) ->

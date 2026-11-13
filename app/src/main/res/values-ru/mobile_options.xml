@@ -13,6 +13,8 @@
 <string-array name="qmobile_seasons"><item>Выключено</item><item>Авто</item><item>Осень</item><item>Зима</item><item>Весна</item><item>Лето</item></string-array>
 <string name="provider_profile_source">Источник: %1$s</string>
 <string name="qmobile_route_label_provider">Маршрутизация провайдера: %s</string>
+<string name="qmobile_route_label_provider_xray">Маршрутизация Xray-конфига провайдера</string>
+<string name="qmobile_route_label_xray_rest">, остальное по Xray-конфигу</string>
 <string name="qmobile_route_label_provider_off">Провайдер выключил маршрутизацию: всё через сервер</string>
 <string name="qmobile_route_label_group">Своя маршрутизация: %s</string>
 <string name="qmobile_route_label_client">Маршрутизация: %s</string>

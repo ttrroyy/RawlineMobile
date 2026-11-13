@@ -53,7 +53,7 @@ object MobileHomeLayout {
         set(value) = store.putString("qmobileChipPosition", position(value))
     /** The routing profile beside the subscription, in the new style. */
     var extendedChip: Boolean
-        get() = MobileStyle.new && store.getBoolean("qmobileChipExtended", true)
+        get() = MobileStyle.new && store.getBoolean("qmobileChipExtended", false)
         set(value) = store.putBoolean("qmobileChipExtended", value)
     /** Between the connection control and the servers, rather than on the control's outer side. */
     var chipNearList: Boolean

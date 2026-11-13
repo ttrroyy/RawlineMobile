@@ -14,6 +14,8 @@
 <string-array name="qmobile_season_values"><item>none</item><item>auto</item><item>halloween</item><item>newyear</item><item>easter</item><item>kupala</item></string-array>
 <string name="provider_profile_source">Source: %1$s</string>
 <string name="qmobile_route_label_provider">Provider routing: %s</string>
+<string name="qmobile_route_label_provider_xray">Routing of the Xray config from the provider</string>
+<string name="qmobile_route_label_xray_rest">, the rest by the Xray config</string>
 <string name="qmobile_route_label_provider_off">Provider turned routing off: all through the server</string>
 <string name="qmobile_route_label_group">Own routing: %s</string>
 <string name="qmobile_route_label_client">Routing: %s</string>
