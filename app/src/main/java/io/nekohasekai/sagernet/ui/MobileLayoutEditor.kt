@@ -67,6 +67,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     private var grabY = 0f
     private var fingerY = 0f
     private var blink: ValueAnimator? = null
+    private var breath = 255
     private var tutorial: MobileLayoutTutorial? = null
     private var backToEditor: androidx.activity.OnBackPressedCallback? = null
 
@@ -132,6 +133,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
                 // The outlines breathe; the parts tremble slightly, each a little out of step.
                 val alpha = (157 + 98 * kotlin.math.sin(phase)).toInt()
                 dashes.forEach { (part, dash) -> dash.alpha = if (part == dragged) 255 else alpha }
+                breath = alpha
                 parts.entries.forEachIndexed { index, (part, frame) ->
                     frame.rotation = if (part == dragged) 0f else .3f * kotlin.math.sin(phase * 4 + index * 1.7f)
                 }
@@ -185,6 +187,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             column.addView(list, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(8) })
             order.reversed().filter(::isBottom).forEach(::add)
         }
+        updateJoins()
     }
 
     private fun frameFor(part: Part) = FrameLayout(this).apply {
@@ -214,7 +217,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         TransitionManager.beginDelayedTransition(column, ChangeBounds().setDuration(180))
         selected = part
         // A part without buttons (the subscription row at the bottom) keeps its outline as it is.
-        parts.forEach { (each, frame) -> padFrame(frame, each == part && (strips[each]?.childCount ?: 0) > 0) }
+        parts.forEach { (each, frame) -> padFrame(frame, each == part && ((strips[each] as? ViewGroup)?.childCount ?: 0) > 0) }
         strips.forEach { (each, strip) ->
             strip.animate().cancel()
             if (each == part) { strip.alpha = 0f; strip.visibility = View.VISIBLE; strip.animate().alpha(1f).setStartDelay(120).setDuration(120).start() }
@@ -268,10 +271,21 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         fill(part)
     }
 
+    /** The parts that scroll with the list: they share one dashed outline with it (Miniature.dispatchDraw). */
+    private fun joinedParts() = if (landscape) emptyList() else parts.keys.filter { it.id in MobileHomeLayout.scrollParts && !isBottom(it) }
+
+    /** A joined part gives up its own outline for the one round it and the list. */
+    private fun updateJoins() {
+        val joined = joinedParts()
+        parts.forEach { (part, frame) -> frame.foreground = if (part in joined) null else dashes[part] }
+        column.parent?.let { (it as View).invalidate() }
+    }
+
     private fun toggleScroll(part: Part) {
         val scrolls = MobileHomeLayout.scrollParts
         MobileHomeLayout.scrollParts = if (part.id in scrolls) scrolls - part.id else scrolls + part.id
         fill(part)
+        updateJoins()
         // The part rises a little with the list for a moment, to show that it scrolls now.
         if (part.id in MobileHomeLayout.scrollParts) parts.getValue(part).let { frame ->
             frame.animate().translationY(-dp(12).toFloat()).setDuration(200).withEndAction { frame.animate().translationY(0f).setDuration(200).start() }.start()
@@ -296,15 +310,10 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         }
         if (!isBottom(part) && !landscape) button(R.drawable.ic_layout_scroll, R.string.qmobile_layout_scroll, part.id in MobileHomeLayout.scrollParts) { toggleScroll(part) }
         when (part) {
-            Part.TILES -> {
-                button(R.drawable.ic_layout_swap, R.string.qmobile_layout_swap) { setExtended(!MobileHomeLayout.extendedTiles) }
-                button(if (compact(part)) R.drawable.ic_layout_grow else R.drawable.ic_layout_shrink, R.string.qmobile_layout_size) { setCompact(part, !compact(part)) }
-            }
+            // The size is a pinch only.
+            Part.TILES -> button(R.drawable.ic_layout_swap, R.string.qmobile_layout_swap) { setExtended(!MobileHomeLayout.extendedTiles) }
             Part.CHIP -> {}
-            Part.CONTROL -> {
-                button(R.drawable.ic_layout_swap, R.string.qmobile_layout_swap) { setSwitches(!MobileHomeLayout.controlSwitches) }
-                button(if (compact(part)) R.drawable.ic_layout_grow else R.drawable.ic_layout_shrink, R.string.qmobile_layout_size) { setCompact(part, !compact(part)) }
-            }
+            Part.CONTROL -> button(R.drawable.ic_layout_swap, R.string.qmobile_layout_swap) { setSwitches(!MobileHomeLayout.controlSwitches) }
         }
         // In the grown top of a selected outline: 6 dp under the outline and clear of its corner, 8 dp above the part.
         strip.visibility = if (selected == part) View.VISIBLE else View.GONE
@@ -585,6 +594,24 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         }
 
         override fun onInterceptTouchEvent(event: MotionEvent) = true
+
+        private val joinPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { style = android.graphics.Paint.Style.STROKE }
+        private val joinRect = android.graphics.RectF()
+
+        override fun dispatchDraw(canvas: android.graphics.Canvas) {
+            super.dispatchDraw(canvas)
+            // A part that scrolls with the list shares one dashed outline with it: one block that scrolls together.
+            val joined = joinedParts()
+            if (joined.isEmpty() || dragged != null) return
+            val bounds = boundsOf(list)
+            joined.forEach { bounds.union(boundsOf(parts.getValue(it))) }
+            joinRect.set(bounds.left * scale, bounds.top * scale, bounds.right * scale, bounds.bottom * scale)
+            joinPaint.strokeWidth = dp(2) * scale
+            joinPaint.pathEffect = android.graphics.DashPathEffect(floatArrayOf(dp(7) * scale, dp(5) * scale), 0f)
+            joinPaint.color = ColorUtils.setAlphaComponent(MobilePalette.text, breath)
+            val radius = dp(MobilePalette.rowDp + 4) * scale
+            canvas.drawRoundRect(joinRect, radius, radius, joinPaint)
+        }
 
         override fun onTouchEvent(event: MotionEvent): Boolean {
             pinches.onTouchEvent(event)
