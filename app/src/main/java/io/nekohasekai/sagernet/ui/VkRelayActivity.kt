@@ -168,14 +168,14 @@ class VkRelayActivity : ThemedActivity() {
             choice("MRTT: транспорт TURN",listOf("udp","tcp_tls"),listOf("UDP (по умолчанию)","TCP/TLS"),{ DataStore.relayDefaultMrttTransport }) { DataStore.relayDefaultMrttTransport=it }
             val deploy = PreferenceCategory(requireContext()).apply { title = "Управление серверами" }
             preferenceScreen.addPreference(deploy)
-            for(kind in listOf("mrtt","qwdtt","csqtt","wdttplus","freeturn")) deploy.addPreference(Preference(requireContext()).apply {
-                title = "Деплой " + DeployActivity.title(kind)
+            deploy.addPreference(Preference(requireContext()).apply {
+                title = "Деплой";summary = "WDTT Panel и нода на вашем VPS"
                 setIcon(R.drawable.ic_mobile_core);widgetLayoutResource=R.layout.qmobile_preference_arrow
                 fragment=DeployListFragment::class.java.name
-                extras.putString("kind",kind)
+                // Outside the settings this screen has its own window: the list opens in it.
                 setOnPreferenceClickListener {
                     if(parentFragment is SettingsFragment) false else {
-                        startActivity(android.content.Intent(requireContext(),DeployActivity::class.java).putExtra("kind",kind));true
+                        parentFragmentManager.beginTransaction().replace((requireView().parent as android.view.View).id,DeployListFragment()).addToBackStack(null).commit();true
                     }
                 }
             })

@@ -17,7 +17,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import app.rawline.mobile.R
-import app.rawline.mobile.deploy.DeployEngine
+import app.rawline.mobile.deploy.PanelOperation
 import app.rawline.mobile.deploy.DeployServer
 import app.rawline.mobile.deploy.DeployStore
 import app.rawline.mobile.widget.applyListInsets
@@ -26,13 +26,12 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** The lightweight settings list; encrypted VPS credentials are read off the UI thread. */
+/** The VPS of the panel deploy; encrypted SSH access is read off the UI thread. */
 class DeployListFragment : Fragment() {
     private lateinit var body: LinearLayout
     private var load: Job? = null
     private var cachedItems: List<DeployServer> = emptyList()
     private var openSwipe: MobileSwipeTile? = null
-    private val kind get() = arguments?.getString("kind").takeIf { it in listOf("qwdtt", "csqtt", "mrtt", "wdttplus", "freeturn") } ?: "qwdtt"
     private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
     override fun onCreateAnimator(transit: Int, enter: Boolean, nextAnim: Int): android.animation.Animator? =
         MobileScreenMotion.create(this, nextAnim)
@@ -49,11 +48,6 @@ class DeployListFragment : Fragment() {
         }
     }
 
-    override fun onViewCreated(view: View, state: Bundle?) {
-        super.onViewCreated(view, state)
-        if (kind == "mrtt") (parentFragment as? ToolbarFragment)?.toolbar?.let { MrttDeployJobs.attach(requireActivity(), it, viewLifecycleOwner) }
-    }
-
     override fun onResume() {
         super.onResume()
         refresh()
@@ -63,7 +57,7 @@ class DeployListFragment : Fragment() {
         load?.cancel()
         load = viewLifecycleOwner.lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) { runCatching {
-                DeployStore.savedServers().filter { it.kind == kind }
+                DeployStore.all().filter { it.kind == "panel" }
             } }
             result.onSuccess { items -> cachedItems = items; render(items) }
                 .onFailure { Toast.makeText(requireContext(), "Не удалось загрузить список VPS", Toast.LENGTH_LONG).show() }
@@ -74,16 +68,15 @@ class DeployListFragment : Fragment() {
         body.removeAllViews(); openSwipe = null
         items.forEach { server ->
             val named = server["name"].isNotBlank()
-            tile(if (named) server["name"] else server["host"], if (named) server["host"] else null, R.drawable.ic_mobile_core, server) { open(server.id) }
+            val installed = app.rawline.mobile.deploy.PanelCommands.roleTitle(server["installedRole"])
+            tile(if (named) server["name"] else server["host"], (if (named) server["host"] + ", " else "") + installed.replaceFirstChar { it.lowercase() }, R.drawable.ic_mobile_core, server) { open(server.id) }
         }
-        tile("Добавить VPS для деплоя", null, R.drawable.ic_mobile_add) { open(null) }
+        tile("Добавить VPS", null, R.drawable.ic_mobile_add) { open(null) }
     }
 
     private fun open(id: String?) {
-        // A saved server opens on its actions, as in the original apps; a new one goes to the editor.
-        if (id != null) { startActivity(Intent(requireContext(), ServerActivity::class.java).putExtra("server", id)); return }
-        startActivity(Intent(requireContext(), DeployActivity::class.java).putExtra("kind", kind)
-            .putExtra("directEditor", true))
+        // A saved server opens on its page; a new one on the connection screen.
+        startActivity(Intent(requireContext(), PanelDeployActivity::class.java).apply { if (id != null) putExtra("server", id) })
     }
 
     private fun tile(title: String, subtitle: String?, icon: Int, server: DeployServer? = null, click: () -> Unit) {
@@ -119,9 +112,9 @@ class DeployListFragment : Fragment() {
                 }
                 contentDescription = "Удалить VPS из списка"
                 setOnClickListener {
-                    if ((DeployEngine.state.value.running && DeployEngine.state.value.serverId == server.id) || app.rawline.mobile.deploy.MrttDeploy.running(server.id))
+                    if (PanelOperation.state.value.running && PanelOperation.state.value.serverId == server.id)
                         Toast.makeText(context, "Дождитесь завершения операции", Toast.LENGTH_SHORT).show()
-                    else MobileAlertDialogBuilder(context).setMessage("Удалить VPS из списка? Сервис на сервере останется.")
+                    else MobileAlertDialogBuilder(context).setMessage("Удалить VPS из списка? Панель и нода на сервере останутся.")
                         .setNegativeButton(android.R.string.cancel, null)
                         .setPositiveButton("Удалить") { _, _ -> viewLifecycleOwner.lifecycleScope.launch {
                             val result = withContext(Dispatchers.IO) { runCatching { DeployStore.remove(server.id) } }

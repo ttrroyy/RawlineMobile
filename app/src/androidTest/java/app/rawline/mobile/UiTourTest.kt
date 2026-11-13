@@ -238,9 +238,16 @@ class UiTourTest {
         "profile-select" to { fixtures(); open(ProfileSelectActivity::class.java) },
         "webdav" to { open(WebDAVSettingsActivity::class.java) },
         "autoselector" to { open(AutoSelectorStatusActivity::class.java) },
-        "deploy" to { open(DeployActivity::class.java) },
-        "deploy-qwdtt" to { open(DeployActivity::class.java) { putExtra("kind", "qwdtt"); putExtra("directEditor", true) } },
-        "deploy-csqtt" to { open(DeployActivity::class.java) { putExtra("kind", "csqtt"); putExtra("directEditor", true) } },
+        "deploy" to { open(PanelDeployActivity::class.java) },
+        "deploy-server" to {
+            val server = app.rawline.mobile.deploy.PanelCommands.newServer()
+            for ((key, value) in listOf("name" to "Amsterdam", "host" to "203.0.113.20", "connectedHost" to "203.0.113.20", "connectedPort" to "22",
+                "installedRole" to "combined", "mode" to "nginx", "installedDomain" to "panel.example.org", "panelUrl" to "https://panel.example.org/Abcdefghijklmnopq/",
+                "panelUser" to "admin", "panelPassword" to "example-password", "installedProtocols" to "wdtt,qwdtt,dnstt", "version" to "1.4.83")) server[key] = value
+            app.rawline.mobile.deploy.DeployStore.save(server)
+            open(PanelDeployActivity::class.java) { putExtra("server", server.id) }
+            Thread.sleep(800)
+        },
         "home-sheet-delete" to { home("groups"); tap("ru-tcp-reality"); Thread.sleep(1500); swipe("fi-xhttp-tls", .8f, .3f) },
         "home-sheet-share" to { home("groups"); tap("ru-tcp-reality"); Thread.sleep(1500); swipe("fi-xhttp-tls", .2f, .8f) },
         "picker-share" to { home("groups"); tapTopmost("Sub 3"); swipe("Sub 3", .2f, .7f); tap(R.string.action_copy) },
@@ -302,21 +309,8 @@ class UiTourTest {
             }
         },
         "home-after-editor" to { open(MainActivity::class.java); Thread.sleep(1000) },
-        "deploy-mrtt" to { open(DeployActivity::class.java) { putExtra("kind", "mrtt"); putExtra("directEditor", true) } },
         "new-mrtt" to { fixtures(); open(settingsActivityFor("mrtt")) { putExtra("qmobileProfileType", "mrtt"); putExtra("qmobileGroupId", fixtures().first.id) } },
-        "mrtt-server" to {
-            val server = app.rawline.mobile.deploy.DeployServer.create("mrtt")
-            app.rawline.mobile.deploy.DeployStore.save(server)
-            open(MrttServerActivity::class.java) { putExtra("server", server.id) }
-            Thread.sleep(1500)
-        },
         "home-route-chip" to { RouteManager.ensureDefault(); home("groups", routeChip = true); click(R.string.qmobile_route_chip) },
-        "freeturn-clients" to {
-            val server = app.rawline.mobile.deploy.DeployServer.create("freeturn")
-            app.rawline.mobile.deploy.DeployStore.save(server)
-            open(FreeturnClientsActivity::class.java) { putExtra("server", server.id) }
-            Thread.sleep(1500)
-        },
         "readme-top" to { orb(true, readme = true) },
         "readme-switches" to { orb(true, bottom = true, control = "switches", readme = true) },
     )
