@@ -358,6 +358,15 @@ class UiTourTest {
     } + listOf(
         // The control joined to the list: one dashed outline round both.
         "layout-editor-joined" to { layout(); MobileHomeLayout.scrollParts = setOf("control"); editor(); Thread.sleep(800) },
+        // The subscription between a joined control and the list scrolls with them, on the home screen as in the editor.
+        "home-joined-chip-near" to {
+            layout(compact = true); MobileHomeLayout.chipNearList = true; MobileHomeLayout.scrollParts = setOf("control")
+            check(!MobileStyle.new || "chip" in MobileHomeLayout.scrollParts) { "the subscription under a joined control is not joined" }
+            orb(true)
+        },
+        "layout-editor-joined-chip-near" to {
+            layout(); MobileHomeLayout.chipNearList = true; MobileHomeLayout.scrollParts = setOf("control"); editor(); Thread.sleep(800)
+        },
     )
 
     /** The editor's choices back to the defaults, then [hiddenSwitch], [hiddenTiles] and [compact]. */
@@ -367,6 +376,7 @@ class UiTourTest {
         MobileHomeLayout.compactControl = compact
         MobileHomeLayout.compactTiles = false
         MobileHomeLayout.scrollParts = emptySet()
+        MobileHomeLayout.chipNearList = false
     }
 
     @Test fun photographOneScreen() {

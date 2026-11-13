@@ -1093,8 +1093,9 @@ class MobileHomeFragment : ToolbarFragment() {
                     }
                     sheetSpeed=statusRow
                     // At the bottom the check and speed stay above the switches, next to the list.
-                    if(dockBottom) controlParent.addView(statusRow,0,LinearLayout.LayoutParams(-1,dp(40)))
-                    else side.addView(statusRow,LinearLayout.LayoutParams(-1,dp(40)))
+                    // Two lines of the check fit; no taller, so no empty band under it.
+                    if(dockBottom) controlParent.addView(statusRow,0,LinearLayout.LayoutParams(-1,dp(34)))
+                    else side.addView(statusRow,LinearLayout.LayoutParams(-1,dp(34)))
                     }
                 }
                 updateState()
@@ -1262,7 +1263,8 @@ class MobileHomeFragment : ToolbarFragment() {
                         val params=child.layoutParams;column.removeView(child);head.addView(child,params)
                     }
                     val scrolled=LinearLayout(requireContext()).apply { orientation=LinearLayout.VERTICAL }
-                    scrolled.addView(head,LinearLayout.LayoutParams(-1,-2).apply { bottomMargin=dp(8) })
+                    // The subscription's heading keeps its own padding: no extra gap under the parts.
+                    scrolled.addView(head,LinearLayout.LayoutParams(-1,-2))
                     // The subscription's own heading goes with it, above its servers.
                     serverHeader?.let { heading -> (heading.parent as? ViewGroup)?.removeView(heading);scrolled.addView(heading,LinearLayout.LayoutParams(-1,-2)) }
                     serverScroll.removeView(serverColumn)

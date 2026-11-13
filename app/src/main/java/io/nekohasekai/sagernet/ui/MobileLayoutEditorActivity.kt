@@ -57,7 +57,13 @@ object MobileHomeLayout {
         set(value) = store.putBoolean("qmobileChipNearList", value)
     /** The parts ("tiles", "chip", "control") above the server list that scroll away with it (portrait); the rest stay on the screen. */
     var scrollParts: Set<String>
-        get() = store.getString("qmobileScrollParts").orEmpty().split(',').filter { it.isNotEmpty() }.toSet()
+        get() = store.getString("qmobileScrollParts").orEmpty().split(',').filter { it.isNotEmpty() }.toSet().let { stored ->
+            // Joined parts lie together right above the list: the subscription between a joined control and the list
+            // scrolls too, and one above a control that stays on the screen does not.
+            if (!MobileStyle.new || chipBottom || controlBottom) stored
+            else if ("control" in stored) if (chipNearList) stored + "chip" else stored
+            else if (!chipNearList) stored - "chip" else stored
+        }
         set(value) = store.putString("qmobileScrollParts", value.sorted().joinToString(","))
     /** A smaller connect button, or lower switches. */
     var compactControl: Boolean

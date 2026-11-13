@@ -55,6 +55,8 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     /** The part whose small buttons show: a tap on a part shows them and its outline grows to hold them. */
     private var selected: Part? = null
     private val strips = mutableMapOf<Part, View>()
+    /** Whether each part's buttons were drawn joined, to redraw them when a move joins or frees it. */
+    private val shownJoined = mutableMapOf<Part, Boolean>()
     /** Every small button in the miniature with what it does, by the part it sits on. */
     private val actions = mutableMapOf<Part, List<LayoutAction>>()
     private lateinit var column: LinearLayout
@@ -277,6 +279,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
 
     /** A joined part gives up its own outline for the one round it and the list. */
     private fun updateJoins() {
+        parts.keys.filter { shownJoined[it] != (it.id in MobileHomeLayout.scrollParts) }.forEach(::fill)
         val joined = joinedParts()
         parts.forEach { (part, frame) -> frame.foreground = if (part in joined) null else dashes[part] }
         column.parent?.let { (it as View).invalidate() }
@@ -285,6 +288,14 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     private fun toggleScroll(part: Part) {
         val scrolls = MobileHomeLayout.scrollParts
         MobileHomeLayout.scrollParts = if (part.id in scrolls) scrolls - part.id else scrolls + part.id
+        // The subscription moves to where its choice holds (MobileHomeLayout.scrollParts): unjoined from under a joined
+        // control it goes up, joined above a control that stays it goes down to the list.
+        val chipMoves = part == Part.CHIP && !MobileHomeLayout.controlBottom && ("control" in scrolls) == (part.id in scrolls) &&
+            MobileHomeLayout.chipNearList == (part.id in scrolls)
+        if (chipMoves) {
+            MobileHomeLayout.chipNearList = !MobileHomeLayout.chipNearList
+            rearrange()
+        }
         fill(part)
         updateJoins()
         // The part rises a little with the list for a moment, to show that it scrolls now.
@@ -309,6 +320,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             strip.addView(view, LinearLayout.LayoutParams(dp(26), dp(26)).apply { marginStart = dp(8) })
             items.add(view to action)
         }
+        shownJoined[part] = part.id in MobileHomeLayout.scrollParts
         if (!isBottom(part) && !landscape) button(R.drawable.ic_layout_scroll, R.string.qmobile_layout_scroll, part.id in MobileHomeLayout.scrollParts) { toggleScroll(part) }
         when (part) {
             // The size is a pinch only.
@@ -391,7 +403,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         val new = MobileStyle.new
         val bottom = MobileHomeLayout.controlBottom
         val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        fun status() = box.addView(check().apply { setPadding(dp(10), 0, dp(6), 0) }, LinearLayout.LayoutParams(-1, dp(40)))
+        fun status() = box.addView(check().apply { setPadding(dp(10), 0, dp(6), 0) }, LinearLayout.LayoutParams(-1, dp(34)))
         if (MobileHomeLayout.controlSwitches) {
             if (new && bottom) status()
             val hidden = MobileHomeLayout.hiddenSwitch
