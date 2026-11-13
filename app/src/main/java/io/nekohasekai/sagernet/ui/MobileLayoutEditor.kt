@@ -399,12 +399,8 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             box.addView(LinearLayout(this).apply {
                 isBaselineAligned = false
                 listOf(Key.MODE_VPN to R.string.service_mode_vpn, Key.MODE_PROXY to R.string.service_mode_proxy).forEachIndexed { index, (mode, label) ->
-                    val cell: View = if (mode == hidden) {
-                        // As the home screen writes it in a removed switch's place: the state, the subscription and the server, without a frame.
-                        ui.text(getString(R.string.qmobile_connected) + "  00:12:49\n" + getString(R.string.subscription) + "\n" + Locale("", "de").displayCountry, 12f, MobilePalette.muted).apply {
-                            gravity = Gravity.START or Gravity.CENTER_VERTICAL; maxLines = 3; includeFontPadding = false; setPadding(dp(10), dp(2), dp(26), dp(2))
-                        }
-                    } else LinearLayout(context).apply {
+                    // A removed switch's place is only its dashed outline and the plus.
+                    val cell: View = if (mode == hidden) View(context) else LinearLayout(context).apply {
                         gravity = Gravity.CENTER_VERTICAL; setPadding(dp(14), dp(2), dp(8), dp(2)); background = MobilePalette.rowShape(context)
                         addView(ui.text(getString(label), 14f), LinearLayout.LayoutParams(0, -2, 1f))
                         addView(SwitchCompat(context).apply { isClickable = false; isFocusable = false })

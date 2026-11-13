@@ -1609,8 +1609,8 @@ class MobileHomeFragment : ToolbarFragment() {
             restartAfterStop=false
             host().toggleService()
         }
-        // The row keeps its height, so the list under it does not jump on connecting.
-        sheetSpeed?.visibility=if(state.connected) View.VISIBLE else View.INVISIBLE
+        // The row under the button holds nothing while disconnected: it gives its room to the list; the dock's speeds keep theirs.
+        sheetSpeed?.visibility=if(state.connected) View.VISIBLE else if(sheetSpeed?.getTag(R.id.home_part)!=null) View.GONE else View.INVISIBLE
         if(!state.connected) { lastDown=0L;lastUp=0L }
         modeSwitches.forEach { (mode,switch) -> switch.isChecked=(state.canStop || restartAfterStop) && DataStore.serviceMode==mode }
         val test=TestSessionClient.state.value
@@ -1660,7 +1660,9 @@ class MobileHomeFragment : ToolbarFragment() {
                 val (group,server)=if(state.connected) runningServer() else "" to ""
                 // A line each, cut to the width on its own: a long subscription name no longer pushes the server out.
                 val room=(width-totalPaddingLeft-totalPaddingRight).toFloat()
-                val label=listOf(caption.ifEmpty { getString(R.string.qmobile_orb_idle) }+(if(state.connected) "  $elapsed" else "")+workers,group,server)
+                val first=caption.ifEmpty { getString(R.string.qmobile_orb_idle) }+(if(state.connected) "  $elapsed" else "")+workers
+                // Half a row is narrow for the state and the time: the time alone then, it says connected by itself.
+                val label=listOf(if(state.connected && room>0f && paint.measureText(first)>room) elapsed+workers else first,group,server)
                     .filter { it.isNotEmpty() }
                     .joinToString("\n") { if(room>0f) android.text.TextUtils.ellipsize(it,paint,room,android.text.TextUtils.TruncateAt.END).toString() else it }
                 if(text.toString()!=label) text=label
