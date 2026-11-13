@@ -1453,6 +1453,7 @@ class MobileHomeFragment : ToolbarFragment() {
                             DataStore.selectedProxy = profile.id
                             if (DataStore.serviceState.canStop) SagerNet.reloadService()
                             this@MobileHomeFragment.profileRows.forEach { (id,view) -> view.background=tile(id==profile.id); MobileFeedback.apply(view) }
+                            updateState()
                         }
                     }
                     nextProfileRows[profile.id]=row
@@ -1682,7 +1683,8 @@ class MobileHomeFragment : ToolbarFragment() {
     private var runningServerCache: Pair<Long,Pair<String,String>>?=null
     /** The subscription and the server in use, looked up once per selection. */
     private fun runningServer(): Pair<String,String> {
-        val id=DataStore.currentProfile.takeIf { it>0 } ?: DataStore.selectedProxy
+        // The choice first: the running profile changes only once the service has reloaded, a second later.
+        val id=DataStore.selectedProxy.takeIf { it>0 } ?: DataStore.currentProfile
         runningServerCache?.takeIf { it.first==id }?.let { return it.second }
         val names=runCatching {
             val profile=app.rawline.mobile.database.SagerDatabase.proxyDao.getById(id) ?: return@runCatching "" to ""
@@ -1877,7 +1879,7 @@ class MobileHomeFragment : ToolbarFragment() {
                         dialog.dismiss()
                         DataStore.selectedProxy=profile.id
                         if(DataStore.serviceState.canStop) SagerNet.reloadService()
-                        refresh()
+                        refresh();updateState()
                     }
                     MobileFeedback.apply(this)
                 }
