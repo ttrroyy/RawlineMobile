@@ -27,6 +27,9 @@ internal object Tags {
     const val MIXED_IN = "mixed-in"
     const val TUN_IN = "tun-in"
     const val XRAY_FULL_CONFIG_IN = "rawline-bridge"
+    /** The full Xray config's inbound for traffic a Rawline rule sends to `proxy` ([XrayExplicitRouting]). */
+    const val XRAY_EXPLICIT_IN = "rawline-bridge-rules"
+    const val PROXY_EXPLICIT = "proxy-rules"
 
     const val MAIN_CHAIN_PREFIX = "config"
     const val ROUTE_CHAIN_PREFIX = "route"
@@ -150,6 +153,9 @@ internal class BuildState(val forTest: Boolean, val ports: PortLease) {
     // BuildConfigResult (generate.h:35-51)
     val coreConfig = JsonObject()
     var xrayConfig = JsonObject()
+
+    /** [Tags.PROXY_EXPLICIT] when the main server is a full Xray config whose routing would send proxied traffic out directly. */
+    var explicitProxyTag: String? = null
     var isXrayNeeded = false
     var tunIPv4Cidr: String? = null
     val xrayFullConfigs = ArrayList<String>()

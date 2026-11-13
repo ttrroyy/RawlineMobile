@@ -761,6 +761,7 @@ class MobileHomeFragment : ToolbarFragment() {
     private val profileRows=mutableMapOf<Long,View>()
     private var serverScrollPosition = 0
     private var renderedStructure: List<GroupContent>? = null
+    private var pinnedProfileIds=emptySet<Long>()
     private fun ViewGroup.childrenList(): List<View> = (0 until childCount).map { getChildAt(it) }
     fun refresh() {
         val previewGroup=groupDragPreview.previewGroupId
@@ -786,8 +787,10 @@ class MobileHomeFragment : ToolbarFragment() {
             val focusedGroup=withContext(Dispatchers.IO) { if(byGroups) previewGroup ?: GroupRepo.currentId() else 0L }
             val (groups,structure,windows)=withContext(Dispatchers.IO) {
                 val pinned=pinnedGroups()
+                val pinnedServers=pinnedProfiles().also { pinnedProfileIds=it }
                 val groups=GroupRepo.all().sortedBy { if(it.id in pinned) 0 else 1 }.map {
-                    it to if(!byGroups || it.id==focusedGroup) SagerDatabase.proxyDao.getByGroup(it.id) else emptyList()
+                    // Pinned servers lead their group; the rest keep the group's order.
+                    it to if(!byGroups || it.id==focusedGroup) SagerDatabase.proxyDao.getByGroup(it.id).sortedBy { profile -> if(profile.id in pinnedServers) 0 else 1 } else emptyList()
                 }.filterNot { (group,profiles) ->
                     !byGroups && !group.isSubscription && group.name==SagerDatabase.defaultGroupName() && profiles.isEmpty()
                 }
@@ -1403,6 +1406,8 @@ class MobileHomeFragment : ToolbarFragment() {
                     labels.addView(text(if(flagLength>0) displayName.substring(flagLength).trimStart() else displayName, 15f).apply { setTypeface(typeface,Typeface.BOLD); includeFontPadding=!MobileStyle.new; setPadding(0,0,0,dp(if(MobileStyle.new) 3 else 2)); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
                     labels.addView(text(profile.displayProtocol(), 12f, muted).apply { includeFontPadding=!MobileStyle.new; setPadding(0,0,0,0); maxLines=1 })
                     row.addView(labels, LinearLayout.LayoutParams(0, -2, 1f))
+                    val pinnedServer=profile.id in pinnedProfileIds
+                    if(pinnedServer) row.addView(ImageView(requireContext()).apply { setImageResource(R.drawable.ic_mobile_pin); imageTintList=android.content.res.ColorStateList.valueOf(muted); contentDescription=getString(R.string.qmobile_pinned) },LinearLayout.LayoutParams(dp(16),dp(16)))
                     val latency=FrameLayout(requireContext()).apply { tag=profile.latency }
                     nextLatencyViews[profile.id]=latency
                     row.addView(latency,LinearLayout.LayoutParams(dp(62),dp(32)))
@@ -1416,6 +1421,7 @@ class MobileHomeFragment : ToolbarFragment() {
                         } else null,
                         iconAction(R.drawable.ic_mobile_test,getString(R.string.qmobile_tests),Color.rgb(36,171,85)) { openSwipe?.closeActions(); testMenu(longArrayOf(profile.id),profile.displayName(),group.id) },
                         iconAction(R.drawable.ic_mobile_share,getString(R.string.qmobile_share),Color.rgb(60,132,190)) { shareProfile(profile) },
+                        iconAction(R.drawable.ic_mobile_pin,getString(if(pinnedServer) R.string.qmobile_unpin else R.string.qmobile_pin),Color.rgb(201,140,40)) { openSwipe?.closeActions(); togglePinnedProfile(profile.id) },
                         iconAction(R.drawable.ic_mobile_delete,getString(R.string.qmobile_delete),Color.rgb(220,66,61)) {
                             viewLifecycleOwner.lifecycleScope.launch {
                                 val result=withContext(Dispatchers.IO) { ProfileManager.batchDeleteProfiles(listOf(profile.id),stopRunning=true) }
@@ -1656,6 +1662,14 @@ class MobileHomeFragment : ToolbarFragment() {
         else Toast.makeText(requireContext(), R.string.qmobile_clipboard_empty, Toast.LENGTH_SHORT).show()
     }
     private fun pinnedGroups() = DataStore.mobilePinnedGroups.split(',').mapNotNull { it.toLongOrNull() }.toSet()
+    private fun pinnedProfiles() = DataStore.mobilePinnedProfiles.split(',').mapNotNull { it.toLongOrNull() }.toSet()
+    private fun togglePinnedProfile(id:Long) {
+        val ids=pinnedProfiles().toMutableSet()
+        if(!ids.remove(id)) ids.add(id)
+        DataStore.mobilePinnedProfiles=ids.joinToString(",")
+        renderedStructure=null
+        refresh()
+    }
     private fun shareChoice(swipe:MobileSwipeTile,label:String,icon:Int,callback:()->Unit):View {
         val ink=if(MobileStyle.new) foregroundColor else Color.WHITE
         return LinearLayout(requireContext()).apply {

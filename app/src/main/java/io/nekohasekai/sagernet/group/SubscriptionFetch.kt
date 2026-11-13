@@ -29,6 +29,8 @@ object SubscriptionFetch {
         @JvmField val subInfo: SubUserInfo,
         @JvmField val error: String?,
         @JvmField val routing: String = "",
+        /** [ProviderApps.read]: the per-app-proxy fields, "" when the subscription sends none. */
+        @JvmField val apps: String = "",
     )
 
     fun fetch(url: String, rawName: String, identity: RequestIdentity): Result {
@@ -117,7 +119,7 @@ object SubscriptionFetch {
         } catch (_: Exception) {
             return Result("", SubUserInfo(), app.getString(R.string.provider_crypto_response_error))
         }
-        return Result(body, SubscriptionMetadata.read(response::header, body), null, response.header(SubscriptionRoute.HEADER).trim())
+        return Result(body, SubscriptionMetadata.read(response::header, body), null, response.header(SubscriptionRoute.HEADER).trim(), ProviderApps.read(response::header, body))
     }
 
     private fun readContent(url: String): Result = try {
@@ -133,7 +135,7 @@ object SubscriptionFetch {
             }
         }
         val body = out.toString(Charsets.UTF_8.name())
-        Result(body, SubscriptionMetadata.read({ "" }, body), null)
+        Result(body, SubscriptionMetadata.read({ "" }, body), null, "", ProviderApps.read({ "" }, body))
     } catch (e: Exception) {
         Result("", SubUserInfo(), e.readableMessage)
     }

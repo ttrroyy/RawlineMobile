@@ -110,6 +110,14 @@ object CoreConfigs {
         // Provider routing below still wins over the routing profile's own DNS, which wins over Settings > DNS.
         val dns = route.activeDns()
         var settings = SettingsMapper.generatorSettings(dns).copy(deferRuleSets = deferRuleSets)
+        // The subscription's own apps (per-app-proxy) replace the user's app mode while its server runs.
+        options?.takeUnless { it.providerIgnoreImport }?.providerApps?.let { app.rawline.mobile.group.ProviderApps.fromJson(it) }?.let { apps ->
+            settings = settings.copy(
+                perAppEnabled = !apps.off, perAppBypass = apps.bypass, perAppPackages = apps.packages,
+                perAppAllowedUids = if (apps.off) emptyList() else app.rawline.mobile.outbound.config.VpnAppGuard.allowedUids(
+                    app.rawline.mobile.utils.PackageCache.snapshot().uidMap, apps.packages.toSet(), apps.bypass),
+            )
+        }
         var routing = SettingsMapper.routingInput(route)
         val fullJson = profile.outbound.isXrayFullConfig()
         val providerRouting=app.rawline.mobile.route.ProviderRouting.stored(route)

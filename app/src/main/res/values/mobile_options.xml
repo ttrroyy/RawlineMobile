@@ -3,6 +3,7 @@
 <string name="qmobile_edit">Edit</string>
 <string name="qmobile_pin">Pin</string>
 <string name="qmobile_unpin">Unpin</string>
+<string name="qmobile_pinned">Pinned</string>
 <string name="qmobile_subscription_name">Subscription name</string>
 <string name="qmobile_subscription_url">Subscription URL</string>
 <string name="qmobile_auto_update">Automatic updates</string>

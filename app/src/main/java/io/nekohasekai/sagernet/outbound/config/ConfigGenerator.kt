@@ -1296,7 +1296,9 @@ class ConfigGenerator @JvmOverloads constructor(
             val type = RuleType.ofId(rule.type)
             if (type == RuleType.ENDPOINT_PREFERRED_BY) continue
             if (type != RuleType.CUSTOM && rule.isEmpty()) continue
-            val json = rule.toConfigJson(state.prerequisites.outboundMap[rule.outbound_id])
+            // A rule that names `proxy` beats the full Xray config's own direct exits ([XrayExplicitRouting]).
+            val explicit = state.explicitProxyTag.takeIf { rule.outbound_id == OutboundIds.PROXY }
+            val json = rule.toConfigJson(explicit ?: state.prerequisites.outboundMap[rule.outbound_id])
             if (json.isEmpty()) {
                 state.error = "Aborted generating routing section, an error has occurred"
                 return out

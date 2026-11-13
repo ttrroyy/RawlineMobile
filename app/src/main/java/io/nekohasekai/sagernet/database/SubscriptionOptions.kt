@@ -138,6 +138,8 @@ data class SubscriptionOptions(
     var providerRoutingProfiles: String = "[]",
     var providerIgnoreImport: Boolean = false,
     var providerRoutingManual: Boolean = false,
+    /** ProviderApps.toJson(): the apps the subscription puts through the VPN or past it, "" when it sends none. */
+    var providerApps: String = "",
 ) : Parcelable {
 
     val effectiveSortRule: ServerSortRule
@@ -183,6 +185,7 @@ data class SubscriptionOptions(
             json["provider_routing_profiles"] = providerRoutingProfiles
             if (providerIgnoreImport) json["provider_ignore_import"] = true
             if (providerRoutingManual) json["provider_routing_manual"] = true
+            if (providerApps.isNotEmpty()) json["provider_apps"] = providerApps
         }
         return json
     }
@@ -233,6 +236,7 @@ data class SubscriptionOptions(
                 providerRoutingProfiles = json.string("provider_routing_profiles").ifBlank { "[]" },
                 providerIgnoreImport = json.bool("provider_ignore_import"),
                 providerRoutingManual = json.bool("provider_routing_manual"),
+                providerApps = json.string("provider_apps"),
             )
         }
 

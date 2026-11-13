@@ -87,7 +87,7 @@ internal object SubscriptionRefresh {
         val options = group.subOptions
         val url = group.url.trim()
 
-        val (info, result, routing, commands) = fetchAndParse(group, url, surface, notifyErrors) ?: return
+        val (info, result, routing, commands, apps) = fetchAndParse(group, url, surface, notifyErrors) ?: return
         val parsed = result.outbounds
         // Android-only (#53): filtered servers never enter the sink, so the diff deletes the ones already stored.
         val servers = if (options.ignoreNameFilters) parsed else SubscriptionNameFilter.apply(parsed, options, group.name)
@@ -102,6 +102,7 @@ internal object SubscriptionRefresh {
         val metadata = saveMetadata(group, info)
         // Happ / Incy: the routing the subscription ships, kept for the group until the provider changes it.
         ProviderRouteStore.apply(gid, commands, servers.all { it.isXrayFullConfig() })
+        ProviderRouteStore.applyApps(gid, apps)
         val fullConfigs = servers.filterIsInstance<Custom>().filter { it.isXrayFullConfig() }.map { it.config }
         if (fullConfigs.isNotEmpty()) {
             val provider = GroupRepo.get(gid)?.subOptions
@@ -289,6 +290,7 @@ internal object SubscriptionRefresh {
         val result: ProfileImport.Result,
         val routing: String,
         val commands: List<ProviderRouting.Command>,
+        val apps: String,
     )
 
     private suspend fun fetchAndParse(
@@ -344,7 +346,7 @@ internal object SubscriptionRefresh {
             return null
         }
         val routing = if (current.importSubRoute) SubscriptionRoute.valueOf(fetched.routing, fetched.body) else ""
-        return Fetched(info, result, routing, payload.commands)
+        return Fetched(info, result, routing, payload.commands, fetched.apps)
     }
 
     /**

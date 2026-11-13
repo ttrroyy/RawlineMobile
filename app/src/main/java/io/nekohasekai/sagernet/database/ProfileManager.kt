@@ -415,10 +415,13 @@ object ProfileManager {
         if (profileIds.isEmpty()) return
         SagerDatabase.instance.runInTransaction { profileIds.chunked(CHUNK).forEach { dao.clearTestResults(it) } }
         GroupSort.repositionLater(profileIds, SortInput.TEST_RESULT)
+        // The last test session's rows are shown over the stored results: without this they came back until a restart.
+        app.rawline.mobile.ui.test.TestSessionClient.clearResults(profileIds)
     }
 
     fun clearGroupTestResults(groupId: Long) {
         dao.clearGroupTestResults(groupId)
+        app.rawline.mobile.ui.test.TestSessionClient.clearResults(memberIds(groupId))
     }
 
     // ------------------------------------------------------------------------------------------------ listeners

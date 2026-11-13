@@ -324,6 +324,19 @@ internal class ChainBuilder(
             val inbounds = JsonArray()
             inbounds.add(bridgeInbound)
             if (!state.forTest && !req.soleXrayInbound) for (item in userXrayConfig.array("inbounds")) inbounds.add(item)
+            // Only the main server alone: behind WARP or other hops the config sees their servers, not the sites.
+            if (req.includeProxy && !req.warpWrap && hops.size == 1 && !state.forTest && XrayExplicitRouting.needed(userXrayConfig)) {
+                val explicitPort = state.ports.reserve(1, custom.bridgeHost)[0]
+                if (explicitPort > 0 && XrayExplicitRouting.apply(userXrayConfig, Tags.XRAY_EXPLICIT_IN)) {
+                    val explicit = BridgeConfig(true, explicitPort, LocalPorts.randomAuth(32), custom.bridgeHost)
+                    inbounds.add(xraySocksInbound(Tags.XRAY_EXPLICIT_IN, explicit).also { it["sniffing"] = bridgeInbound.obj("sniffing").copy() })
+                    state.outbounds.add(jsonObjectOf(
+                        "type" to "socks", "tag" to Tags.PROXY_EXPLICIT, "server" to explicit.host, "server_port" to explicit.port,
+                        "username" to explicit.auth, "password" to explicit.auth,
+                    ))
+                    state.explicitProxyTag = Tags.PROXY_EXPLICIT
+                }
+            }
             userXrayConfig["inbounds"] = inbounds
             if (ctx.xrayUseSystemCA) {
                 for (outbound in userXrayConfig.array("outbounds")) if (outbound is JsonObject) useXraySystemCA(outbound)

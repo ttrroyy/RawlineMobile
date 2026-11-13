@@ -490,6 +490,7 @@ open class GroupSettingsActivity : ServerScreenActivity(R.layout.layout_config_s
                 it.providerRouting = group.subOptions.providerRouting
                 it.providerRoutingProfiles = group.subOptions.providerRoutingProfiles
                 it.providerIgnoreImport = group.subOptions.providerIgnoreImport
+                it.providerApps = group.subOptions.providerApps
             }
             group.frontProxyId = proxyId(KEY_FRONT)
             group.landingProxyId = proxyId(KEY_LANDING)
