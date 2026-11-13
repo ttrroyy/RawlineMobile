@@ -220,10 +220,8 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         parts.forEach { (each, frame) -> padFrame(frame, each == part && ((strips[each] as? ViewGroup)?.childCount ?: 0) > 0) }
         // The buttons are always laid out and only fade: one gone until now was never laid out while the outline's
         // transition held the layout, and stayed a strip of no size, there but never seen.
-        strips.forEach { (each, strip) ->
-            strip.animate().cancel()
-            if (each == part) strip.animate().alpha(1f).setStartDelay(120).setDuration(120).start() else strip.alpha = 0f
-        }
+        // No fade: the delayed fade never ran to its end on phones and left them unseen.
+        strips.forEach { (each, strip) -> strip.alpha = if (each == part) 1f else 0f; strip.invalidate() }
     }
 
     /** A change of a part's look, animated as the tutorial plays it. */

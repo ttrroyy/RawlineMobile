@@ -335,7 +335,16 @@ class UiTourTest {
             instrumentation.runOnMainSync {
                 val views = java.util.ArrayList<android.view.View>()
                 resumed().window.decorView.findViewsWithText(views, context.getString(R.string.qmobile_layout_swap), android.view.View.FIND_VIEWS_WITH_CONTENT_DESCRIPTION)
-                check(views.any { view -> view.isShown && view.width > 0 && view.height > 0 && view.getGlobalVisibleRect(android.graphics.Rect()) && generateSequence(view) { it.parent as? android.view.View }.all { it.alpha > .99f } }) { "the selected part's buttons are not shown" }
+                check(views.any { view -> view.isShown && view.width > 0 && view.height > 0 && view.getGlobalVisibleRect(android.graphics.Rect()) && generateSequence(view) { it.parent as? android.view.View }.all { it.alpha > .99f } }) {
+                    // What each button and its strip and frame are, to see why it is not seen.
+                    "the selected part's buttons are not shown: " + views.joinToString(" | ") { view ->
+                        val strip = view.parent as android.view.View; val frame = strip.parent as android.view.View
+                        "shown=${view.isShown} size=${view.width}x${view.height} visible=${view.getGlobalVisibleRect(android.graphics.Rect())} " +
+                            "strip=${strip.left},${strip.top},${strip.width}x${strip.height} a=${strip.alpha} anim=${strip.animation} " +
+                            "frame=${frame.width}x${frame.height} padTop=${frame.paddingTop} clip=${(frame as? android.view.ViewGroup)?.clipChildren} " +
+                            "alphas=" + generateSequence(view) { it.parent as? android.view.View }.map { it.alpha }.toList()
+                    }
+                }
             }
         },
     ) + (0..5).map { step ->
