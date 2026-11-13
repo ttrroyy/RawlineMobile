@@ -186,7 +186,8 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
 
     private fun frameFor(part: Part) = FrameLayout(this).apply {
         // The top strip inside the outline holds the part's buttons, so nothing hangs over the edges.
-        setPadding(dp(6), dp(34), dp(6), dp(8))
+        // Room on the sides for the corner badges of the tiles and switches, and on top for the strip.
+        setPadding(dp(12), dp(42), dp(12), dp(10))
         val dash = GradientDrawable().apply {
             cornerRadius = dp(MobilePalette.rowDp + 4).toFloat()
             setStroke(dp(2), MobilePalette.text, dp(7).toFloat(), dp(5).toFloat())
@@ -286,7 +287,8 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
                 button(if (compact(part)) R.drawable.ic_layout_grow else R.drawable.ic_layout_shrink, R.string.qmobile_layout_size) { setCompact(part, !compact(part)) }
             }
         }
-        box.addView(strip, FrameLayout.LayoutParams(-2, dp(26), Gravity.TOP or Gravity.END).apply { topMargin = -dp(29); marginEnd = dp(2) })
+        // 6 dp under the outline and clear of its rounded corner; 10 dp above the part itself.
+        box.addView(strip, FrameLayout.LayoutParams(-2, dp(26), Gravity.TOP or Gravity.END).apply { topMargin = -dp(36); marginEnd = dp(10) })
         actions[part] = items
     }
 
@@ -331,6 +333,12 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
                 }
             } + if (new) emptyList() else listOf(icon(R.drawable.ic_mobile_add))
             views.forEachIndexed { index, view -> addView(view, LinearLayout.LayoutParams(size, size).apply { if (index < views.lastIndex) marginEnd = dp(8) }) }
+            // A narrow frame (the side column of a tablet) shrinks the tiles instead of pushing the last past the outline.
+            addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
+                if (right - left == oldRight - oldLeft) return@addOnLayoutChangeListener
+                val fit = minOf(size, ((right - left - dp(8) * views.lastIndex) / views.size).coerceAtLeast(1))
+                post { views.forEach { view -> view.layoutParams = (view.layoutParams as LinearLayout.LayoutParams).apply { width = fit; height = fit } } }
+            }
         } else {
             addView(icon(if (new) R.drawable.ic_mobile_more else R.drawable.ic_mobile_settings), LinearLayout.LayoutParams(size, size))
             addView(ui.text(getString(R.string.app_name), 18f, bold = true).apply { gravity = Gravity.CENTER; maxLines = 1 }, LinearLayout.LayoutParams(0, -2, 1f))

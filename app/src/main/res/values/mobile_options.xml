@@ -13,4 +13,14 @@
 <string-array name="qmobile_seasons"><item>None</item><item>Auto</item><item>Autumn</item><item>Winter</item><item>Spring</item><item>Summer</item></string-array>
 <string-array name="qmobile_season_values"><item>none</item><item>auto</item><item>halloween</item><item>newyear</item><item>easter</item><item>kupala</item></string-array>
 <string name="provider_profile_source">Source: %1$s</string>
+<string name="qmobile_route_label_provider">Provider routing: %s</string>
+<string name="qmobile_route_label_provider_off">Provider turned routing off: all through the server</string>
+<string name="qmobile_route_label_group">Own routing: %s</string>
+<string name="qmobile_route_label_client">Routing: %s</string>
+<string name="qmobile_route_apps_off">apps: off</string>
+<string name="qmobile_route_apps_bypass">%d apps bypass</string>
+<string name="qmobile_route_apps_proxy">%d apps via VPN</string>
+<string name="qmobile_route_chip_provider">Provider</string>
+<string name="qmobile_route_locked">The subscription follows the routing from its provider. Turn that off in the routing settings of the subscription to pick a Rawline profile.</string>
+<string name="qmobile_route_group_hint">This subscription has its own routing profile; picking here changes the profile of the others.</string>
 </resources>

@@ -16,7 +16,7 @@ internal object XrayExplicitRouting {
     /** Whether the config has a rule that lets proxied traffic out directly; without one nothing needs changing. */
     fun needed(config: JsonObject): Boolean {
         val direct = directTags(config)
-        return direct.isNotEmpty() && rules(config).any { it.string("outboundTag") in direct && !it.contains("inboundTag") }
+        return direct.isNotEmpty() && rules(config).any { it.string("outboundTag") in direct && seesBridge(it) }
     }
 
     /** Puts the explicit inbound's rules in front of the provider's; false when no proxy exit is left for them. */
@@ -28,7 +28,7 @@ internal object XrayExplicitRouting {
         val out = JsonArray()
         for (rule in original) {
             // A rule for one of the provider's own inbounds never sees the bridge; a direct exit is what is dropped.
-            if (rule.contains("inboundTag") || rule.string("outboundTag") in direct) continue
+            if (!seesBridge(rule) || rule.string("outboundTag") in direct) continue
             out.add(rule.copy().also { it.remove("ruleTag"); it["inboundTag"] = JsonArray.of(inboundTag) })
         }
         out.add(jsonObjectOf("type" to "field", "inboundTag" to JsonArray.of(inboundTag)).also { it[target.first] = target.second })
@@ -37,6 +37,10 @@ internal object XrayExplicitRouting {
         config["routing"] = routing
         return true
     }
+
+    /** A rule without inbounds, or one naming the bridge, applies to what the client sends in. */
+    private fun seesBridge(rule: JsonObject) =
+        !rule.contains("inboundTag") || Tags.XRAY_FULL_CONFIG_IN in rule.array("inboundTag").strings()
 
     private fun rules(config: JsonObject): List<JsonObject> =
         if (config.contains("routing")) config.obj("routing").array("rules").filterIsInstance<JsonObject>() else emptyList()

@@ -398,7 +398,7 @@ class MobileHomeFragment : ToolbarFragment() {
     /** Every tile, or only the corner ones. */
     private fun extendedTiles()=MobileHomeLayout.extendedTiles
     private data class ProfileContent(val id: Long, val type: String, val name: String?, val json: String)
-    private data class GroupContent(val group: ProxyGroup, val profiles: List<ProfileContent>, val collapsed: Boolean, val page: Int, val colors: List<Int>)
+    private data class GroupContent(val group: ProxyGroup, val profiles: List<ProfileContent>, val collapsed: Boolean, val page: Int, val colors: List<Int>, val route: String = "")
     private val groupViews = mutableMapOf<Long, Pair<GroupContent, View>>()
     private val profilePages = mutableMapOf<Long, Int>()
     private val refreshButtons = mutableMapOf<Long, ImageButton>()
@@ -547,6 +547,35 @@ class MobileHomeFragment : ToolbarFragment() {
         sheet.show()
     }
     private var routeChipView: TextView?=null
+    /** The routing of the subscription in use, for the chip beside it; set off the main thread by refresh(). */
+    @Volatile private var focusedRoute: app.rawline.mobile.route.RouteSource.Info?=null
+    private fun routeText(info: app.rawline.mobile.route.RouteSource.Info): String {
+        val base=when(info.kind) {
+            app.rawline.mobile.route.RouteSource.Kind.PROVIDER -> getString(R.string.qmobile_route_label_provider,info.name)
+            app.rawline.mobile.route.RouteSource.Kind.PROVIDER_OFF -> getString(R.string.qmobile_route_label_provider_off)
+            app.rawline.mobile.route.RouteSource.Kind.GROUP -> getString(R.string.qmobile_route_label_group,info.name)
+            app.rawline.mobile.route.RouteSource.Kind.CLIENT -> getString(R.string.qmobile_route_label_client,info.name)
+        }
+        val apps=info.apps?.let { when {
+            it.off -> getString(R.string.qmobile_route_apps_off)
+            it.bypass -> getString(R.string.qmobile_route_apps_bypass,it.packages.size)
+            else -> getString(R.string.qmobile_route_apps_proxy,it.packages.size)
+        } }
+        return if(apps==null) base else "$base · $apps"
+    }
+    /** The card's routing line: every subscription, and a plain group only when it has a routing profile of its own. */
+    private fun routeLabel(group: ProxyGroup): String {
+        val info=runCatching { app.rawline.mobile.route.RouteSource.of(group) }.getOrNull() ?: return ""
+        if(!group.isSubscription && info.kind!=app.rawline.mobile.route.RouteSource.Kind.GROUP) return ""
+        return routeText(info)
+    }
+    /** The chip shows the routing the subscription in use really runs with. */
+    private fun routeChipText(info: app.rawline.mobile.route.RouteSource.Info?): String? = when(info?.kind) {
+        null -> null
+        app.rawline.mobile.route.RouteSource.Kind.PROVIDER -> info.name
+        app.rawline.mobile.route.RouteSource.Kind.PROVIDER_OFF -> getString(R.string.qmobile_route_chip_provider)
+        else -> info.name
+    }
     /** The routing profile beside the subscription: the same card, its own sheet. */
     private fun routeChip()=text("",16f).apply {
         setTypeface(typeface,Typeface.BOLD);maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END;gravity=Gravity.CENTER_VERTICAL
@@ -557,22 +586,36 @@ class MobileHomeFragment : ToolbarFragment() {
         setCompoundDrawablesRelative(icon,null,android.graphics.drawable.RotateDrawable().apply { drawable=arrow;fromDegrees=90f;toDegrees=90f;level=1;setBounds(0,0,dp(22),dp(22)) },null)
         setOnClickListener { routePicker() };MobileFeedback.apply(this)
         routeChipView=this
+        routeChipText(focusedRoute)?.let { text=it }
         viewLifecycleOwner.lifecycleScope.launch {
-            val name=withContext(Dispatchers.IO) { runCatching { RouteManager.current().name }.getOrNull() }
+            val name=withContext(Dispatchers.IO) { runCatching { routeChipText(app.rawline.mobile.route.RouteSource.of(GroupRepo.get(GroupRepo.currentId()))) }.getOrNull() }
             if(name!=null) text=name
         }
+    }
+    private fun openProviderRouting() {
+        val gid=GroupRepo.currentId()
+        if(gid>0) startActivity(Intent(requireContext(),ProviderRoutingActivity::class.java).putExtra("groupId",gid))
+    }
+    /** What decides the routing of the subscription in use, and where to change it, above the profiles. */
+    private fun routeSourceNotice(source: app.rawline.mobile.route.RouteSource.Info, close: () -> Unit)=LinearLayout(requireContext()).apply {
+        orientation=LinearLayout.VERTICAL;setPadding(dp(16),dp(10),dp(16),dp(10));background=tile()
+        addView(text(routeText(source),14f).apply { setTypeface(typeface,Typeface.BOLD) })
+        addView(text(getString(if(source.providerLocked) R.string.qmobile_route_locked else R.string.qmobile_route_group_hint),12f,muted).apply { setPadding(0,dp(4),0,0) })
+        if(source.providerLocked) { isFocusable=true;setOnClickListener { close();openProviderRouting() };MobileFeedback.apply(this) }
     }
     /** The routing profiles as the subscriptions' sheet shows them: switch, add, manage; hold one to move it, in the same order as the routing settings. */
     private fun routePicker() {
         viewLifecycleOwner.lifecycleScope.launch {
-            val routes=withContext(Dispatchers.IO) { RouteManager.usable() }
+            val (routes,source)=withContext(Dispatchers.IO) { RouteManager.usable() to runCatching { app.rawline.mobile.route.RouteSource.of(GroupRepo.get(GroupRepo.currentId())) }.getOrNull() }
             if(!isAdded) return@launch
             val sheet=MobileSheetDialog(requireContext())
+            val locked=source?.providerLocked==true
             val body=LinearLayout(requireContext()).apply { orientation=LinearLayout.VERTICAL; setPadding(dp(16),dp(8),dp(16),dp(16)) }
             val handle=View(requireContext()).apply { background=GradientDrawable().apply { setColor(muted);cornerRadius=dp(2).toFloat() } }
             body.addView(handle,LinearLayout.LayoutParams(dp(36),dp(4)).apply { gravity=Gravity.CENTER_HORIZONTAL;bottomMargin=dp(14) })
             val list=LinearLayout(requireContext()).apply { orientation=LinearLayout.VERTICAL }
             val scroller=androidx.core.widget.NestedScrollView(requireContext()).apply { isVerticalScrollBarEnabled=false;addView(list) }
+            if(source!=null && source.kind!=app.rawline.mobile.route.RouteSource.Kind.CLIENT) body.addView(routeSourceNotice(source) { sheet.dismiss() },LinearLayout.LayoutParams(-1,-2).apply { bottomMargin=dp(10) })
             val drag=MobileReorder(list,scroller,{},{ ids ->
                 viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                     // Profiles the sheet does not show keep their places.
@@ -587,7 +630,9 @@ class MobileHomeFragment : ToolbarFragment() {
                     background=tile(route.id==DataStore.currentRouteId);isFocusable=true
                     contentDescription=route.name+if(route.id==DataStore.currentRouteId) ", "+getString(R.string.route_profile_current) else ""
                     addView(text(route.name,15f).apply { setTypeface(typeface,Typeface.BOLD);maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END })
+                    if(locked) alpha=.45f
                     setOnClickListener {
+                        if(locked) { Toast.makeText(requireContext(),R.string.qmobile_route_locked,Toast.LENGTH_LONG).show();return@setOnClickListener }
                         sheet.dismiss()
                         viewLifecycleOwner.lifecycleScope.launch {
                             val kept=app.rawline.mobile.ui.route.RouteQuickSwitch.switchTo(route.id)
@@ -795,7 +840,8 @@ class MobileHomeFragment : ToolbarFragment() {
                     !byGroups && !group.isSubscription && group.name==SagerDatabase.defaultGroupName() && profiles.isEmpty()
                 }
                 val windows=groups.associate { (group,profiles) -> group.id to MobileProfilePaging.window(profiles.map { it.id },pageSnapshot[group.id],selected) }
-                val keys=groups.map { (group,profiles) -> GroupContent(group.copy(subOptions=group.subOptions.copy()),profiles.map { ProfileContent(it.id,it.type,it.name,it.outboundJson) },!byGroups && group.subOptions.allowCollapse && group.id in collapsedSnapshot,windows.getValue(group.id).page,colors) }
+                val keys=groups.map { (group,profiles) -> GroupContent(group.copy(subOptions=group.subOptions.copy()),profiles.map { ProfileContent(it.id,it.type,it.name,it.outboundJson) },!byGroups && group.subOptions.allowCollapse && group.id in collapsedSnapshot,windows.getValue(group.id).page,colors,routeLabel(group)) }
+                focusedRoute=runCatching { app.rawline.mobile.route.RouteSource.of(GroupRepo.get(if(byGroups) focusedGroup else GroupRepo.currentId())) }.getOrNull()
                 // Parse only displayed profiles off the UI thread. A collapsed subscription creates no rows.
                 if(previousStructure != keys) groups.forEach { (group,profiles) ->
                     if((!byGroups || group.id==focusedGroup) && (byGroups || !group.subOptions.allowCollapse || group.id !in collapsedSnapshot)) {
@@ -813,6 +859,7 @@ class MobileHomeFragment : ToolbarFragment() {
                 "${MobileHomeLayout.scrollParts}:${MobileHomeLayout.compactControl}:${MobileHomeLayout.compactTiles}:${MobileHomeLayout.hiddenSwitch}:${MobileHomeLayout.hiddenTiles}"
             // A moved tile bar rebuilds the screen even when the server list is the same.
             val unchanged=withContext(Dispatchers.Default) { previousStructure == structure } && renderedGroupId==focusedGroup && chromeKey?.endsWith(":$tilesKey")!=false
+            routeChipText(focusedRoute)?.let { routeChipView?.text=it }
             if (unchanged) {
                 groups.forEach { (_, profiles) -> profiles.forEach { profile ->
                     nextLatencyViews[profile.id]?.tag = profile.latency
@@ -973,7 +1020,9 @@ class MobileHomeFragment : ToolbarFragment() {
                     if(switches.size==1) {
                         // The removed switch's half shows the state and the server in use, so no gap is left.
                         power?.let { cell ->
-                            cell.tag=SWITCH_CELL;cell.gravity=Gravity.START or Gravity.CENTER_VERTICAL;cell.setPadding(dp(14),dp(4),dp(10),dp(4));cell.background=tile();cell.minimumHeight=switchHeight
+                            cell.tag=SWITCH_CELL;cell.gravity=Gravity.START or Gravity.CENTER_VERTICAL;cell.setPadding(dp(10),dp(2),dp(6),dp(2));cell.minimumHeight=switchHeight
+                            // Free room, not a button: the text sits on the screen beside the remaining switch.
+                            cell.background=null;cell.maxLines=2;cell.ellipsize=android.text.TextUtils.TruncateAt.END;cell.setLineSpacing(dp(2).toFloat(),1f)
                             androidx.core.widget.TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(cell,9,13,1,android.util.TypedValue.COMPLEX_UNIT_SP)
                             pair.addView(cell,if(landscape) LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(6) } else LinearLayout.LayoutParams(0,-1,1f).apply { marginStart=dp(8) })
                         }
@@ -1339,6 +1388,14 @@ class MobileHomeFragment : ToolbarFragment() {
                 more=iconAction(R.drawable.ic_mobile_more,getString(R.string.qmobile_more)) { groupMenu(group,more) }
                 title.addView(more,LinearLayout.LayoutParams(dp(44),dp(48)))
                 head.addView(title)
+                // Which routing this subscription's servers run with, one line above its card and notes.
+                if (signature.route.isNotEmpty()) head.addView(text(signature.route,11f,muted).apply {
+                    maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END;includeFontPadding=!MobileStyle.new
+                    setPadding(dp(14),0,dp(14),dp(8));compoundDrawablePadding=dp(6);gravity=Gravity.CENTER_VERTICAL
+                    val icon=androidx.core.content.ContextCompat.getDrawable(requireContext(),R.drawable.ic_mobile_route)?.mutate()?.apply { setTint(muted);setBounds(0,0,dp(14),dp(14)) }
+                    setCompoundDrawablesRelative(icon,null,null,null)
+                    setOnClickListener { routingMenu(this) };MobileFeedback.apply(this)
+                })
                 if (group.isSubscription && group.subOptions.showInfoCard) {
                     val quota=group.subInfo
                     val traffic=LinearLayout(requireContext()).apply { gravity=Gravity.CENTER_VERTICAL; setPadding(dp(12),0,dp(12),dp(8)) }
@@ -1866,12 +1923,18 @@ class MobileHomeFragment : ToolbarFragment() {
     }
     private fun routingMenu(anchor: View) {
         viewLifecycleOwner.lifecycleScope.launch {
-            val routes=withContext(Dispatchers.IO) { RouteManager.usable() }
+            val (routes,source)=withContext(Dispatchers.IO) { RouteManager.usable() to runCatching { app.rawline.mobile.route.RouteSource.of(GroupRepo.get(GroupRepo.currentId())) }.getOrNull() }
             if(!anchor.isAttachedToWindow) return@launch
             val popup=androidx.appcompat.widget.PopupMenu(requireContext(),anchor)
+            val locked=source?.providerLocked==true
+            // The provider's routing replaces the client's for this subscription: it is shown chosen, the others greyed.
+            if(locked) {
+                popup.menu.add(0, android.view.Menu.NONE, android.view.Menu.NONE, routeChipText(source)).apply { isCheckable=true;isChecked=true }
+                    .setOnMenuItemClickListener { openProviderRouting();true }
+            }
             routes.forEach { route ->
                 popup.menu.add(1, android.view.Menu.NONE, android.view.Menu.NONE, route.name).apply {
-                    isCheckable=true;isChecked=route.id==DataStore.currentRouteId
+                    isCheckable=true;isChecked=!locked && route.id==DataStore.currentRouteId;isEnabled=!locked
                     setOnMenuItemClickListener {
                         viewLifecycleOwner.lifecycleScope.launch {
                             val kept=app.rawline.mobile.ui.route.RouteQuickSwitch.switchTo(route.id)

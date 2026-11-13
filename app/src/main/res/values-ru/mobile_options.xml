@@ -12,4 +12,14 @@
 <string-array name="mobile_theme_names"><item>Красный</item><item>Розовый SSR</item><item>Розовый</item><item>Фиолетовый</item><item>Тёмно-фиолетовый</item><item>Индиго</item><item>Синий</item><item>Голубой</item><item>Бирюзовый</item><item>Морская волна</item><item>Зелёный</item><item>Светло-зелёный</item><item>Лайм</item><item>Жёлтый</item><item>Янтарный</item><item>Оранжевый</item><item>Тёмно-оранжевый</item><item>Коричневый</item><item>Серый</item><item>Серо-голубой</item><item>Чёрный</item><item>Мятный</item><item>Белый</item></string-array>
 <string-array name="qmobile_seasons"><item>Выключено</item><item>Авто</item><item>Осень</item><item>Зима</item><item>Весна</item><item>Лето</item></string-array>
 <string name="provider_profile_source">Источник: %1$s</string>
+<string name="qmobile_route_label_provider">Маршрутизация провайдера: %s</string>
+<string name="qmobile_route_label_provider_off">Провайдер выключил маршрутизацию: всё через сервер</string>
+<string name="qmobile_route_label_group">Своя маршрутизация: %s</string>
+<string name="qmobile_route_label_client">Маршрутизация: %s</string>
+<string name="qmobile_route_apps_off">приложения: выкл.</string>
+<string name="qmobile_route_apps_bypass">обход %d прил.</string>
+<string name="qmobile_route_apps_proxy">через VPN %d прил.</string>
+<string name="qmobile_route_chip_provider">Провайдер</string>
+<string name="qmobile_route_locked">Подписка работает по маршрутизации провайдера. Чтобы выбрать профиль Rawline, выключите её в настройках маршрутизации подписки.</string>
+<string name="qmobile_route_group_hint">У подписки свой профиль маршрутизации, выбор здесь меняет профиль остальных.</string>
 </resources>

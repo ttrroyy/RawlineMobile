@@ -17,6 +17,7 @@ class XrayExplicitRoutingTest {
             {"tag":"direct","protocol":"freedom"},{"tag":"block","protocol":"blackhole"}],
         "routing":{"balancers":[{"tag":"auto","selector":["proxy","de"]}],"rules":[
             {"type":"field","inboundTag":["socks-in"],"outboundTag":"direct"},
+            {"type":"field","inboundTag":["rawline-bridge"],"domain":["gosuslugi.ru"],"outboundTag":"de"},
             {"type":"field","ip":["geoip:ru"],"outboundTag":"direct","ruleTag":"ru"},
             {"type":"field","domain":["geosite:category-ads-all"],"outboundTag":"block"},
             {"type":"field","domain":["youtube.com"],"outboundTag":"de"},
@@ -31,11 +32,11 @@ class XrayExplicitRoutingTest {
         val all = rules(config)
         val mine = all.filter { it.array("inboundTag").strings() == listOf("rules-in") }
         // Blocks, the server choice and the balancer stay; the direct rules are gone, the catch-all goes to the balancer.
-        assertEquals(listOf("block", "de", "", ""), mine.map { it.string("outboundTag") })
-        assertEquals(listOf("auto", "auto"), mine.drop(2).map { it.string("balancerTag") })
+        assertEquals(listOf("de", "block", "de", "", ""), mine.map { it.string("outboundTag") })
+        assertEquals(listOf("auto", "auto"), mine.drop(3).map { it.string("balancerTag") })
         assertTrue(mine.none { it.contains("ruleTag") })
         // The provider's rules follow, untouched, for everything else.
-        assertEquals(5, all.size - mine.size)
+        assertEquals(6, all.size - mine.size)
         assertEquals("ru", all.first { it.string("ruleTag") == "ru" }.string("ruleTag"))
         assertTrue(all.indexOfFirst { it.string("ruleTag") == "ru" } > all.indexOfLast { it.array("inboundTag").strings() == listOf("rules-in") })
     }
