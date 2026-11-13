@@ -1889,7 +1889,7 @@ class MobileHomeFragment : ToolbarFragment() {
             for(profile in found.take(SEARCH_LIMIT)) {
                 val row=LinearLayout(requireContext()).apply {
                     orientation=LinearLayout.VERTICAL; background=tile(profile.id==DataStore.selectedProxy); isFocusable=true
-                    setPadding(dp(14),dp(10),dp(14),dp(10)); contentDescription=profile.displayName()
+                    setPadding(dp(16),dp(10),dp(16),dp(10)); minimumHeight=dp(56); gravity=Gravity.CENTER_VERTICAL; contentDescription=profile.displayName()
                     setOnClickListener {
                         dialog.dismiss()
                         DataStore.selectedProxy=profile.id
@@ -1898,8 +1898,9 @@ class MobileHomeFragment : ToolbarFragment() {
                     }
                     MobileFeedback.apply(this)
                 }
-                row.addView(text(profile.displayName(),15f).apply { setTypeface(typeface,Typeface.BOLD); maxLines=1; ellipsize=android.text.TextUtils.TruncateAt.END })
-                row.addView(text(profile.outbound.displayAddress(),12f,muted).apply { maxLines=1; ellipsize=android.text.TextUtils.TruncateAt.END })
+                row.addView(text(profile.displayName(),15f).apply { setTypeface(typeface,Typeface.BOLD); maxLines=1; ellipsize=android.text.TextUtils.TruncateAt.END; setPadding(0,0,0,0) })
+                // The row pads itself: text() padding on top of it made each server twice as tall.
+                row.addView(text(profile.outbound.displayAddress(),12f,muted).apply { maxLines=1; ellipsize=android.text.TextUtils.TruncateAt.END; setPadding(0,dp(2),0,0) })
                 results.addView(row,LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(6) })
             }
             if(found.size>SEARCH_LIMIT) results.addView(text(getString(R.string.qmobile_search_more,found.size-SEARCH_LIMIT),13f,muted).apply { setPadding(dp(4),dp(10),dp(4),0) })
