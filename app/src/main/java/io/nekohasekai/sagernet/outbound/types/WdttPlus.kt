@@ -33,7 +33,7 @@ class WdttPlus : Qwdtt() {
     override fun displayType() = when {
         !legacy -> "WDTT Plus"
         engine == "qwdtt" -> "WDTT · qWDTT (" + (if (mode == "raw") "RAW" else "WG") + ")"
-        else -> "WDTT"
+        else -> "WDTT Plus"
     }
 
     override fun parseFromJson(obj: JsonObject): Boolean {
