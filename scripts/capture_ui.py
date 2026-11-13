@@ -111,9 +111,9 @@ shell('am','start','-n',activity);time.sleep(3)
 
 tap_text('Settings')
 capture('03-settings')
-for label,name in [('TUN and proxy','27-tun-settings'),('Core settings','28-core-settings')]:
+for label,name in [('TUN and proxy settings','27-tun-settings'),('Core settings','28-core-settings')]:
     tap_text(label);capture(name)
-    if label=='TUN and proxy':
+    if label=='TUN and proxy settings':
         tap_text('MTU'); tap_text('Enter manually'); capture('30-custom-mtu')
         assert 'OK' in screen_xml() and 'Cancel' in screen_xml(), 'Custom MTU actions missing'
         tap_text('Cancel')
