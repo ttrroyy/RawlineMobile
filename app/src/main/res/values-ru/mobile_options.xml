@@ -22,6 +22,7 @@
 <string name="qmobile_route_apps_bypass">обход %d прил.</string>
 <string name="qmobile_route_apps_proxy">через VPN %d прил.</string>
 <string name="qmobile_route_chip_provider">Провайдер</string>
+<string name="qmobile_route_locked_short">Сейчас действует маршрутизация подписки</string>
 <string name="qmobile_route_locked">Подписка работает по маршрутизации провайдера. Чтобы выбрать профиль Rawline, выключите её в настройках маршрутизации подписки.</string>
 <string name="qmobile_route_group_hint">У подписки свой профиль маршрутизации, выбор здесь меняет профиль остальных.</string>
 </resources>

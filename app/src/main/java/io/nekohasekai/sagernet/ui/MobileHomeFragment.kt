@@ -546,9 +546,7 @@ class MobileHomeFragment : ToolbarFragment() {
         sheet.setContentView(body)
         sheet.show()
     }
-    private var routeChipView: TextView?=null
     /** The routing of the subscription in use, for the chip beside it; set off the main thread by refresh(). */
-    @Volatile private var focusedRoute: app.rawline.mobile.route.RouteSource.Info?=null
     /** [xrayFull]: the subscription's servers are full Xray configs, whose own routing CoreConfigs keeps. */
     private fun routeText(info: app.rawline.mobile.route.RouteSource.Info, xrayFull: Boolean = false): String {
         val rest=if(xrayFull) getString(R.string.qmobile_route_label_xray_rest) else ""
@@ -578,30 +576,15 @@ class MobileHomeFragment : ToolbarFragment() {
         app.rawline.mobile.route.RouteSource.Kind.PROVIDER_OFF -> getString(R.string.qmobile_route_chip_provider)
         else -> info.name
     }
-    /** The routing profile beside the subscription: the same card, its own sheet. */
-    private fun routeChip()=text("",16f).apply {
-        setTypeface(typeface,Typeface.BOLD);maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END;gravity=Gravity.CENTER_VERTICAL
-        setPadding(dp(16),0,dp(12),0);background=tile();isFocusable=true;compoundDrawablePadding=dp(8)
-        contentDescription=getString(R.string.qmobile_route_chip)
-        val icon=androidx.core.content.ContextCompat.getDrawable(requireContext(),R.drawable.ic_mobile_route)?.mutate()?.apply { setTint(foregroundColor);setBounds(0,0,dp(20),dp(20)) }
-        val arrow=androidx.core.content.ContextCompat.getDrawable(requireContext(),R.drawable.ic_mobile_chevron)?.mutate()?.apply { setBounds(0,0,dp(22),dp(22)) }
-        setCompoundDrawablesRelative(icon,null,android.graphics.drawable.RotateDrawable().apply { drawable=arrow;fromDegrees=90f;toDegrees=90f;level=1;setBounds(0,0,dp(22),dp(22)) },null)
-        setOnClickListener { routePicker() };MobileFeedback.apply(this)
-        routeChipView=this
-        routeChipText(focusedRoute)?.let { text=it }
-        viewLifecycleOwner.lifecycleScope.launch {
-            val name=withContext(Dispatchers.IO) { runCatching { routeChipText(app.rawline.mobile.route.RouteSource.of(GroupRepo.get(GroupRepo.currentId()))) }.getOrNull() }
-            if(name!=null) text=name
-        }
-    }
     private fun openProviderRouting() {
         val gid=GroupRepo.currentId()
         if(gid>0) startActivity(Intent(requireContext(),ProviderRoutingActivity::class.java).putExtra("groupId",gid))
     }
     /** What decides the routing of the subscription in use, and where to change it, above the profiles. */
     private fun routeSourceNotice(source: app.rawline.mobile.route.RouteSource.Info, close: () -> Unit)=LinearLayout(requireContext()).apply {
-        orientation=LinearLayout.VERTICAL;minimumHeight=dp(52);gravity=Gravity.CENTER_VERTICAL;setPadding(dp(16),dp(8),dp(12),dp(8));background=tile(source.providerLocked)
-        addView(text(routeText(source),15f).apply { setTypeface(typeface,Typeface.BOLD) })
+        // The card pads itself, as the rows under it do: text() padding on top set its text deeper than theirs.
+        orientation=LinearLayout.VERTICAL;minimumHeight=dp(52);gravity=Gravity.CENTER_VERTICAL;setPadding(dp(16),dp(12),dp(16),dp(12));background=tile(source.providerLocked)
+        addView(text(routeText(source),15f).apply { setTypeface(typeface,Typeface.BOLD);setPadding(0,0,0,0) })
         addView(text(getString(if(source.providerLocked) R.string.qmobile_route_locked else R.string.qmobile_route_group_hint),12f,muted).apply { setPadding(0,dp(4),0,0) })
         if(source.providerLocked) { isFocusable=true;setOnClickListener { close();openProviderRouting() };MobileFeedback.apply(this) }
     }
@@ -628,20 +611,20 @@ class MobileHomeFragment : ToolbarFragment() {
             routes.forEachIndexed { index,route ->
                 val row=LinearLayout(requireContext()).apply {
                     // One line each, the current one lit: a caption under it only made that row taller than the rest.
-                    orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER_VERTICAL;minimumHeight=dp(52);setPadding(dp(16),dp(6),dp(12),dp(6))
+                    orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER_VERTICAL;minimumHeight=dp(52);setPadding(dp(16),dp(6),dp(16),dp(6))
                     // While the provider's routing decides, no client profile is shown as the current one.
                     background=tile(!locked && route.id==DataStore.currentRouteId);isFocusable=true
                     contentDescription=route.name+if(!locked && route.id==DataStore.currentRouteId) ", "+getString(R.string.route_profile_current) else ""
-                    addView(text(route.name,15f).apply { setTypeface(typeface,Typeface.BOLD);maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END })
+                    addView(text(route.name,15f).apply { setTypeface(typeface,Typeface.BOLD);maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END;setPadding(0,0,0,0) })
                     if(locked) alpha=.45f
                     setOnClickListener {
-                        if(locked) { Toast.makeText(requireContext(),R.string.qmobile_route_locked,Toast.LENGTH_LONG).show();return@setOnClickListener }
+                        // A toast cuts a long text at two lines: the short one says it, the card above says where to change it.
+                        if(locked) { Toast.makeText(requireContext(),R.string.qmobile_route_locked_short,Toast.LENGTH_SHORT).show();return@setOnClickListener }
                         sheet.dismiss()
                         viewLifecycleOwner.lifecycleScope.launch {
                             val kept=app.rawline.mobile.ui.route.RouteQuickSwitch.switchTo(route.id)
                             snackbar(app.rawline.mobile.ui.route.RouteQuickSwitch.switchedMessage(this@MobileHomeFragment,route.name,kept)).show()
                         }
-                        routeChipView?.text=route.name
                     }
                     MobileFeedback.apply(this)
                 }
@@ -846,7 +829,6 @@ class MobileHomeFragment : ToolbarFragment() {
                 val keys=groups.map { (group,profiles) -> GroupContent(group.copy(subOptions=group.subOptions.copy()),profiles.map { ProfileContent(it.id,it.type,it.name,it.outboundJson) },!byGroups && group.subOptions.allowCollapse && group.id in collapsedSnapshot,windows.getValue(group.id).page,colors,
                     // Only the cards on the screen carry the line: grouped, that is the focused subscription alone.
                     if(!byGroups || group.id==focusedGroup) routeLabel(group,profiles.firstOrNull { it.id==selected } ?: profiles.firstOrNull()) else "") }
-                focusedRoute=runCatching { app.rawline.mobile.route.RouteSource.of(GroupRepo.get(if(byGroups) focusedGroup else GroupRepo.currentId())) }.getOrNull()
                 // Parse only displayed profiles off the UI thread. A collapsed subscription creates no rows.
                 if(previousStructure != keys) groups.forEach { (group,profiles) ->
                     if((!byGroups || group.id==focusedGroup) && (byGroups || !group.subOptions.allowCollapse || group.id !in collapsedSnapshot)) {
@@ -860,11 +842,10 @@ class MobileHomeFragment : ToolbarFragment() {
             val column = content ?: return@launch
             groups.forEach { (group, _) -> knownGroups.add(group.id) }
             val tilesBottom=tilesAtBottom()
-            val tilesKey="${extendedTiles()}:$tilesBottom:$byGroups:${homeSwitchesOn()}:${controlAtBottom()}:${chipAtBottom()}:${chipNearList()}:${MobileHomeLayout.extendedChip}:"+
+            val tilesKey="${extendedTiles()}:$tilesBottom:$byGroups:${homeSwitchesOn()}:${controlAtBottom()}:${chipAtBottom()}:${chipNearList()}:"+
                 "${MobileHomeLayout.scrollParts}:${MobileHomeLayout.compactControl}:${MobileHomeLayout.compactTiles}:${MobileHomeLayout.hiddenSwitch}:${MobileHomeLayout.hiddenTiles}"
             // A moved tile bar rebuilds the screen even when the server list is the same.
             val unchanged=withContext(Dispatchers.Default) { previousStructure == structure } && renderedGroupId==focusedGroup && chromeKey?.endsWith(":$tilesKey")!=false
-            routeChipText(focusedRoute)?.let { routeChipView?.text=it }
             if (unchanged) {
                 groups.forEach { (_, profiles) -> profiles.forEach { profile ->
                     nextLatencyViews[profile.id]?.tag = profile.latency
@@ -982,7 +963,6 @@ class MobileHomeFragment : ToolbarFragment() {
                         setCompoundDrawablesRelative(null,null,android.graphics.drawable.RotateDrawable().apply { drawable=arrow;fromDegrees=90f;toDegrees=90f;level=1;setBounds(0,0,dp(22),dp(22)) },null)
                         setOnClickListener { groupPicker() };MobileFeedback.apply(this)
                     }
-                    if(MobileHomeLayout.extendedChip) addView(routeChip(),LinearLayout.LayoutParams(0,dp(48),.8f).apply { marginEnd=dp(8) })
                     addView(groupChip,LinearLayout.LayoutParams(0,dp(48),1f).apply { marginEnd=dp(8) })
                     addView(addTile,LinearLayout.LayoutParams(dp(48),dp(48)))
                 } else null
@@ -1412,13 +1392,16 @@ class MobileHomeFragment : ToolbarFragment() {
                 title.addView(more,LinearLayout.LayoutParams(dp(44),dp(48)))
                 head.addView(title)
                 // Which routing this subscription's servers run with, one line above its card and notes.
+                // As wide as its text, so a press lights the line itself and not the whole width of the card.
                 if (signature.route.isNotEmpty()) head.addView(text(signature.route,11f,muted).apply {
-                    maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END
-                    setPadding(dp(14),0,dp(14),dp(8));compoundDrawablePadding=dp(6);gravity=Gravity.CENTER_VERTICAL
+                    // Wraps rather than cutting the Xray part of the label off.
+                    maxLines=3
+                    setPadding(dp(8),dp(4),dp(10),dp(4));compoundDrawablePadding=dp(6);gravity=Gravity.CENTER_VERTICAL
                     val icon=androidx.core.content.ContextCompat.getDrawable(requireContext(),R.drawable.ic_mobile_route)?.mutate()?.apply { setTint(muted);setBounds(0,0,dp(14),dp(14)) }
                     setCompoundDrawablesRelative(icon,null,null,null)
-                    setOnClickListener { routingMenu(this) };MobileFeedback.apply(this)
-                })
+                    contentDescription=signature.route
+                    isFocusable=true;setOnClickListener { routePicker() };MobileFeedback.apply(this,radius=12f)
+                },LinearLayout.LayoutParams(-2,-2).apply { marginStart=dp(6);bottomMargin=dp(4) })
                 if (group.isSubscription && group.subOptions.showInfoCard) {
                     val quota=group.subInfo
                     val traffic=LinearLayout(requireContext()).apply { gravity=Gravity.CENTER_VERTICAL; setPadding(dp(12),0,dp(12),dp(8)) }
@@ -1964,8 +1947,10 @@ class MobileHomeFragment : ToolbarFragment() {
             }
             routes.forEach { route ->
                 popup.menu.add(1, android.view.Menu.NONE, android.view.Menu.NONE, route.name).apply {
-                    isCheckable=true;isChecked=!locked && route.id==DataStore.currentRouteId;isEnabled=!locked
+                    isCheckable=true;isChecked=!locked && route.id==DataStore.currentRouteId
                     setOnMenuItemClickListener {
+                        // Still tappable while the provider decides, to say why nothing changes.
+                        if(locked) { Toast.makeText(requireContext(),R.string.qmobile_route_locked_short,Toast.LENGTH_SHORT).show();return@setOnMenuItemClickListener true }
                         viewLifecycleOwner.lifecycleScope.launch {
                             val kept=app.rawline.mobile.ui.route.RouteQuickSwitch.switchTo(route.id)
                             snackbar(app.rawline.mobile.ui.route.RouteQuickSwitch.switchedMessage(this@MobileHomeFragment,route.name,kept)).show()

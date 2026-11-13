@@ -213,7 +213,8 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         // Only the bounds animate: a fade left the buttons see-through or not drawn at all; they appear on their own.
         TransitionManager.beginDelayedTransition(column, ChangeBounds().setDuration(180))
         selected = part
-        parts.forEach { (each, frame) -> padFrame(frame, each == part) }
+        // A part without buttons (the subscription row at the bottom) keeps its outline as it is.
+        parts.forEach { (each, frame) -> padFrame(frame, each == part && (strips[each]?.childCount ?: 0) > 0) }
         strips.forEach { (each, strip) ->
             strip.animate().cancel()
             if (each == part) { strip.alpha = 0f; strip.visibility = View.VISIBLE; strip.animate().alpha(1f).setStartDelay(120).setDuration(120).start() }
@@ -234,7 +235,6 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             }
         }
         if (part == Part.CHIP) {
-            popup.menu.add(R.string.qmobile_layout_merge).setOnMenuItemClickListener { setChipExtended(!MobileHomeLayout.extendedChip); true }
             popup.menu.add(R.string.qmobile_layout_chip_near).setOnMenuItemClickListener {
                 MobileHomeLayout.chipNearList = true
                 place(part, MobileHomeLayout.controlBottom); anchor.requestFocus(); true
@@ -251,12 +251,6 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         changing()
         MobileHomeLayout.controlSwitches = switches
         fill(Part.CONTROL)
-    }
-
-    private fun setChipExtended(extended: Boolean) {
-        changing()
-        MobileHomeLayout.extendedChip = extended
-        fill(Part.CHIP)
     }
 
     private fun setExtended(extended: Boolean) {
@@ -306,7 +300,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
                 button(R.drawable.ic_layout_swap, R.string.qmobile_layout_swap) { setExtended(!MobileHomeLayout.extendedTiles) }
                 button(if (compact(part)) R.drawable.ic_layout_grow else R.drawable.ic_layout_shrink, R.string.qmobile_layout_size) { setCompact(part, !compact(part)) }
             }
-            Part.CHIP -> button(if (MobileHomeLayout.extendedChip) R.drawable.ic_layout_split else R.drawable.ic_layout_merge, R.string.qmobile_layout_merge) { setChipExtended(!MobileHomeLayout.extendedChip) }
+            Part.CHIP -> {}
             Part.CONTROL -> {
                 button(R.drawable.ic_layout_swap, R.string.qmobile_layout_swap) { setSwitches(!MobileHomeLayout.controlSwitches) }
                 button(if (compact(part)) R.drawable.ic_layout_grow else R.drawable.ic_layout_shrink, R.string.qmobile_layout_size) { setCompact(part, !compact(part)) }
@@ -375,9 +369,6 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
 
     private fun chip() = LinearLayout(this).apply {
         gravity = Gravity.CENTER_VERTICAL
-        if (MobileHomeLayout.extendedChip) addView(ui.text(getString(R.string.qmobile_route_chip), 16f, bold = true).apply {
-            gravity = Gravity.CENTER_VERTICAL; maxLines = 1; setPadding(dp(16), 0, dp(12), 0); background = MobilePalette.rowShape(context)
-        }, LinearLayout.LayoutParams(0, dp(48), .8f).apply { marginEnd = dp(8) })
         addView(ui.text(getString(R.string.subscription), 16f, bold = true).apply {
             gravity = Gravity.CENTER_VERTICAL; maxLines = 1; setPadding(dp(16), 0, dp(12), 0); background = MobilePalette.rowShape(context)
         }, LinearLayout.LayoutParams(0, dp(48), 1f).apply { marginEnd = dp(8) })
@@ -564,7 +555,6 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
                 when (partAt(event.x / scale, event.y / scale)) {
                     Part.TILES -> setExtended(!MobileHomeLayout.extendedTiles)
                     Part.CONTROL -> setSwitches(!MobileHomeLayout.controlSwitches)
-                    Part.CHIP -> setChipExtended(!MobileHomeLayout.extendedChip)
                     else -> {}
                 }
                 return true

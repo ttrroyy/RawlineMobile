@@ -23,6 +23,7 @@
 <string name="qmobile_route_apps_bypass">%d apps bypass</string>
 <string name="qmobile_route_apps_proxy">%d apps via VPN</string>
 <string name="qmobile_route_chip_provider">Provider</string>
+<string name="qmobile_route_locked_short">The routing of the subscription is in use now</string>
 <string name="qmobile_route_locked">The subscription follows the routing from its provider. Turn that off in the routing settings of the subscription to pick a Rawline profile.</string>
 <string name="qmobile_route_group_hint">This subscription has its own routing profile; picking here changes the profile of the others.</string>
 </resources>

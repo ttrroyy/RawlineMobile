@@ -114,10 +114,9 @@ class UiTourTest {
             Triple("S3 · запасной", app.rawline.mobile.outbound.types.S3Bypass(), 158),
         ))
     }
-    private fun home(mode: String, control: String = "button", bottom: Boolean = false, chip: String = "top", tiles: String = "off", routeChip: Boolean = false, readme: Boolean = false) {
+    private fun home(mode: String, control: String = "button", bottom: Boolean = false, chip: String = "top", tiles: String = "off", readme: Boolean = false) {
         val group = if (readme) demo().also { DataStore.selectedProxy = SagerDatabase.proxyDao.getByGroup(it.id).first().id } else fixtures().first
         DataStore.configurationStore.putBoolean("qmobileChipNearList", false)
-        DataStore.configurationStore.putBoolean("qmobileChipExtended", routeChip)
         DataStore.configurationStore.putString("qmobileHomeControl", control)
         DataStore.configurationStore.putString("qmobileControlPosition", if (bottom) "bottom" else "top")
         DataStore.configurationStore.putString("qmobileChipPosition", chip)
@@ -315,7 +314,8 @@ class UiTourTest {
         },
         "home-after-editor" to { open(MainActivity::class.java); Thread.sleep(1000) },
         "new-mrtt" to { fixtures(); open(settingsActivityFor("mrtt")) { putExtra("qmobileProfileType", "mrtt"); putExtra("qmobileGroupId", fixtures().first.id) } },
-        "home-route-chip" to { RouteManager.ensureDefault(); home("groups", routeChip = true); click(R.string.qmobile_route_chip) },
+        // The routing line under the subscription opens the profiles' sheet.
+        "home-route-sheet" to { RouteManager.ensureDefault(); home("groups"); click(R.string.qmobile_route_chip) },
         "readme-top" to { orb(true, readme = true) },
         "readme-switches" to { orb(true, bottom = true, control = "switches", readme = true) },
         // The connected home screen in each control layout, the state lines as updateState writes them.

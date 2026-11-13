@@ -23,13 +23,12 @@
     <string name="qmobile_layout_tutorial_done">Готово</string>
     <string name="qmobile_layout_step_drag">Зажмите и тяните, чтобы переместить</string>
     <string name="qmobile_layout_step_double">Два касания меняют вид</string>
-    <string name="qmobile_layout_step_badges">Нажмите на блок, появятся кнопки: вид, размер, объединение</string>
+    <string name="qmobile_layout_step_badges">Нажмите на блок, появятся кнопки: вид и размер</string>
     <string name="qmobile_layout_step_pinch">Сведите или разведите пальцы, чтобы уменьшить или увеличить блок</string>
     <string name="qmobile_layout_step_remove">Минус убирает, плюс возвращает</string>
     <string name="qmobile_layout_step_scroll">Кнопка со стрелками на блоке: он листается вместе со списком</string>
     <string name="qmobile_layout_swap">Сменить вид</string>
     <string name="qmobile_layout_size">Сменить размер</string>
-    <string name="qmobile_layout_merge">Объединить или разделить</string>
     <string name="qmobile_layout_scroll">Листать вместе со списком</string>
     <string name="qmobile_layout_remove">Убрать</string>
     <string name="qmobile_layout_restore">Вернуть</string>
