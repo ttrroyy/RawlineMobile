@@ -177,8 +177,10 @@ class UiTourTest {
     }
     private fun touch(action: Int, x: Float, y: Float, downAt: Long) =
         instrumentation.sendPointerSync(android.view.MotionEvent.obtain(downAt, android.os.SystemClock.uptimeMillis(), action, x, y, 0))
-    private fun editor(reset: Boolean = true) {
+    private fun editor(reset: Boolean = true, tutorial: Boolean = false) {
         fixtures()
+        // The first visit plays the tutorial over the editor; only its own pictures want it.
+        DataStore.configurationStore.putBoolean("qmobileLayoutTutorialSeen", !tutorial)
         if (reset) { MobileHomeLayout.tilesBottom = false; MobileHomeLayout.controlBottom = false; MobileHomeLayout.chipBottom = false; MobileHomeLayout.chipNearList = false; MobileHomeLayout.extendedTiles = false; MobileHomeLayout.controlSwitches = false }
         open(MobileLayoutEditorActivity::class.java)
     }
@@ -334,8 +336,7 @@ class UiTourTest {
         // Each tutorial step half way through its loop.
         "layout-tutorial-$step" to {
             layout()
-            DataStore.configurationStore.putBoolean("qmobileLayoutTutorialSeen", false)
-            editor()
+            editor(tutorial = true)
             repeat(step) { tap(R.string.qmobile_layout_tutorial_next) }
             Thread.sleep(2100L - if (step > 0) 2000L else 0L)
         }
