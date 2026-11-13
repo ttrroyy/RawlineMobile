@@ -294,8 +294,9 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             Part.CONTROL -> control(items)
         }, FrameLayout.LayoutParams(-1, -2))
         val strip = LinearLayout(this).apply { gravity = Gravity.END or Gravity.CENTER_VERTICAL }
-        fun button(icon: Int, description: Int, lit: Boolean = true, action: () -> Unit) {
-            val view = badge(icon, if (lit) accent else MobilePalette.well, if (lit) contrastOn(accent) else MobilePalette.text, description)
+        // Plain buttons are one quiet grey; only a setting that is on (the scrolling part) lights up.
+        fun button(icon: Int, description: Int, lit: Boolean = false, action: () -> Unit) {
+            val view = badge(icon, if (lit) accent else MobilePalette.badge, if (lit) contrastOn(accent) else MobilePalette.text, description)
             strip.addView(view, LinearLayout.LayoutParams(dp(26), dp(26)).apply { marginStart = dp(8) })
             items.add(view to action)
         }

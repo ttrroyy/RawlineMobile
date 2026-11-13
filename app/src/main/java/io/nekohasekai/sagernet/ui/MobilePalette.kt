@@ -25,6 +25,8 @@ object MobilePalette {
         else if (light) Color.rgb(100,110,119) else Color.rgb(173,182,191)
     /** The dark field inside a card; on true black a lighter one, or it would vanish. */
     val well get() = if (MobileStyle.new) (if (light) Color.argb(16,0,0,0) else Color.argb(20,255,255,255)) else androidx.core.graphics.ColorUtils.blendARGB(surface, Color.BLACK, .14f)
+    /** The editor's small round buttons: solid, a step lighter (or darker) than the screen, in either theme. */
+    val badge get() = androidx.core.graphics.ColorUtils.blendARGB(background, text, if (light) .09f else .2f)
     /** Corner radii in dp: the new style is rounder throughout. */
     val rowDp get() = if (MobileStyle.new) 20 else 5
     val cardDp get() = if (MobileStyle.new) 28 else 12

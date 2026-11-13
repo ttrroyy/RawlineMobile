@@ -189,8 +189,8 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
             c.drawCircle(cx, cy, r, paint)
             paint.style = Paint.Style.STROKE; paint.strokeWidth = dp(1f); paint.color = ColorUtils.setAlphaComponent(MobilePalette.text, 60)
             c.drawCircle(cx, cy, r, paint)
-            // An unlit button keeps the text colour on its dark disc, as the editor tints it.
-            icon(res, cx, cy, diameter - 2 * inset, if (fill == MobilePalette.well) MobilePalette.text else contrastOn(fill))
+            // A plain button keeps the text colour on its grey disc, as the editor tints it.
+            icon(res, cx, cy, diameter - 2 * inset, if (fill == MobilePalette.badge) MobilePalette.text else contrastOn(fill))
         }
 
         private fun text(value: String, x: Float, y: Float, size: Float, color: Int = MobilePalette.text, bold: Boolean = false) {
@@ -301,9 +301,9 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                 val y = top - frame - strip * grown + dp(6f) + dp(13f)
                 val last = w - side - dp(14f) - dp(13f)
                 c.saveLayerAlpha(0f, 0f, w, h, (255 * grown).toInt())
-                badge(R.drawable.ic_layout_scroll, last - dp(68f), y, if (scrollLit) accent else MobilePalette.well, dp(26f), dp(5f), scrollPressed)
-                badge(R.drawable.ic_layout_swap, last - dp(34f), y, accent, dp(26f), dp(5f))
-                badge(if (small) R.drawable.ic_layout_grow else R.drawable.ic_layout_shrink, last, y, accent, dp(26f), dp(5f), sizePressed)
+                badge(R.drawable.ic_layout_scroll, last - dp(68f), y, if (scrollLit) accent else MobilePalette.badge, dp(26f), dp(5f), scrollPressed)
+                badge(R.drawable.ic_layout_swap, last - dp(34f), y, MobilePalette.badge, dp(26f), dp(5f))
+                badge(if (small) R.drawable.ic_layout_grow else R.drawable.ic_layout_shrink, last, y, MobilePalette.badge, dp(26f), dp(5f), sizePressed)
                 c.restore()
             }
             fun block(top: Float, height: Float, scale: Float = 1f, lift: Float = 0f, grown: Float = 0f, content: (Float) -> Unit) {
