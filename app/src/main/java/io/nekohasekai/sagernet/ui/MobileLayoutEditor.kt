@@ -210,10 +210,15 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     /** Shows [part]'s buttons, or hides them all for null, the outline growing or shrinking as on a real change. */
     private fun select(part: Part?) {
         if (selected == part) return
-        TransitionManager.beginDelayedTransition(column, android.transition.AutoTransition().setDuration(180))
+        // Only the bounds animate: a fade left the buttons see-through or not drawn at all; they appear on their own.
+        TransitionManager.beginDelayedTransition(column, ChangeBounds().setDuration(180))
         selected = part
         parts.forEach { (each, frame) -> padFrame(frame, each == part) }
-        strips.forEach { (each, strip) -> strip.visibility = if (each == part) View.VISIBLE else View.GONE }
+        strips.forEach { (each, strip) ->
+            strip.animate().cancel()
+            if (each == part) { strip.alpha = 0f; strip.visibility = View.VISIBLE; strip.animate().alpha(1f).setStartDelay(120).setDuration(120).start() }
+            else { strip.alpha = 1f; strip.visibility = View.GONE }
+        }
     }
 
     /** A change of a part's look, animated as the tutorial plays it. */

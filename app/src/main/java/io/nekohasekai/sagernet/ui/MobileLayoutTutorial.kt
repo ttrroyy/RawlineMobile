@@ -112,6 +112,28 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
         private val dash = DashPathEffect(floatArrayOf(dp(7f), dp(5f)), 0f)
         private val removedDash = DashPathEffect(floatArrayOf(dp(5f), dp(4f)), 0f)
         private val box = RectF()
+        private val ui = ServerUi(context)
+        // The switch cells as the editor builds them, so the switch, its label and its wrapping are the real ones.
+        private val switchCells = listOf(R.string.service_mode_vpn, R.string.service_mode_proxy).map { label ->
+            LinearLayout(context).apply {
+                gravity = Gravity.CENTER_VERTICAL; setPadding(dp(14f).toInt(), dp(2f).toInt(), dp(8f).toInt(), dp(2f).toInt()); background = MobilePalette.rowShape(context)
+                addView(ui.text(context.getString(label), 14f), LinearLayout.LayoutParams(0, -2, 1f))
+                addView(androidx.appcompat.widget.SwitchCompat(context).apply { isClickable = false; isFocusable = false })
+            }
+        }
+        private val checkLine = ui.text(context.getString(R.string.qmobile_check_connection), 12f, MobilePalette.muted).apply {
+            gravity = Gravity.CENTER_VERTICAL; setPadding(dp(10f).toInt(), 0, dp(6f).toInt(), 0)
+        }
+
+        /** Lays [view] out at [width] x [height] and draws it at ([x], [y]). */
+        private fun place(view: View, x: Float, y: Float, width: Float, height: Float) {
+            val w = width.toInt(); val h = height.toInt()
+            if (view.width != w || view.height != h) {
+                view.measure(View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(h, View.MeasureSpec.EXACTLY))
+                view.layout(0, 0, w, h)
+            }
+            c.save(); c.translate(x, y); view.draw(c); c.restore()
+        }
         private val accent = MobilePalette.accent(context)
         private val orb = MobileOrbArtwork(context, context.getString(R.string.qmobile_orb_idle)).apply {
             groupText = context.getString(R.string.subscription); serverText = Locale("", "de").displayCountry
@@ -167,7 +189,8 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
             c.drawCircle(cx, cy, r, paint)
             paint.style = Paint.Style.STROKE; paint.strokeWidth = dp(1f); paint.color = ColorUtils.setAlphaComponent(MobilePalette.text, 60)
             c.drawCircle(cx, cy, r, paint)
-            icon(res, cx, cy, diameter - 2 * inset, contrastOn(fill))
+            // An unlit button keeps the text colour on its dark disc, as the editor tints it.
+            icon(res, cx, cy, diameter - 2 * inset, if (fill == MobilePalette.well) MobilePalette.text else contrastOn(fill))
         }
 
         private fun text(value: String, x: Float, y: Float, size: Float, color: Int = MobilePalette.text, bold: Boolean = false) {
@@ -267,16 +290,10 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
             }
             val switchesHeight = dp(52f) + dp(40f)
             fun switches(top: Float) {
-                // Two switches 52 dp tall, 8 dp apart, and the check line under them.
+                // Two switches 52 dp tall, 8 dp apart, and the check line under them: the editor's own views, drawn here.
                 val half = (right - left - gap) / 2
-                listOf(R.string.service_mode_vpn to left, R.string.service_mode_proxy to left + half + gap).forEach { (label, x) ->
-                    surface(x, top, x + half, top + dp(52f))
-                    text(context.getString(label), x + dp(14f), top + dp(31f), dp(14f))
-                    paint.style = Paint.Style.FILL; paint.color = MobilePalette.well
-                    box.set(x + half - dp(46f), top + dp(19f), x + half - dp(10f), top + dp(33f)); c.drawRoundRect(box, dp(7f), dp(7f), paint)
-                    paint.color = MobilePalette.muted; c.drawCircle(x + half - dp(39f), top + dp(26f), dp(10f), paint)
-                }
-                text(context.getString(R.string.qmobile_check_connection), left + dp(10f), top + dp(52f) + dp(25f), dp(12f), MobilePalette.muted)
+                switchCells.forEachIndexed { index, cell -> place(cell, left + index * (half + gap), top, half, dp(52f)) }
+                place(checkLine, left, top + dp(52f), right - left, dp(40f))
             }
             fun strip(top: Float, grown: Float, scrollLit: Boolean, sizePressed: Float = 0f, scrollPressed: Float = 0f, small: Boolean = false) {
                 // The selected outline's buttons: 26 dp, 8 apart, 6 dp under the outline and 14 dp from its right edge.
