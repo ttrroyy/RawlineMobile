@@ -1,35 +1,35 @@
-# Graph Report - qThroneMobile  (2026-11-12)
+# Graph Report - qThroneMobile  (2026-11-13)
 
 ## Corpus Check
-- 831 files · ~1,583,529 words
+- 844 files · ~1,592,884 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 701 file(s) not represented in the graph (top: .xml 671, .aidl 11, (none) 9)
+- Unclassified: 715 file(s) not represented in the graph (top: .xml 680, .aidl 11, (none) 10)
 
 ## Summary
-- 12675 nodes · 37181 edges · 467 communities (247 shown, 220 thin omitted)
-- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 1552 edges (avg confidence: 0.85)
+- 12845 nodes · 37645 edges · 469 communities (261 shown, 208 thin omitted)
+- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 1573 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `6bc494d7`
+- Built from commit: `2d48ef1c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- SubscribeFlows.kt
-- r
+- OutboundFactory
+- MrttServerActivity.kt
 - tunnel/tunnel.go
 - Mieru
-- MainActivity.kt
+- SagerDatabase
 - vtr
 - API surface
-- LocalProxySecurityTest.kt
+- Custom.kt
 - Logs
 - testing.T
-- loopback_udp_test.go
+- RoomPreferenceDataStore
 - XrayVless
 - freeturn/main.go
-- jsonObjectOf
+- JsonObject
 - .parseObject
 - OpenConnect
 - Session
@@ -40,7 +40,7 @@
 - Custom
 - MobileHomeFragment
 - openflux/main.go
-- runOnDefaultDispatcher
+- ProfileSettingsActivity
 - RouteProfileActivity
 - runOnDefaultDispatcher
 - AnyTls
@@ -48,16 +48,16 @@
 - Hysteria
 - DeployServer
 - pathlib
-- BaseService
-- OutboundFactory
+- SagerNet
+- ProfileImport.kt
 - mschap.go
 - RoomPreferenceDataStore
-- MobileLayoutEditorActivity
+- Outbound
 - openfluxkey/captcha.go
 - WireGuard
 - RouteShare
 - ProxyGroup
-- ProviderRouteProfiles
+- .parseObjectOrNull
 - .onGroupItemClick
 - Logger
 - .show
@@ -82,7 +82,7 @@
 - MrttAdmin
 - TestPanelController.kt
 - WdttPlusDeploySafetyTest
-- DnsTunnel
+- jsonObjectOf
 - AutoSelector
 - RouteDao
 - RwlBackup
@@ -90,25 +90,25 @@
 - SubscriptionOptions
 - TestSessionClient
 - Nets.kt
-- XrayStreamSetting.kt
+- MobileLayoutEditorActivity
 - runIndependentProbes
 - SettingsStore
 - Host
 - parseCsqttLink
 - WdttPlusExit.kt
 - TestSession
-- .proxies
+- .runBuild
 - needReload
 - FreeturnAdmin
 - Test
 - re
-- TestPanelController.kt
+- MobileAlertDialogBuilder
 - Trojan
 - WebViewClient
 - TrustTunnel
 - WdttPlusExitActivity
 - Mrtt
-- .runBuild
+- SubscriptionCrypto.kt
 - release_assets.py
 - VpnService
 - Masque
@@ -127,8 +127,8 @@
 - AutoSelectorSettingsActivity
 - .show
 - .probeConfig
-- WdttPlusBootstrap.kt
-- AutoSelectorSkip
+- .block
+- SettingsMapper.kt
 - UpdateManager
 - .start
 - VkRelayAccount
@@ -136,21 +136,21 @@
 - .link
 - ServerUi
 - Drawable
-- ProfileSelectActivity
+- ProfileSettingsActivity.kt
 - Validation
 - BackupRestore
 - .bindLoaded
 - AuthService
-- assertequals
+- SubscriptionRoute
 - AboutFragment.kt
 - .load
 - CarrierKind
-- JsonEditorActivity.kt
+- WindowInsetsListeners.kt
 - StatsBar
 - BoxInstance
 - RuleSetCatalog
 - RwlBackupTest.kt
-- GroupRemovalTest.kt
+- AlertDialogFragment
 - ProxiesAdapter
 - Hosts
 - .trySetPrimaryClip
@@ -158,12 +158,12 @@
 - UpdateChecker
 - VkRelayOAuth
 - .create
-- TileService
+- .startService
 - TrafficData
 - portInput
 - WdttPlusClientsActivity
 - GroupSettingsActivity
-- OpenVpn.kt
+- .all
 - ProfilesHeader.kt
 - .warn
 - NativeConnectionStage
@@ -178,21 +178,21 @@
 - ServiceNotification
 - Dao
 - Widgets
-- .startOnce
-- SubscriptionCrypto.kt
+- Aivpn
+- SingBoxSubType
 - ProviderGeoAssets
 - ScannerActivity
 - .decodeChecked
 - CarrierHashCheck
-- DeferredRuleSets
+- WebDAVSettingsFragment
 - TestFormat
-- ThemedActivity
-- RoomPreferenceDataStore
-- SchemaDocument
-- SecurityRegressionTest
+- ServerScreenActivity
+- PreferenceBindingManager
+- TileService
+- .startOnce
 - NativeTransportHealth
 - UpdateNotifications
-- BaseService.kt
+- Juicity
 - WdttPlusAdmin
 - JavaUtil.java
 - DeploymentOwnership
@@ -204,6 +204,7 @@
 - i18n_coverage.py
 - BindingSettingsActivity
 - NativeCarrier
+- WdttPlusBootstrap.kt
 - ResolverSources
 - AppsAdapter
 - AppManagerActivity
@@ -214,13 +215,13 @@
 - Binder
 - RuleType
 - ObfuscatedTransportLinksTest
-- SagerNet
+- SpeedDisplayData
 - InboundSettingsFragment
-- PreferenceBindingManager
+- DnsServers
 - QwdttProfileApi
 - RouteRuleActivity
-- QwdttAdmin.kt
-- SubscriptionInfoCard
+- CoreLog
+- LogsAndAuthRegressionTest
 - VkHashesActivity
 - UpdateActivity
 - WifiStateAccess
@@ -230,48 +231,47 @@
 - .trySetPrimaryClip
 - WebDavBackup
 - CsqttRebirthTest
-- .getProfile
-- VkRelayLogin
-- ViewHolder
+- .onCreate
+- SchemaCompletion.kt
+- Adapter
 - MobileSheetDialog
 - qThroneMobile
 - BackupFragment
 - ServiceButton
 - RuleSetPickerActivity
 - PreferenceBinding
-- LargeSubscriptionUiRegressionTest.kt
-- LinkCodec
-- DataStore.kt
+- .resolve
+- OlcRtc
+- .bindValidation
 - MarkerEntity
 - SettingEntry
-- GroupFragment
+- SubscriptionInfoCard
 - DeployListFragment
-- WrappedHostResolverTest
-- WebDAVSettingsFragment
-- DnsTunnelLinkTest
+- Fixes331Test.kt
+- LocalProxySecurityTest.kt
+- SecurityRegressionTest.kt
 - dashboard_css.py
 - RouteProfile
-- SaveDocument.kt
+- .launch
 - RawlineSession
 - ClashProxy
 - RouteShare
 - UpdateOfferCache
 - BatteryOptimizations
 - UnifiedJsonImportTest
-- RouteDns
+- .buildMainWith
 - release_tag.py
-- .domains
+- MobileRouteInputTest.kt
 - GroupSort
 - Cidrs
 - LiveSeries
 - .decodeList
 - Process
-- SubscriptionRoute
-- ClashYaml
+- EditTextPreferenceModifiers
+- .onOptionsItemSelected
 - LiveGraphsFragment
-- JsonObject
-- .reloadService
-- FreeturnPowPage.kt
+- Outbound
+- MobileSeasonalView
 - XrayGeoSettingsFragment
 - MobileGroupDrag
 - .follow
@@ -280,31 +280,32 @@
 - Network
 - MotionEvent
 - UiTourTest.kt
-- QwdttIntegrationTest
+- ClashYaml.kt
+- DnsttSettingsActivity
 - Axis
 - .window
-- SettingChecks
-- MobileImportUiRegressionTest
+- OpenFluxLinkTest
+- Theme
 - ShapeFocusDrawable
-- Process
+- httpsFallbackTransport
 - .metadata
 - ImportReport
 - AlwaysOnVpn
-- .all
-- .trustedHttps
+- .collapsedAndExpandedLargeSubscriptionsKeepTheUiBoundedAndResponsive
+- .onCreate
 - CsqttEpoch
 - VkRelayRequests
 - MessageStore
-- Outbound
+- CoreSupport
 - .run
 - AppListActivity
 - Process
-- SpeedBarsView.kt
+- SettingsFragment
 - CarrierBridgeCredentials
 - ShadowTls
-- .onCreate
+- MobileSheetDialog
 - PackageCache
-- Field
+- .reloadService
 - easter
 - halloween
 - kupala
@@ -317,17 +318,17 @@
 - check_settings_ui.py
 - r
 - Provider
-- FixedLinearLayoutManager
+- Bundle
 - StringIterator
 - NativeProbeStartupGate
-- OpenFluxLinkTest
+- OpenFlux
 - mobileCSQTTIPC
 - RouteProfile
 - CoordinatorLayout
 - QwdttAccessActivity
 - NativeSubscriptionImportTest.kt
 - DesktopParityImportTest.kt
-- DnsServers
+- SaveDocument
 - BackupExport
 - authTestEndpoint
 - ToggleWidgetProvider.kt
@@ -335,77 +336,77 @@
 - ProxyService
 - build_mrtt.sh
 - .scheme
-- .importProfile
-- Chain
+- .show
+- .quote
 - AmneziaDnsImportTest
-- GeneralSettingsFragment
+- OpenFluxKey
 - check_release_ssh.py
 - ProfileRowHolder
 - build_carrier_clients.sh
 - build_csqtt_compat.sh
 - build_secure_carriers.sh
 - .onRowClick
-- .catalog
+- RouteManager
 - SegmentedProgressView
-- qwdtt/netstack_tuning.go
+- SubscriptionCrypto.kt
 - CarrierCaptchaBridge
 - PortLease
-- .onReceive
+- HostKeyRepository
 - HappHysteriaImportTest.kt
-- markerValue
+- MobileImportUiRegressionTest
 - Observer
-- ServerScreenActivity
-- QRCodeDialog.kt
+- xrayUnmodelledKeys
+- markerValue
 - DiagnosticsFragment
 - build_dns_engines.sh
 - WifiPermissionFlow
-- CoroutineDispatcher
+- FreeturnPowPage
 - ReleaseNotes.kt
-- .setDisplayOrder
-- HostKeyRepository
-- .call
+- .setup
+- ToolbarFragment
+- SubscriptionClient
 - Test
-- .format
+- LogRedactor
 - .compare
-- S3Bypass
+- Freeturn
 - RouteRule
-- LongClickListPreference.kt
+- Process
 - internal/mschap
 - CSQTT 2.5.0 Legacy in Android 2.0
 - build_sstp.sh
-- LocalResolverImpl
-- PreferenceWidgetLayoutTest.kt
+- Process
+- Http
 - LatencyHistogramView
 - .clear
 - MobileCountryFlags.kt
 - SpeedTestSnapshot
 - Data
 - LogcatFragment.kt
-- .profilesAcceptFullCallLinks
+- StatusWidgetProvider
 - CaptchaAddressPolicyTest
 - 2.4.2 release preparation
 - sessionCaptcha
 - .isHttpProxy
-- .show
-- ColorPickerPreference
+- .summary
+- LiveChartView.kt
 - build_freeturn.sh
 - AutoSelectorStatus
 - Fixture
 - bug-report-en.md
 - bug-report-zh_cn.md
-- WdttPlusLifecycle
-- OpenFluxKey
-- LogRedactor
+- VkRelayLogin
+- SpeedBarsView.kt
+- withPreparedTransports
 - BaseAdapter
-- init
+- .refreshSettings
 - prebuild.sh
 - feature_request-en.md
 - feature_request-zh_cn.md
-- insertProfilesBefore
+- .get
 - DesktopSchema.kt
-- NGUtil
+- .of
 - DnsDefaults.kt
-- AutoSelectorGroupsTest.kt
+- GroupSortMethod
 - OnPreDrawListener
 - csqtt-2.4.2-desktop-port.md
 - release-2.2-checklist.md
@@ -416,70 +417,70 @@
 - RELEASE_NOTES.md
 - swiftsstp
 - ProfileImports
-- Callback
+- NativeCaptchaPolicy
+- rawline.rs
 - ProxyEntity
-- SubscriptionCrypto.kt
-- SocketFactory
-- LatencyColorTest.kt
-- Freeturn
-- DiagnosticsCapture
-- TrustTunnelCongestionTest.kt
+- jsonobject
+- runOnDefaultDispatcher
+- assertequals
+- SupportSQLiteDatabase
+- .testResult
+- HysteriaSettingsActivity
 - JsonCodeEditor
 - WireGuardSettingsActivity
-- TestEngine
-- Fixes331Test.kt
-- Direct
-- FirstStartPrompts
+- XrayFullRouteOutboundTest.kt
+- WdttPlusLifecycle
+- Callback
+- .onReceive
 - State
 - .collapseStatusBar
-- NativeCaptchaPolicy
-- CaptchaAddressPolicy
+- LongClickListPreference.kt
+- build_aivpn.sh
 - DnsServerSuggestions.kt
 - NaiveSettingsActivity
 - SocksSettingsActivity
 - JvmStatic
 - RouteServers
-- .setup
-- UndoSnackbarManager
+- SocketFactory
+- XraySubType
 - Process
 - AutoSelectorCore
-- .outbound
+- .call
 - XrayVlessSettingsActivity
-- SubscriptionEditorLayoutTest
-- Stub
+- Process
+- .setup
 - .readValue
-- TestSettingsContractTest
+- DataStore.kt
 - CustomSettingsActivity
-- MasterDnsSettingsActivity
-- Process
-- Process
-- NativeWarpChainTest.kt
-- Test
-- AbstractInstance
+- Kind
+- AdapterDataObserver
+- .onStartNestedScroll
+- JsonArray
+- dnsPacketPipe
 - Contract
 - WebChromeClient
-- Contract
-- .onStartNestedScroll
-- .observe
+- .outbound
+- AppLocale.kt
+- .format
+- CaptchaAddressPolicy
 - TrustTunnelSettingsActivity
-- DnsSettingsFragment
-- SingBoxDashboard
-- AdapterDataObserver
+- GeneralSettingsFragment
+- CustomProtocolLabelsTest.kt
+- AutoSelectorGroupsTest.kt
 - ToolbarSearchView.kt
-- QwdttProfileApiTest.kt
-- AppearanceSettingsFragment
+- CoroutineDispatcher
 
 ## God Nodes (most connected - your core abstractions)
-1. `JsonObject` - 584 edges
-2. `vtr()` - 329 edges
-3. `Outbound` - 225 edges
-4. `ProxyEntity` - 197 edges
-5. `BuildContext` - 193 edges
+1. `JsonObject` - 588 edges
+2. `vtr()` - 339 edges
+3. `Outbound` - 226 edges
+4. `BuildContext` - 198 edges
+5. `ProxyEntity` - 197 edges
 6. `Bundle` - 165 edges
-7. `DataStore` - 135 edges
-8. `MobileAlertDialogBuilder` - 133 edges
-9. `Validation` - 127 edges
-10. `jsonObjectOf()` - 126 edges
+7. `DataStore` - 136 edges
+8. `MobileAlertDialogBuilder` - 136 edges
+9. `jsonObjectOf()` - 129 edges
+10. `Validation` - 128 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Проверка локальных слушателей Android — 1.9.2` --references--> `LocalProxySecurityTest`  [INFERRED]
@@ -496,87 +497,87 @@
 ## Import Cycles
 - None detected.
 
-## Communities (467 total, 220 thin omitted)
+## Communities (469 total, 208 thin omitted)
 
-### Community 1 - "r"
-Cohesion: 0.05
-Nodes (29): RouteManager, Bundle, DeployStore, confirmAction(), dp2px(), needReload(), showAllowingStateLoss(), startFilesForResult() (+21 more)
+### Community 0 - "OutboundFactory"
+Cohesion: 0.07
+Nodes (12): OutboundFactory, Protocol, XrayVlessPreference, AllVLESS, XhttpAndReality, XhttpOnly, createEntity(), HttpTest (+4 more)
+
+### Community 1 - "MrttServerActivity.kt"
+Cohesion: 0.04
+Nodes (17): DeployStore, tryToShow(), VkCallHash, TrafficFormat, calls(), onCreate(), refresh(), request() (+9 more)
 
 ### Community 2 - "tunnel/tunnel.go"
 Cohesion: 0.03
-Nodes (41): clean(), main(), run(), TestAppOptionsLoadInTheEngine(), writeConfig(), freePort(), TestSOCKSThroughServerAndWireGuard(), throughSOCKS() (+33 more)
+Nodes (43): clean(), main(), run(), TestAppOptionsLoadInTheEngine(), writeConfig(), clean(), main(), run() (+35 more)
 
 ### Community 3 - "Mieru"
-Cohesion: 0.18
+Cohesion: 0.16
 Nodes (3): Mieru, MieruChecks, MieruSettingsActivity
 
-### Community 4 - "MainActivity.kt"
-Cohesion: 0.06
-Nodes (5): AutoSelectorClient, Connection, ServiceConnection, SagerConnection, OnPreferenceDataStoreChangeListener
+### Community 4 - "SagerDatabase"
+Cohesion: 0.04
+Nodes (18): AutoSelectorClient, LocalDnsFailedException, RuleSetDownloadFailedException, applyTo(), exitsThroughVpn(), urlTestCurrent(), URLTestHandler, Action (+10 more)
 
 ### Community 5 - "vtr"
 Cohesion: 0.04
-Nodes (20): TlsChecks, tlsHasText(), tlsPemBlocks(), TransportChecks, clashDownloadSettings(), unreported(), xdriveHeaderValue(), XrayChecks (+12 more)
+Nodes (20): TlsChecks, tlsHasText(), TlsPemBlock, tlsPemBlocks(), TlsPemScan, TransportChecks, xdriveHeaderValue(), xdriveS3Name() (+12 more)
 
 ### Community 6 - "API surface"
 Cohesion: 0.03
 Nodes (55): NewBLAKE2s(), NewBLAKE2s128MAC(), NewBLAKE2s256MAC(), NewChaCha20Poly1305(), NewXChaCha20Poly1305(), mustHex(), TestBLAKE2s128MACWidth(), TestBLAKE2sMACIsKeyed() (+47 more)
 
+### Community 7 - "Custom.kt"
+Cohesion: 0.09
+Nodes (21): CustomChecks, customValueNamed(), editListNamed(), editObjectNamed(), isBlank(), isLocalSingBoxInbound(), isTorPluginOption(), keysNamed() (+13 more)
+
 ### Community 8 - "Logs"
-Cohesion: 0.02
-Nodes (35): BaseService, CoreServiceClient, CoreConfigs, GroupRepo, GroupSortAction, GroupSortMethod, BY_ADDRESS, BY_ID (+27 more)
+Cohesion: 0.03
+Nodes (15): BaseService, CoreRuntime, RunningCore, CoreServiceClient, SettingsMapper, ServerSortRule, NAME, NONE (+7 more)
 
 ### Community 9 - "testing.T"
 Cohesion: 0.06
-Nodes (61): TestUDPForwardReachesTheLocalRelay(), marshalOptions(), parseCP(), parseOptions(), decodeFrame(), encodeFrame(), putFrameHeader(), isZeroIID() (+53 more)
-
-### Community 10 - "loopback_udp_test.go"
-Cohesion: 0.06
-Nodes (26): authenticatedLoopbackUDPSource(), Client, checkServer(), localSOCKSTest(), socksTestAuth(), TestAuthenticatedLoopbackInboundRejectsFirstPacketRaceAndKeepsUDP(), TestAuthenticatedLoopbackInboundRejectsUnknownUDPSourcePort(), TestLoopbackUDPAdvertisesBoundSourceAndRejectsInjectedReplies() (+18 more)
+Nodes (63): freePort(), TestSOCKSThroughServerAndWireGuard(), throughSOCKS(), wgKey(), TestUDPForwardReachesTheLocalRelay(), marshalOptions(), parseOptions(), decodeFrame() (+55 more)
 
 ### Community 11 - "XrayVless"
-Cohesion: 0.07
-Nodes (6): XrayMultiplex, XrayMuxChecks, XrayMuxSettings, normalizeXrayNetwork(), XrayVless, XrayVlessChecks
+Cohesion: 0.06
+Nodes (9): countMessage(), readJsonCount(), readQueryCount(), XrayMultiplex, XrayMuxChecks, XrayMuxSettings, normalizeXrayNetwork(), XrayVless (+1 more)
 
 ### Community 12 - "freeturn/main.go"
 Cohesion: 0.04
 Nodes (13): control(), fatal(), main(), manualSolver(), powCapture(), readConfig(), wgDevice(), newPacketPipe() (+5 more)
 
-### Community 13 - "jsonObjectOf"
-Cohesion: 0.05
-Nodes (44): QuicSignature, WarpRegistration, xrayLegacyXdnsDomain(), xrayUpgradeXdnsSettings(), BridgeConfig, bridgeTagFor(), BuildState, DomainSelectors (+36 more)
+### Community 13 - "JsonObject"
+Cohesion: 0.02
+Nodes (67): Ech, UTls, Transport, bindXrayDownloadLeg(), ClashWsOptions, isHexAscii(), setXrayDialerProxy(), stripXrayDialerState() (+59 more)
 
 ### Community 14 - ".parseObject"
-Cohesion: 0.08
-Nodes (12): DnsDiagnostics, TestTags, GeneratorSettings, ProfileProvider, TransportIpPolicy, Socks, DnsDiagnosticsTest, AndroidVpnListenerTest (+4 more)
+Cohesion: 0.09
+Nodes (10): TestTags, GeneratorSettings, ProfileProvider, TransportIpPolicy, Socks, AndroidVpnListenerTest, DnsDefaultsTest, MixedChainTest (+2 more)
 
 ### Community 15 - "OpenConnect"
 Cohesion: 0.05
-Nodes (15): FormEntry, FortinetHostCheck, HostEntry, Mobile, OcImport, ocReadChecked(), ocReadCheckedInt(), OpenConnect (+7 more)
+Nodes (14): FormEntry, FortinetHostCheck, HostEntry, Mobile, OcImport, ocReadChecked(), ocReadCheckedInt(), OpenConnect (+6 more)
 
 ### Community 16 - "Session"
 Cohesion: 0.05
 Nodes (46): BuildCallConnected(), hmacSha256(), HTTPHandshake(), newCorrelationID(), ReadCallConnectAck(), readHTTPHeader(), SendCallConnectRequest(), sha256Sum() (+38 more)
 
 ### Community 17 - "wireguard.go"
-Cohesion: 0.04
-Nodes (48): isObfuscated(), newClusterM(), newMediaConfig(), parseMasking(), stunBindingRequestPacket(), stunBindingSuccessPacket(), stunFingerprint(), unwrapSTUN() (+40 more)
+Cohesion: 0.03
+Nodes (53): isObfuscated(), newClusterM(), newMediaConfig(), parseMasking(), stunBindingRequestPacket(), stunBindingSuccessPacket(), stunFingerprint(), unwrapSTUN() (+45 more)
 
 ### Community 18 - "net.Conn"
-Cohesion: 0.04
-Nodes (50): handshake(), readAddress(), relay(), reply(), serveSOCKS(), bridge(), buildDNSQuery(), parseDNSResponse() (+42 more)
+Cohesion: 0.03
+Nodes (44): bridge(), buildDNSQuery(), parseDNSResponse(), skipDNSName(), splitLabels(), buildSOCKSUDPHeader(), parseSOCKSUDPHeader(), readPort() (+36 more)
 
 ### Community 19 - "Session"
-Cohesion: 0.05
-Nodes (25): TestDefaultServerStillRequiresAuth(), TestNoAuthHandshake(), API surface, internal/ppp, Link bring-up state machine, Specifications, NewServer(), echoPair() (+17 more)
+Cohesion: 0.04
+Nodes (34): parseChallenge(), parseResponse(), parseCP(), FuzzParseCHAP(), FuzzParseCP(), FuzzParseOptions(), TestDefaultServerStillRequiresAuth(), TestNoAuthHandshake() (+26 more)
 
 ### Community 20 - ".require"
-Cohesion: 0.11
+Cohesion: 0.10
 Nodes (42): attemptOwnedScript(), archiveLegacyUpdatePreparationScript(), bindHistoryEntries(), cancelServerUpdatePreparationScript(), cleanupServerUpdateBackupScript(), decodeStoredCustomVpnDnsServers(), isValidBase64Key(), isValidPortsSpec() (+34 more)
-
-### Community 21 - "Custom"
-Cohesion: 0.06
-Nodes (23): withPrivateServer(), Custom, CustomChecks, customValueNamed(), editListNamed(), editObjectNamed(), isBlank(), isLocalSingBoxInbound() (+15 more)
 
 ### Community 22 - "MobileHomeFragment"
 Cohesion: 0.06
@@ -586,9 +587,9 @@ Nodes (5): groupAfterRemoval(), GroupContent, MobileHomeFragment, OnAttachStateC
 Cohesion: 0.07
 Nodes (19): duration(), captchaInteractive(), deliverCaptcha(), captchaAddress(), watchCaptcha(), forward(), freeLoopbackAddress(), main() (+11 more)
 
-### Community 24 - "runOnDefaultDispatcher"
-Cohesion: 0.03
-Nodes (10): WidgetActionReceiver, ProfileOrder, runOnDefaultDispatcher(), ChainSettingsActivity, DeleteConfirmationDialogFragment, MyPreferenceFragmentCompat, ProfileIdArg, ProfileSettingsActivity (+2 more)
+### Community 24 - "ProfileSettingsActivity"
+Cohesion: 0.08
+Nodes (3): MyPreferenceFragmentCompat, PasswordSummaryProvider, ProfileSettingsActivity
 
 ### Community 25 - "RouteProfileActivity"
 Cohesion: 0.05
@@ -596,61 +597,61 @@ Nodes (8): DnsServerHistory, DnsAdapter, DnsHolder, HeaderAdapter, HeaderHolder,
 
 ### Community 26 - "runOnDefaultDispatcher"
 Cohesion: 0.20
-Nodes (4): SlipNetBundle, ImportFileException, SubscribeFlows, SubscribeLink
+Nodes (5): SlipNetBundle, onMainDispatcher(), ImportFileException, SubscribeFlows, SubscribeLink
 
 ### Community 28 - ".refresh"
-Cohesion: 0.06
-Nodes (15): DeleteOutcome, Outcome, SubscriptionFilters, GroupChangedListener, SubscriptionQueue, Fetched, ImportResult, ImportSink (+7 more)
+Cohesion: 0.07
+Nodes (14): Outcome, SubscriptionFilters, GroupChangedListener, SubscriptionQueue, Fetched, ImportResult, ImportSink, Snapshot (+6 more)
 
 ### Community 29 - "Hysteria"
-Cohesion: 0.09
-Nodes (3): Hysteria, HysteriaChecks, hysteriaObfsType()
+Cohesion: 0.07
+Nodes (4): Hysteria, HysteriaChecks, hysteriaObfsType(), ProtocolLabelTest
 
 ### Community 30 - "DeployServer"
-Cohesion: 0.14
+Cohesion: 0.15
 Nodes (3): DeployEngine, DeployServer, EditorState
 
 ### Community 31 - "pathlib"
 Cohesion: 0.06
-Nodes (12): patch(), replace_once(), copy_writable(), patch(), replace_once(), patch(), copy_writable(), patch() (+4 more)
+Nodes (13): patch(), replace_once(), patch(), replace_once(), copy_writable(), patch(), replace_once(), patch() (+5 more)
 
-### Community 32 - "BaseService"
+### Community 32 - "SagerNet"
 Cohesion: 0.03
-Nodes (13): BootReceiver, PackageReplacedReceiver, QuickToggleShortcut, QuickDisableShortcut, QuickEnableShortcut, reject(), Rejected, sha256() (+5 more)
+Nodes (13): BootReceiver, PackageReplacedReceiver, launchCustomTab(), reject(), Rejected, sha256(), toHex(), verify() (+5 more)
 
-### Community 33 - "OutboundFactory"
-Cohesion: 0.04
-Nodes (77): accept(), appendImporterNotes(), clash(), clashProxy(), clashRealityOnXray(), clashSource(), clashUsesXrayVless(), document() (+69 more)
+### Community 33 - "ProfileImport.kt"
+Cohesion: 0.10
+Nodes (45): accept(), appendImporterNotes(), clash(), clashProxy(), clashRealityOnXray(), clashSource(), clashUsesXrayVless(), document() (+37 more)
 
 ### Community 34 - "mschap.go"
-Cohesion: 0.08
-Nodes (34): SecretEqual(), ClientHLAK(), getAsymmetricStartKey(), getMasterKey(), AuthenticatorResponse(), ChallengeHash(), challengeResponse(), desBlock() (+26 more)
+Cohesion: 0.10
+Nodes (28): SecretEqual(), ClientHLAK(), getAsymmetricStartKey(), getMasterKey(), AuthenticatorResponse(), ChallengeHash(), challengeResponse(), desBlock() (+20 more)
 
 ### Community 35 - "RoomPreferenceDataStore"
 Cohesion: 0.10
 Nodes (3): Dao, KeyValuePair, TempDatabase
 
-### Community 36 - "MobileLayoutEditorActivity"
-Cohesion: 0.10
-Nodes (7): Miniature, MobileLayoutEditorActivity, Part, CHIP, CONTROL, TILES, MobileTopNotice
+### Community 36 - "Outbound"
+Cohesion: 0.05
+Nodes (6): CoreMemberCheck, DialFields, displayTransportName(), InvalidOutbound, Outbound, OutboundChecks
 
 ### Community 37 - "openfluxkey/captcha.go"
 Cohesion: 0.53
 Nodes (3): captchaAddress(), watchCaptcha(), captchaEngine
 
 ### Community 38 - "WireGuard"
-Cohesion: 0.07
-Nodes (6): WireGuard, WireGuardChecks, wireguardDropBadAddresses(), wireguardKeep(), WireGuardPeer, WarpClashImportTest
+Cohesion: 0.05
+Nodes (7): WireGuard, wireguardAmneziaInt(), WireGuardChecks, wireguardDropBadAddresses(), wireguardKeep(), WireGuardPeer, WarpClashImportTest
 
 ### Community 39 - "RouteShare"
 Cohesion: 0.11
-Nodes (7): collectRuleSets(), RemoteEntry, RuleSets, Parts, UrlText, OldSchemeLinkTest, ThroneRouteProfilesTest
+Nodes (7): Imported, RemoteEntry, RouteShare, RuleSets, Parts, UrlText, ThroneRouteProfilesTest
 
 ### Community 40 - "ProxyGroup"
-Cohesion: 0.06
-Nodes (4): Dao, ProxyGroup, SubscriptionNotifications, ProfilesPagerAdapter
+Cohesion: 0.04
+Nodes (10): Dao, ProxyGroup, SubscriptionNotifications, DragCallback, GroupAdapter, Callback, GroupFragment, GroupHolder (+2 more)
 
-### Community 41 - "ProviderRouteProfiles"
+### Community 41 - ".parseObjectOrNull"
 Cohesion: 0.10
 Nodes (7): Choice, ProviderRouteProfiles, Result, serialize(), ProviderRoutingActivity, Screen, ProviderRouteProfilesTest
 
@@ -666,40 +667,40 @@ Nodes (19): NewPlainHandler(), NewTextHandler(), Discard(), From(), Logger, New(
 Cohesion: 0.10
 Nodes (8): MobileCaptchaController, Runnable, WebViewClient, Runnable, WebViewClient, Runnable, WebViewClient, VkTurnScripts
 
-### Community 46 - "MainActivity"
-Cohesion: 0.07
-Nodes (3): MainActivity, SimpleDrawerListener, Callback
+### Community 45 - "DashboardFragment.kt"
+Cohesion: 0.08
+Nodes (3): SingBoxDashboard, Client, DashboardFragment
 
 ### Community 47 - "JsonLanguage.kt"
 Cohesion: 0.06
 Nodes (5): JsonAnalyzer, JsonCompletionItem, JsonLanguage, LetterIcon, PairNewlineHandler
 
 ### Community 48 - "Qwdtt"
-Cohesion: 0.10
-Nodes (5): NativeHashPolicy, Csqtt, Qwdtt, NativeHashPolicyTest, FourNativeProfilesTest
+Cohesion: 0.11
+Nodes (4): NativeHashPolicy, Qwdtt, NativeHashPolicyTest, QwdttIntegrationTest
 
 ### Community 49 - "SeasonalDecoration"
 Cohesion: 0.07
 Nodes (12): main(), installSeasonalDecoration(), SeasonalDecoration, anchor, bottom, clock, decoration, enabled (+4 more)
 
 ### Community 50 - "context.Context"
-Cohesion: 0.04
-Nodes (34): newBackend(), pemKey(), main(), readConfig(), run(), pemCert(), startSlipstream(), newDNSTunnel() (+26 more)
+Cohesion: 0.03
+Nodes (51): newBackend(), pemKey(), main(), readConfig(), run(), pemCert(), startSlipstream(), handshake() (+43 more)
 
 ### Community 52 - "Setting"
 Cohesion: 0.06
 Nodes (6): BoolSetting, IntSetting, LongSetting, Setting, StringListSetting, StringSetting
 
 ### Community 53 - ".check"
-Cohesion: 0.23
-Nodes (3): VpnListenerPolicy, VpnListenerPolicyTest, Проверка локальных слушателей Android — 1.9.2
+Cohesion: 0.17
+Nodes (5): Outcome, QwdttPing, VpnListenerPolicy, VpnListenerPolicyTest, Проверка локальных слушателей Android — 1.9.2
 
 ### Community 54 - ".perform"
-Cohesion: 0.11
-Nodes (4): MrttDeploy, HostKeyRepository, SocketFactory, Run
+Cohesion: 0.09
+Nodes (7): DeployQuestion, DeployState, MrttDeploy, HostKeyRepository, SocketFactory, Run, MrttDeployJobs
 
 ### Community 55 - "ProviderRouting"
-Cohesion: 0.18
+Cohesion: 0.17
 Nodes (5): ProviderRouteStore, Command, Payload, ProviderRouting, ProviderRoutingTest
 
 ### Community 56 - "ProfileListAdapter"
@@ -707,36 +708,36 @@ Cohesion: 0.07
 Nodes (7): ProfileName, ProfileListAdapter, SearchKey, RowPhase, DONE, QUEUED, TESTING
 
 ### Community 57 - ".accent"
-Cohesion: 0.08
+Cohesion: 0.09
 Nodes (3): DeployEditorFragment, TextWatcher, MobileProgress
-
-### Community 58 - "JsonEditorActivity"
-Cohesion: 0.08
-Nodes (7): JsonEditorActivity, OnBackPressedCallback, Adapter, appendLines(), releaseHeld(), resetView(), trimLines()
 
 ### Community 59 - "SubUserInfo"
 Cohesion: 0.13
 Nodes (5): Converter, SubUserInfo, Result, SubscriptionFetch, SubscriptionMetadata
 
+### Community 60 - "ConfigurationFragment"
+Cohesion: 0.05
+Nodes (3): ConfigurationFragment, SelectCallback, ProfileTests
+
 ### Community 61 - "AutoSelectorRuntime"
-Cohesion: 0.13
+Cohesion: 0.14
 Nodes (5): AutoSelectorRuntime, Measuring, Run, ProxyInstance, Any
 
 ### Community 64 - "TestPanelController.kt"
 Cohesion: 0.08
-Nodes (6): onViewAttachedToWindow(), onViewDetachedFromWindow(), RankRow, TestPanelController, RankedResult, TestUiState
+Nodes (4): onViewAttachedToWindow(), onViewDetachedFromWindow(), RankRow, TestPanelController
 
 ### Community 65 - "WdttPlusDeploySafetyTest"
 Cohesion: 0.10
 Nodes (18): ServerUpdateRollbackAction, ArchiveLegacyPreparation, CancelPreparation, KeepCurrentAndDeleteBackup, RestorePrevious, unsafeLegacyWdttPlusServer(), wdttPlusInstallMissing(), wdttPlusUninstallProbe() (+10 more)
 
-### Community 66 - "DnsTunnel"
-Cohesion: 0.12
-Nodes (3): MasterDnsFiles, DnsTunnel, MasterDnsFilesTest
+### Community 66 - "jsonObjectOf"
+Cohesion: 0.07
+Nodes (45): QuicSignature, WarpRegistration, BridgeConfig, bridgeTagFor(), BuildState, DomainSelectors, Hop, hopTag() (+37 more)
 
 ### Community 67 - "AutoSelector"
 Cohesion: 0.11
-Nodes (6): AutoSelectorPlanner, Filters, Tracked, AutoSelector, GroupNames, HistoryEntry
+Nodes (7): AutoSelectorPlanner, Filters, Tracked, AutoSelector, GroupNames, HistoryEntry, Tier
 
 ### Community 68 - "RouteDao"
 Cohesion: 0.09
@@ -751,116 +752,112 @@ Cohesion: 0.16
 Nodes (7): Capture, Choice, Frame, Scan, SchemaCompletion, Suggestion, Template
 
 ### Community 71 - "SubscriptionOptions"
-Cohesion: 0.07
+Cohesion: 0.06
 Nodes (17): Converter, SendHwid, KEEP_DEFAULT, OFF, ON, SubHttpVersion, AUTO, HTTP11 (+9 more)
 
 ### Community 73 - "Nets.kt"
-Cohesion: 0.10
-Nodes (16): appHttpClient(), appProxyHost(), appRequestsNeedProxy(), appUserAgent(), fetchText(), HttpFetchResult, httpGet(), HttpGetOptions (+8 more)
+Cohesion: 0.08
+Nodes (19): appHttpClient(), appProxyHost(), appRequestsNeedProxy(), appRequestsViaProxy(), appUserAgent(), fetchText(), HttpFetchResult, httpGet() (+11 more)
 
-### Community 74 - "XrayStreamSetting.kt"
-Cohesion: 0.05
-Nodes (57): bindXrayDownloadLeg(), ClashWsOptions, isHexAscii(), setXrayDialerProxy(), stripXrayDialerState(), stripXrayFinalmaskKeyLog(), upgradeXrayFinalmask(), useXraySystemCA() (+49 more)
+### Community 74 - "MobileLayoutEditorActivity"
+Cohesion: 0.08
+Nodes (9): contrastOn(), Miniature, MobileLayoutEditorActivity, OnBackPressedCallback, Part, CHIP, CONTROL, TILES (+1 more)
 
 ### Community 75 - "runIndependentProbes"
-Cohesion: 0.13
-Nodes (7): runIndependentProbes(), withPreparedTransports(), ProbeLanes, awaitScopedUrlProbe(), ProbeDeadlineExceeded, PreparedTransportProbeTest, ScopedUrlProbeTest
+Cohesion: 0.12
+Nodes (7): runIndependentProbes(), awaitScopedUrlProbe(), ProbeDeadlineExceeded, urlProbeBudgetMs(), Handler, UrlTestRunner, ScopedUrlProbeTest
 
 ### Community 78 - "parseCsqttLink"
 Cohesion: 0.15
 Nodes (12): CsqttLink, decodeBase64Safe(), decodeQueryComponent(), decryptCsqttPayload(), encryptCsqttPayload(), parseCsqttLink(), parseCsqttV2(), parseLinkHashes() (+4 more)
 
 ### Community 79 - "WdttPlusExit.kt"
-Cohesion: 0.08
-Nodes (80): buildFreeWarpInstallScript(), buildLocalProxyInstallScript(), buildTunInterfaceExitScript(), checkExternalProxy(), checkFreeWarp(), checkLocalProxy(), checkTunInterfaceExit(), checkTunInterfaceExitScript() (+72 more)
+Cohesion: 0.09
+Nodes (71): buildFreeWarpInstallScript(), buildLocalProxyInstallScript(), buildTunInterfaceExitScript(), checkExternalProxy(), checkFreeWarp(), checkLocalProxy(), checkTunInterfaceExit(), checkTunInterfaceExitScript() (+63 more)
 
 ### Community 80 - "TestSession"
-Cohesion: 0.12
-Nodes (3): CountryNames, Options, TestSession
+Cohesion: 0.10
+Nodes (4): CountryNames, TestEngine, Options, TestSession
+
+### Community 81 - ".runBuild"
+Cohesion: 0.10
+Nodes (9): CoreConfig, IpTestRunner, ProbeLanes, awaitCore(), Excluded, isSkipReason(), LatencySweep, ProbeResult (+1 more)
 
 ### Community 82 - "needReload"
-Cohesion: 0.17
-Nodes (7): LauncherIcon, bind(), bindClashApi(), portValue(), TestingSettingsFragment, DefaultSummaryProvider, SubscriptionSettingsFragment
+Cohesion: 0.13
+Nodes (8): LauncherIcon, bind(), bindClashApi(), portValue(), PresetSettingsFragment, TestingSettingsFragment, DefaultSummaryProvider, SubscriptionSettingsFragment
 
 ### Community 83 - "FreeturnAdmin"
 Cohesion: 0.25
 Nodes (3): Client, FreeturnAdmin, FreeturnRpc
 
 ### Community 84 - "Test"
-Cohesion: 0.19
-Nodes (4): sanitizeWireGuardConfigForWdttExit(), validateWireGuardConfigText(), QwdttSubscriptionsTest, WdttPlusExitTest
+Cohesion: 0.13
+Nodes (10): discoverTunInterfaces(), parseTunInterfaceCandidates(), sanitizeWireGuardConfigForWdttExit(), TunInterfaceCandidate, tunInterfaceCandidatesScript(), tunInterfaceNameIssue(), tunInterfaceSelectionIssue(), validateWireGuardConfigText() (+2 more)
 
 ### Community 85 - "re"
 Cohesion: 0.19
 Nodes (22): capture(), choose_accent(), confirm_import_group(), edit_profile(), named_bounds(), profile_bounds(), screen_xml(), scroll_to_text() (+14 more)
 
-### Community 86 - "TestPanelController.kt"
-Cohesion: 0.02
-Nodes (27): TestSpec, onMainDispatcher(), runOnLifecycleDispatcher(), launchCustomTab(), alert(), nameList(), resolveActivity(), tryToShow() (+19 more)
+### Community 86 - "MobileAlertDialogBuilder"
+Cohesion: 0.03
+Nodes (26): TestSpec, GroupRepo, ProfileManager, runOnLifecycleDispatcher(), alert(), confirmAction(), nameList(), dp2px() (+18 more)
 
 ### Community 87 - "Trojan"
-Cohesion: 0.04
-Nodes (11): Multiplex, MuxChecks, MuxSettings, TcpBrutal, Trojan, Vless, Vmess, StandardV2RaySettingsActivity (+3 more)
-
-### Community 90 - "WdttPlusExitActivity"
-Cohesion: 0.27
-Nodes (3): friendlyDeployError(), Identity, WdttPlusExitActivity
+Cohesion: 0.03
+Nodes (18): Multiplex, MuxChecks, MuxSettings, TcpBrutal, Shadowsocks, shadowsocksDecodeBase64(), shadowsocksMethodName(), shadowsocksPluginName() (+10 more)
 
 ### Community 91 - "Mrtt"
-Cohesion: 0.11
-Nodes (4): MrttBundle, Link, Mrtt, MrttLinkTest
-
-### Community 92 - ".runBuild"
-Cohesion: 0.10
-Nodes (9): CoreConfig, IpTestRunner, urlProbeBudgetMs(), awaitCore(), isSkipReason(), LatencySweep, ProbeResult, TestProbe (+1 more)
+Cohesion: 0.12
+Nodes (4): demo(), Link, Mrtt, MrttLinkTest
 
 ### Community 93 - "release_assets.py"
-Cohesion: 0.14
-Nodes (19): gh(), publish(), validate_assets(), validate_bridge(), badging(), build_tool(), core_ref(), embedded_manifest() (+11 more)
+Cohesion: 0.16
+Nodes (18): gh(), publish(), validate_assets(), validate_bridge(), badging(), build_tool(), core_ref(), embedded_manifest() (+10 more)
 
 ### Community 94 - "VpnService"
-Cohesion: 0.09
-Nodes (4): ExpectedException, forEach(), NullConnectionException, VpnService
+Cohesion: 0.08
+Nodes (6): ExpectedException, forEach(), NullConnectionException, toList(), VpnService, toStringIterator()
 
 ### Community 95 - "Masque"
-Cohesion: 0.07
-Nodes (10): memoryBytesJson(), QuicFields, Masque, canonicalTuicCongestion(), canonicalTuicRelayMode(), Tuic, tuicImportCongestion(), tuicImportHeartbeat() (+2 more)
+Cohesion: 0.06
+Nodes (12): memoryBytesJson(), QuicFields, Masque, MasqueChecks, withPrefix(), canonicalTuicCongestion(), canonicalTuicRelayMode(), Tuic (+4 more)
 
 ### Community 96 - "TestSessionModel"
-Cohesion: 0.12
-Nodes (6): Live, TestSessionModel, CountryCount, RowState, SpeedLive, SpeedSample
+Cohesion: 0.11
+Nodes (6): Live, TestSessionModel, CountryCount, RankedResult, RowState, SpeedLive
 
 ### Community 97 - "XrayGeoAssets"
-Cohesion: 0.12
-Nodes (7): ensureSharedXrayAssets(), Excluded, screenXrayFullConfigs(), DownloadException, Progress, Provider, XrayGeoAssets
+Cohesion: 0.13
+Nodes (6): ensureSharedXrayAssets(), screenXrayFullConfigs(), DownloadException, Progress, Provider, XrayGeoAssets
 
 ### Community 98 - "entries.go"
-Cohesion: 0.38
-Nodes (9): Convert(), entries(), entryCode(), field(), newGeoReader(), TestInvalidGeoDatabase(), TestLargeGeoDatabase(), Validate() (+1 more)
+Cohesion: 0.30
+Nodes (11): Convert(), TestProviderCategoryConversion(), TestProviderGeoIPConversion(), entries(), entryCode(), field(), newGeoReader(), TestInvalidGeoDatabase() (+3 more)
 
 ### Community 99 - "DeployProtocolTest"
-Cohesion: 0.13
-Nodes (7): DeployProtocol, unmarkedRawlineDataProbe(), deployStdinPlan(), framedStdinCommand(), RootStdinPlan, DeployProtocolTest, WdttPlusSshInputTest
+Cohesion: 0.16
+Nodes (3): DeployProtocol, MrttBundle, DeployProtocolTest
 
 ### Community 100 - "WdttPlusExit"
-Cohesion: 0.11
-Nodes (5): outboundModeMismatchWarning(), OutboundProfileForms, outboundRestoreSummary(), OutboundServerSnapshot, WdttPlusExit
+Cohesion: 0.10
+Nodes (8): outboundModeMismatchWarning(), OutboundProfileForms, outboundRestoreSummary(), OutboundServerSnapshot, ProxyKind, Http, Socks5, WdttPlusExit
 
 ### Community 101 - "ProfileListFragment"
-Cohesion: 0.08
-Nodes (4): ProfileListFragment, Callback, OnPreDrawListener, OnScrollListener
+Cohesion: 0.06
+Nodes (5): Listener, ProfileListFragment, Callback, OnPreDrawListener, OnScrollListener
 
 ### Community 102 - "JsonRelaxations"
-Cohesion: 0.14
+Cohesion: 0.17
 Nodes (10): JsonType, Array, Bool, Null, Number, Object, String, ExtraKey (+2 more)
 
 ### Community 103 - "SchemaValidator"
-Cohesion: 0.14
-Nodes (5): JsonIssue, SchemaValidator, Severity, Error, Warning
+Cohesion: 0.13
+Nodes (3): SchemaDocument, JsonIssue, SchemaValidator
 
 ### Community 104 - "listenerTestSession"
 Cohesion: 0.09
-Nodes (13): TestEncryptedHTTPBulkAndRestart(), main(), makeClient(), number(), run(), fixture(), TestOptionsAndIdentity(), TestRejectsUnsupportedAndUnsafeConfigurations() (+5 more)
+Nodes (14): mrttRoutingCommand(), parseMRTTTunnel(), TestMRTTTunnelAndRouting(), TestEncryptedHTTPBulkAndRestart(), makeClient(), number(), fixture(), TestOptionsAndIdentity() (+6 more)
 
 ### Community 105 - "ExitIp"
 Cohesion: 0.19
@@ -872,19 +869,19 @@ Nodes (4): Binding, MaxAccount, MaxLoginActivity, WebViewClient
 
 ### Community 107 - "SpeedTestRunner"
 Cohesion: 0.13
-Nodes (6): IPTestHandler, SpeedTestRunner, SpeedTestHandler, TrafficCredit, guarded(), Handler
+Nodes (5): IPTestHandler, SpeedTestRunner, SpeedTestHandler, TrafficCredit, guarded()
 
 ### Community 109 - ".show"
 Cohesion: 0.13
 Nodes (3): MobileSelector, ArrayAdapter, MTUPreference
 
-### Community 111 - "WdttPlusBootstrap.kt"
-Cohesion: 0.18
-Nodes (3): WdttPlusBootstrapPolicy, WdttPlusBootstrapRelay, WdttPlusBootstrapTest
+### Community 111 - ".block"
+Cohesion: 0.12
+Nodes (9): Demo, MobileLayoutTutorial, Step, BADGES, DOUBLE, DRAG, PINCH, REMOVE (+1 more)
 
-### Community 112 - "AutoSelectorSkip"
-Cohesion: 0.09
-Nodes (20): DatabaseSelectorStore, AutoSelectorPlan, AutoSelectorSkip, CoreTransitions, CountryFilter, ExtraCore, FullConfig, Malformed (+12 more)
+### Community 112 - "SettingsMapper.kt"
+Cohesion: 0.08
+Nodes (21): DatabaseSelectorStore, AutoSelectorPlan, AutoSelectorSkip, CoreTransitions, CountryFilter, ExtraCore, FullConfig, Malformed (+13 more)
 
 ### Community 113 - "UpdateManager"
 Cohesion: 0.11
@@ -894,21 +891,17 @@ Nodes (11): UpdateInstaller, Available, Checking, Downloading, Failed, Idle, Ins
 Cohesion: 0.22
 Nodes (5): ContentIndex, NewEntry, OldEntry, ReconcilePlan, SubscriptionReconcile
 
-### Community 118 - "ServerUi"
-Cohesion: 0.12
-Nodes (3): MobileFeedback, ServerUi, QrBitmap
-
 ### Community 119 - "Drawable"
-Cohesion: 0.07
-Nodes (5): MobileHomeBackdrop, MobilePowerArtwork, AnimatorListenerAdapter, Drawable, MobileOrbArtwork
+Cohesion: 0.06
+Nodes (6): MobileHomeBackdrop, MobilePowerArtwork, TextWatcher, AnimatorListenerAdapter, Drawable, MobileOrbArtwork
 
-### Community 120 - "ProfileSelectActivity"
-Cohesion: 0.29
-Nodes (3): SelectCallback, ProfileSelectActivity, SwitchActivity
+### Community 120 - "ProfileSettingsActivity.kt"
+Cohesion: 0.05
+Nodes (5): SagerConnection, QuickToggleShortcut, ProfileTextImport, QuickDisableShortcut, QuickEnableShortcut
 
 ### Community 121 - "Validation"
-Cohesion: 0.06
-Nodes (25): Cursor, DurationRule, Empty, Allowed, Required, Family, V4, V6 (+17 more)
+Cohesion: 0.04
+Nodes (34): DialChecks, dialFieldsRule(), memoryBytesText(), Listener, BOX_API, CLASH_API, DNS, MIXED (+26 more)
 
 ### Community 122 - "BackupRestore"
 Cohesion: 0.21
@@ -918,25 +911,29 @@ Nodes (6): BackupRestore, Choice, Loaded, RestoreException, Staged, SqlTable
 Cohesion: 0.20
 Nodes (4): Runnable, VkRelayPreferences, Preference, Preference
 
+### Community 125 - "SubscriptionRoute"
+Cohesion: 0.19
+Nodes (9): Counts, Dropped, HappEntry, Line, Parsed, PrivateIp, RouteError, Skip (+1 more)
+
 ### Community 126 - "AboutFragment.kt"
-Cohesion: 0.16
+Cohesion: 0.19
 Nodes (3): AboutContent, OnChildAttachStateChangeListener, AboutFragment
 
 ### Community 128 - "CarrierKind"
-Cohesion: 0.11
-Nodes (18): CarrierKind, COTTENDNS, CSQTT, DNSTT, FREETURN, FREETURN_TCP, MASTERDNS, MRTT (+10 more)
+Cohesion: 0.10
+Nodes (19): CarrierKind, AIVPN, COTTENDNS, CSQTT, DNSTT, FREETURN, FREETURN_TCP, MASTERDNS (+11 more)
 
-### Community 129 - "JsonEditorActivity.kt"
-Cohesion: 0.03
-Nodes (20): BroadcastReceiver, LogcatFragment, MobileStyle, UpdateSettingsFragment, SettingsFragment, ToolbarFragment, Theme, applyBase() (+12 more)
+### Community 129 - "WindowInsetsListeners.kt"
+Cohesion: 0.06
+Nodes (16): ThemedActivity, Interface, UndoSnackbarManager, applyBase(), applyInsetMargin(), applyInsetPadding(), applyTopInset(), bars() (+8 more)
 
 ### Community 131 - "BoxInstance"
-Cohesion: 0.12
-Nodes (4): BoxInstance, toStartOptions(), mkPort(), DiagnosticLogging
+Cohesion: 0.14
+Nodes (4): AbstractInstance, BoxInstance, mkPort(), DiagnosticLogging
 
 ### Community 132 - "RuleSetCatalog"
-Cohesion: 0.11
-Nodes (10): build(), buildTest(), AutoSelectorBuild, GeneratedConfig, TestCandidate, MemberCheck, RoutingInput, RuleSetCatalog (+2 more)
+Cohesion: 0.14
+Nodes (8): AutoSelectorBuild, GeneratedConfig, TestCandidate, MemberCheck, RoutingInput, RuleSetCatalog, DnsPerAppChainTest, Provider
 
 ### Community 135 - "ProxiesAdapter"
 Cohesion: 0.13
@@ -947,55 +944,47 @@ Cohesion: 0.17
 Nodes (3): Hosts, Punycode, Subnet
 
 ### Community 138 - "JsonValue"
-Cohesion: 0.19
-Nodes (7): JsonFormatter, JsonParseResult, JsonSpan, JsonTree, JsonValue, ParseFailure, Parser
+Cohesion: 0.24
+Nodes (6): JsonParseResult, JsonSpan, JsonTree, JsonValue, ParseFailure, Parser
 
 ### Community 139 - "UpdateChecker"
-Cohesion: 0.19
+Cohesion: 0.20
 Nodes (9): Asset, Available, Failed, ManifestAsset, Offer, Release, Result, UpdateChecker (+1 more)
 
 ### Community 141 - ".create"
 Cohesion: 0.12
 Nodes (4): CsqttDeployPolicy, CsqttDeployPolicyTest, DeployDraftTest, DeployEngineStopTest
 
-### Community 142 - "TileService"
-Cohesion: 0.05
-Nodes (5): TileService, StartService, VpnRequestActivity, AlertDialogFragment, Empty
-
 ### Community 143 - "TrafficData"
-Cohesion: 0.07
-Nodes (10): SpeedDisplayData, TrafficData, TrafficDataBatch, LoopSnapshot, ProfileTraffic, TrafficLooper, TagStat, TrafficUpdater (+2 more)
+Cohesion: 0.11
+Nodes (8): TrafficData, TrafficDataBatch, LoopSnapshot, ProfileTraffic, TrafficLooper, TagStat, TrafficUpdater, CreditListener
 
 ### Community 144 - "portInput"
-Cohesion: 0.11
-Nodes (21): QuicChecks, certificatePinsInput(), cipherSuitesInput(), defaultSummary(), echInputs(), fixedSummary(), headerLines(), keepUnlistedValue() (+13 more)
+Cohesion: 0.10
+Nodes (23): QuicChecks, certificatePinsInput(), cipherSuitesInput(), defaultSummary(), echInputs(), fixedSummary(), headerLines(), keepUnlistedValue() (+15 more)
 
 ### Community 146 - "GroupSettingsActivity"
 Cohesion: 0.06
-Nodes (6): SubscriptionNameFilter, GroupPreferenceFragment, GroupSettingsActivity, BottomSheetCallback, PasswordSummaryProvider, SubscriptionEditorActivity
-
-### Community 147 - "OpenVpn.kt"
-Cohesion: 0.16
-Nodes (15): accept(), clearBits(), dataCiphers(), Directive, duration(), isSpace(), isValidDuration(), listable() (+7 more)
+Nodes (10): SubscriptionNameFilter, GroupPreferenceFragment, GroupSettingsActivity, BottomSheetCallback, PasswordSummaryProvider, SaveResult, GONE, OK (+2 more)
 
 ### Community 148 - "ProfilesHeader.kt"
-Cohesion: 0.14
+Cohesion: 0.15
 Nodes (6): ProfilesHeader, Transition, HideAfterStart, HideImmediate, ShowAnimated, ShowImmediate
 
 ### Community 149 - ".warn"
-Cohesion: 0.05
-Nodes (15): DerElement, DnstDecode, DnstLink, DnsTunnelChecks, DnsTunnels, Dnstt, dnsttDisplayType(), dnsTunnelNumberText() (+7 more)
+Cohesion: 0.04
+Nodes (20): dialFieldsReportUnmodelled(), DerElement, DnstDecode, DnstLink, DnsTunnels, certificatePinsFromHex(), certificateSha256FromPcs(), tlsLinkList() (+12 more)
 
 ### Community 150 - "NativeConnectionStage"
 Cohesion: 0.15
 Nodes (11): NativeConnectionStatus, Snapshot, Writer, NativeConnectionStage, AUTHORIZING, CAPTCHA, CONNECTED, CONNECTING (+3 more)
 
 ### Community 151 - ".parse"
-Cohesion: 0.03
-Nodes (32): certificatePinsFromHex(), certificateSha256FromPcs(), Ech, importRealityPublicKey(), importTlsCipherSuites(), importTlsFingerprint(), isClashNoFingerprint(), pcsFromCertificateSha256() (+24 more)
+Cohesion: 0.05
+Nodes (14): importTlsCipherSuites(), pcsFromCertificateSha256(), splitCipherSuites(), tlsCipherSuiteRule(), xrayKnownFingerprint(), xrayLinkHeaders(), LinkCodec, LinkQuery (+6 more)
 
 ### Community 152 - ".all"
-Cohesion: 0.12
+Cohesion: 0.18
 Nodes (4): Plan, QueueTask, SubscriptionScheduler, UpdateTask
 
 ### Community 154 - "Process"
@@ -1003,24 +992,24 @@ Cohesion: 0.12
 Nodes (3): CarrierCaptchaLifetimeTest, Process, Process
 
 ### Community 155 - "hashlib"
-Cohesion: 0.18
-Nodes (6): input_hashes(), inspect_archive(), fetch(), main(), same_transport_sources(), CompatibilityArchiveTest
+Cohesion: 0.12
+Nodes (9): bake(), input_hashes(), inspect_archive(), fetch(), patch(), main(), prepare(), same_transport_sources() (+1 more)
 
 ### Community 156 - "ValidationForm"
 Cohesion: 0.08
-Nodes (5): CrossRule, FormIssue, Found, MarkedSummary, ValidationForm
+Nodes (6): CrossRule, FormIssue, Found, MarkedSummary, ValidationForm, vplural()
 
 ### Community 157 - ".validate"
-Cohesion: 0.40
+Cohesion: 0.26
 Nodes (3): ProfileValidator, Scan, Verdict
 
 ### Community 161 - "Widgets"
-Cohesion: 0.05
-Nodes (9): StatusWidgetProvider, Snapshot, Widgets, OnPreferenceDataStoreChangeListener, Artwork, MobileSeasonalView, SeasonalPolicy, AppLocale (+1 more)
-
-### Community 162 - ".startOnce"
 Cohesion: 0.18
-Nodes (4): CarrierProcess, TransientStartup, UnavailableCall, ConfiguredWorkersTest
+Nodes (3): Snapshot, Widgets, OnPreferenceDataStoreChangeListener
+
+### Community 163 - "SingBoxSubType"
+Cohesion: 0.40
+Nodes (5): SingBoxSubType, Invalid, OutboundInJson, OutboundJsonArray, OutboundObject
 
 ### Community 164 - "ProviderGeoAssets"
 Cohesion: 0.22
@@ -1034,9 +1023,13 @@ Nodes (5): Link, ProviderLinks, validate(), ProviderWebsiteLinkTest, Subscriptio
 Cohesion: 0.18
 Nodes (4): CarrierHashCheck, HashCheckProtocol, Update, HashCheckProtocolTest
 
-### Community 176 - "BaseService.kt"
-Cohesion: 0.05
-Nodes (15): CoreLogSink, CoreRuntime, RunningCore, LocalDnsFailedException, RuleSetDownloadFailedException, applyTo(), exitsThroughVpn(), urlTestCurrent() (+7 more)
+### Community 171 - "PreferenceBindingManager"
+Cohesion: 0.09
+Nodes (6): bindProfileBlocks(), DialBlock, MuxBlock, Rows, XrayMuxBlock, PreferenceBindingManager
+
+### Community 173 - ".startOnce"
+Cohesion: 0.18
+Nodes (4): CarrierProcess, TransientStartup, UnavailableCall, ConfiguredWorkersTest
 
 ### Community 177 - "WdttPlusAdmin"
 Cohesion: 0.09
@@ -1056,23 +1049,31 @@ Nodes (3): UpdateDiscovery, CheckTask, UpdateScheduler
 
 ### Community 183 - "SettingsScreenFragment"
 Cohesion: 0.14
-Nodes (3): PresetSettingsFragment, DnsAdvancedSettingsFragment, SettingsScreenFragment
+Nodes (3): DnsAdvancedSettingsFragment, DnsSettingsFragment, SettingsScreenFragment
+
+### Community 184 - "NativeInterface"
+Cohesion: 0.11
+Nodes (3): Start, IfaceReportState, NativeInterface
 
 ### Community 185 - "i18n_coverage.py"
 Cohesion: 0.27
 Nodes (13): array_items(), check_locale(), check_placeholders(), collect_entries(), duplicates(), is_translatable(), local_name(), locale_language() (+5 more)
 
 ### Community 186 - "BindingSettingsActivity"
-Cohesion: 0.06
-Nodes (10): AnyTLSSettingsActivity, BindingSettingsActivity, JsonTextBinding, HttpSettingsActivity, MasqueSettingsActivity, OpenVpnSettingsActivity, ShadowsocksSettingsActivity, SnellSettingsActivity (+2 more)
+Cohesion: 0.04
+Nodes (13): Direct, AnyTLSSettingsActivity, BindingSettingsActivity, JsonTextBinding, DirectSettingsActivity, HttpSettingsActivity, MasqueSettingsActivity, MasterDnsSettingsActivity (+5 more)
 
 ### Community 187 - "NativeCarrier"
-Cohesion: 0.20
+Cohesion: 0.19
 Nodes (6): CarrierPlan, Acquisition, CarrierPool, Entry, Lease, Listener
 
+### Community 188 - "WdttPlusBootstrap.kt"
+Cohesion: 0.18
+Nodes (3): WdttPlusBootstrapPolicy, WdttPlusBootstrapRelay, WdttPlusBootstrapTest
+
 ### Community 189 - "ResolverSources"
-Cohesion: 0.09
-Nodes (18): DialChecks, dialFieldsRule(), DnsttResolverLine, Kind, Host, Range, Skip, System (+10 more)
+Cohesion: 0.13
+Nodes (10): DnsttResolverLine, Line, ResolverBuild, ResolverChecks, ResolverFlavor, Dnstt, MasterDns, Xdns (+2 more)
 
 ### Community 190 - "AppsAdapter"
 Cohesion: 0.13
@@ -1086,41 +1087,41 @@ Nodes (5): CoreDiagnostics, CoreForeground, CoreService, TestNotification, Broad
 Cohesion: 0.15
 Nodes (4): AxisLabel, CardLine, LiveChartView, MarkerItem
 
-### Community 196 - "Binder"
-Cohesion: 0.09
-Nodes (7): Binder, State, Connected, Connecting, Idle, Stopped, Stopping
-
 ### Community 197 - "RuleType"
-Cohesion: 0.12
-Nodes (15): RuleType, CUSTOM, ENDPOINT_PREFERRED_BY, SIMPLE_ADDRESS_BLOCK, SIMPLE_ADDRESS_BYPASS, SIMPLE_ADDRESS_PROXY, SIMPLE_ADDRESS_WARP_BYPASS, SIMPLE_PROCESS_NAME_BLOCK (+7 more)
-
-### Community 199 - "SagerNet"
-Cohesion: 0.05
-Nodes (3): SagerNet, cleanWebview(), recreate()
+Cohesion: 0.09
+Nodes (16): RuleType, CUSTOM, ENDPOINT_PREFERRED_BY, SIMPLE_ADDRESS_BLOCK, SIMPLE_ADDRESS_BYPASS, SIMPLE_ADDRESS_PROXY, SIMPLE_ADDRESS_WARP_BYPASS, SIMPLE_PROCESS_NAME_BLOCK (+8 more)
 
 ### Community 200 - "InboundSettingsFragment"
-Cohesion: 0.14
+Cohesion: 0.13
 Nodes (5): LanSharingSettings, LanSharingSettingsFragment, InboundSettingsFragment, RoutingSettingsFragment, TunSettingsFragment
 
-### Community 201 - "PreferenceBindingManager"
-Cohesion: 0.09
-Nodes (8): bindProfileBlocks(), DialBlock, MuxBlock, QuicBlock, Rows, TransportBlock, XrayMuxBlock, PreferenceBindingManager
+### Community 201 - "DnsServers"
+Cohesion: 0.22
+Nodes (3): DnsAddress, DnsAddressParse, DnsServers
+
+### Community 202 - "QwdttProfileApi"
+Cohesion: 0.21
+Nodes (3): QwdttProfileApi, Status, QwdttProfileApiTest
+
+### Community 203 - "RouteRuleActivity"
+Cohesion: 0.07
+Nodes (4): RuleIssue, RouteRuleActivity, RuleFragment, RouteRuleChecks
 
 ### Community 206 - "VkHashesActivity"
-Cohesion: 0.19
+Cohesion: 0.18
 Nodes (4): Row, Rows, VkHashesActivity, TextWatcher
 
 ### Community 208 - "WifiStateAccess"
-Cohesion: 0.18
-Nodes (3): Callback, Monitor, WifiStateAccess
+Cohesion: 0.13
+Nodes (8): Callback, Monitor, Status, LOCATION_OFF, NEED_BACKGROUND, NEED_FOREGROUND, OK, WifiStateAccess
 
 ### Community 209 - "SqlRows.kt"
 Cohesion: 0.18
 Nodes (9): columns(), hasTable(), insertSql(), longQuery(), quoted(), readTable(), SqlColumn, tableColumns() (+1 more)
 
 ### Community 210 - "prepare_mobile_seasonal.py"
-Cohesion: 0.11
-Nodes (8): bake(), main(), grounded_frame(), OffsetDraw, SafeCanvas, SafeDraws, SafeImages, SafeVectorDraw
+Cohesion: 0.12
+Nodes (7): main(), grounded_frame(), OffsetDraw, SafeCanvas, SafeDraws, SafeImages, SafeVectorDraw
 
 ### Community 211 - "Helpers.kt"
 Cohesion: 0.16
@@ -1130,13 +1131,21 @@ Nodes (8): buildChannel(), buildNumber(), buildOption(), requireMetadata(), setu
 Cohesion: 0.15
 Nodes (6): Entry, Index, Listed, Measured, Upload, WebDavBackup
 
-### Community 215 - ".getProfile"
-Cohesion: 0.20
-Nodes (3): SubscriptionStartup, SubscriptionStartupViewModel, Stub
+### Community 214 - "CsqttRebirthTest"
+Cohesion: 0.15
+Nodes (4): formatCsqttLink(), Csqtt, FourNativeProfilesTest, CsqttRebirthTest
 
-### Community 217 - "ViewHolder"
+### Community 216 - "SchemaCompletion.kt"
+Cohesion: 0.17
+Nodes (6): resolveActivity(), resolveWrappedHost(), WrappedHostResolution, Severity, Error, Warning
+
+### Community 217 - "Adapter"
 Cohesion: 0.07
-Nodes (10): ViewHolder, FooterAdapter, FooterHolder, RawAdapter, RawHolder, RuleHolder, RulesAdapter, TitleAdapter (+2 more)
+Nodes (11): Adapter, ViewHolder, FooterAdapter, FooterHolder, RawAdapter, RawHolder, RuleHolder, RulesAdapter (+3 more)
+
+### Community 218 - "MobileSheetDialog"
+Cohesion: 0.09
+Nodes (4): MobileFeedback, MobilePreferenceDialog, MobileSheetDialog, FragmentLifecycleCallbacks
 
 ### Community 219 - "qThroneMobile"
 Cohesion: 0.12
@@ -1151,27 +1160,19 @@ Cohesion: 0.10
 Nodes (10): RuleSetLabels, Kind, GEO, KNOWN, UNKNOWN, URL, Row, RowAdapter (+2 more)
 
 ### Community 223 - "PreferenceBinding"
-Cohesion: 0.13
-Nodes (5): MuxStateModel, CustomRows, PreferenceBinding, Target, Type
+Cohesion: 0.09
+Nodes (6): MuxStateModel, Field, CustomRows, PreferenceBinding, Target, Type
 
-### Community 225 - "LinkCodec"
-Cohesion: 0.11
-Nodes (3): LinkCodec, OlcRtc, OlcRtcLinkTest
+### Community 225 - "OlcRtc"
+Cohesion: 0.15
+Nodes (3): OlcRtc, NativeWarpChainTest, OlcRtcLinkTest
 
-### Community 226 - "DataStore.kt"
-Cohesion: 0.24
-Nodes (6): boolean(), int(), long(), PreferenceProxy, string(), stringToInt()
-
-### Community 229 - "GroupFragment"
-Cohesion: 0.08
-Nodes (6): DragCallback, GroupAdapter, Callback, GroupFragment, GroupHolder, Row
-
-### Community 231 - "WrappedHostResolverTest"
-Cohesion: 0.61
-Nodes (4): FakeActivity, FakeContext, FakeContextWrapper, WrappedHostResolverTest
+### Community 231 - "Fixes331Test.kt"
+Cohesion: 0.09
+Nodes (9): flagCountry(), FakeActivity, FakeContext, FakeContextWrapper, WrappedHostResolverTest, MuxStateTest, Fixes331Test, TestSettingsContractTest (+1 more)
 
 ### Community 234 - "dashboard_css.py"
-Cohesion: 0.22
+Cohesion: 0.20
 Nodes (9): bound(), lower_css(), replace(), lower_group(), lower_prelude(), main(), shift(), top_groups() (+1 more)
 
 ### Community 235 - "RouteProfile"
@@ -1180,51 +1181,47 @@ Nodes (6): RemoteRouteUpdater, UpdateTask, routeProfileForBuild(), ConditionalSi
 
 ### Community 238 - "ClashProxy"
 Cohesion: 0.05
-Nodes (9): ClashProxy, Shadowsocks, shadowsocksMethodName(), shadowsocksPluginName(), ShadowsocksR, Snell, clashTlsOn(), ShadowsocksRSettingsActivity (+1 more)
-
-### Community 239 - "RouteShare"
-Cohesion: 0.18
-Nodes (3): Imported, RouteShare, RouteImports
+Nodes (9): importRealityPublicKey(), isClashNoFingerprint(), Reality, clashDownloadSettings(), unreported(), ClashProxy, ShadowsocksR, clashTlsOn() (+1 more)
 
 ### Community 240 - "UpdateOfferCache"
 Cohesion: 0.29
 Nodes (3): Snapshot, UpdateOfferCache, UpdateOfferCacheTest
 
 ### Community 241 - "BatteryOptimizations"
-Cohesion: 0.29
-Nodes (5): BatteryOptimizations, State, OPTIMIZED, RESTRICTED, UNRESTRICTED
+Cohesion: 0.21
+Nodes (6): FirstStartPrompts, BatteryOptimizations, State, OPTIMIZED, RESTRICTED, UNRESTRICTED
 
-### Community 243 - "RouteDns"
-Cohesion: 0.10
-Nodes (5): RouteDnsSettings, VpnAppGuard, RouteDns, RouteJson, EditorModel
+### Community 243 - ".buildMainWith"
+Cohesion: 0.15
+Nodes (5): CoreConfigs, DatabaseProfiles, RouteDnsSettings, RouteDns, EditorModel
 
 ### Community 244 - "release_tag.py"
 Cohesion: 0.27
 Nodes (4): release_build_number(), validate_release_code(), version_key(), ReleaseCodeTest
 
 ### Community 246 - "GroupSort"
-Cohesion: 0.14
-Nodes (9): Commit, MOVED, STALE, UNCHANGED, GroupSort, PendingSort, SortKey, SortKeys (+1 more)
+Cohesion: 0.11
+Nodes (14): Commit, MOVED, STALE, UNCHANGED, GroupSort, PendingSort, SortInput, CONFIG (+6 more)
 
 ### Community 248 - "LiveSeries"
-Cohesion: 0.13
+Cohesion: 0.12
 Nodes (4): LiveStatsBatch, LiveSeries, LiveStatsRecorder, Marker
 
-### Community 251 - "SubscriptionRoute"
-Cohesion: 0.17
-Nodes (9): Counts, Dropped, HappEntry, Line, Parsed, PrivateIp, RouteError, Skip (+1 more)
+### Community 251 - "EditTextPreferenceModifiers"
+Cohesion: 0.22
+Nodes (5): EditTextPreferenceModifiers, Hosts, Number, Port, SignedNumber
 
-### Community 252 - "ClashYaml"
-Cohesion: 0.23
-Nodes (6): ClashYaml, Document, NodeConstructor, StreamingRead, Unsupported, Value
+### Community 252 - ".onOptionsItemSelected"
+Cohesion: 0.19
+Nodes (3): DeleteConfirmationDialogFragment, ProfileIdArg, UnsavedChangesDialogFragment
 
 ### Community 253 - "LiveGraphsFragment"
 Cohesion: 0.18
 Nodes (4): LegendRow, LiveGraphsFragment, LiveHistory, Range
 
-### Community 254 - "JsonObject"
-Cohesion: 0.02
-Nodes (38): BuildContext, DialFields, dialFieldsReportUnmodelled(), memoryBytesText(), Tls, tlsForTransport(), Transport, countMessage() (+30 more)
+### Community 254 - "Outbound"
+Cohesion: 0.04
+Nodes (45): BuildContext, DnsTunnelChecks, importTlsFingerprint(), Tls, tlsKnownCurves(), singBoxTransportType(), tlsForTransport(), JsonNull (+37 more)
 
 ### Community 258 - "MobileGroupDrag"
 Cohesion: 0.24
@@ -1235,20 +1232,20 @@ Cohesion: 0.15
 Nodes (3): AutoSelectorStatusLine, OnPreferenceDataStoreChangeListener, AutoSelectorTexts
 
 ### Community 260 - "MobileGlass"
-Cohesion: 0.11
-Nodes (4): MobileDockGlass, MobileFocusRing, MobileGlass, MobilePalette
+Cohesion: 0.09
+Nodes (6): MobileDockGlass, MobileFocusRing, MobileGlass, MobilePalette, MobileStyle, MobileTopNotice
 
 ### Community 262 - "Network"
 Cohesion: 0.15
-Nodes (9): Callback, DefaultNetworkListener, Get, Lost, NetworkMessage, Put, Start, Stop (+1 more)
+Nodes (8): Callback, DefaultNetworkListener, Get, Lost, NetworkMessage, Put, Stop, Update
 
 ### Community 264 - "UiTourTest.kt"
 Cohesion: 0.15
 Nodes (11): fixtures(), main(), open(), resumed(), screen(), swipe(), tap(), tapTopmost() (+3 more)
 
-### Community 266 - "QwdttIntegrationTest"
-Cohesion: 0.17
-Nodes (4): NativeCarrier, Outcome, QwdttPing, QwdttIntegrationTest
+### Community 265 - "ClashYaml.kt"
+Cohesion: 0.07
+Nodes (7): ClashYaml, Document, NodeConstructor, StreamingRead, Unsupported, Value, ClashYamlSecurityTest
 
 ### Community 267 - "Axis"
 Cohesion: 0.16
@@ -1258,29 +1255,25 @@ Nodes (5): Axis, Axis, Axis, Axis, Scale
 Cohesion: 0.29
 Nodes (3): MobileProfilePaging, Window, MobileProfilePagingTest
 
-### Community 269 - "SettingChecks"
-Cohesion: 0.18
-Nodes (6): Listener, BOX_API, CLASH_API, DNS, MIXED, SettingChecks
-
 ### Community 271 - "ShapeFocusDrawable"
 Cohesion: 0.13
 Nodes (3): BarOutline, ShapeFocusDrawable, ShapeMaskDrawable
 
+### Community 272 - "httpsFallbackTransport"
+Cohesion: 0.24
+Nodes (3): probe(), Client, httpsFallbackTransport
+
 ### Community 274 - "ImportReport"
-Cohesion: 0.16
-Nodes (4): Group, ImportReport, ParseReport, Result
+Cohesion: 0.18
+Nodes (3): Group, ImportReport, ParseReport
 
 ### Community 275 - "AlwaysOnVpn"
 Cohesion: 0.24
 Nodes (7): AlwaysOnVpn, Probe, State, LOCKDOWN, OFF, ON, UNKNOWN
 
-### Community 277 - ".trustedHttps"
+### Community 277 - ".onCreate"
 Cohesion: 0.10
 Nodes (6): Screen, VkRelayActivity, object@L76, WebChromeClient, WebViewClient, WebViewClient
-
-### Community 281 - "Outbound"
-Cohesion: 0.04
-Nodes (7): CoreMemberCheck, CoreSupport, displayTransportName(), Outbound, OutboundChecks, Juicity, JuicitySettingsActivity
 
 ### Community 282 - ".run"
 Cohesion: 0.16
@@ -1291,12 +1284,16 @@ Cohesion: 0.07
 Nodes (4): Process, Process, Process, Process
 
 ### Community 286 - "CarrierBridgeCredentials"
-Cohesion: 0.19
-Nodes (3): CarrierBridgeCredentials, WdttPlus, WdttPlusLinkTest
+Cohesion: 0.13
+Nodes (4): CarrierBridgeCredentials, WdttPlus, DnsTunnelLinkTest, WdttPlusLinkTest
 
 ### Community 287 - "ShadowTls"
 Cohesion: 0.13
 Nodes (3): ShadowTls, ShadowTlsChecks, ShadowTLSSettingsActivity
+
+### Community 288 - "MobileSheetDialog"
+Cohesion: 0.10
+Nodes (3): MobileScreenMotion, AnimatorListenerAdapter, AppearanceSettingsFragment
 
 ### Community 291 - "easter"
 Cohesion: 0.20
@@ -1327,52 +1324,56 @@ Cohesion: 0.35
 Nodes (8): append_log(), assert_main(), back(), capture(), find(), shell(), state(), tap()
 
 ### Community 301 - "r"
-Cohesion: 0.03
-Nodes (27): Action, Key, DataStore, EditTextPreferenceModifiers, Hosts, Number, Port, SignedNumber (+19 more)
+Cohesion: 0.04
+Nodes (17): DataStore, SettingsRegistry, needReload(), ProfileJson, EditTextPreference, onDestroy(), DnsServerPreference, WarpEntryPreference (+9 more)
 
-### Community 303 - "FixedLinearLayoutManager"
-Cohesion: 0.08
-Nodes (7): FixedGridLayoutManager, FixedLinearLayoutManager, MobileSettingsStyle, ItemDecoration, OnChildAttachStateChangeListener, AdvancedSettingsPreferenceFragment, SettingsPreferenceFragment
+### Community 302 - "Provider"
+Cohesion: 0.13
+Nodes (4): Chain, Provider, RouteFrontProxyTest, ShadowsocksRTest
+
+### Community 303 - "Bundle"
+Cohesion: 0.04
+Nodes (16): Bundle, FixedGridLayoutManager, FixedLinearLayoutManager, MobileSettingsStyle, ItemDecoration, OnChildAttachStateChangeListener, onCreate(), ChainSettingsActivity (+8 more)
 
 ### Community 304 - "StringIterator"
-Cohesion: 0.15
-Nodes (5): toList(), InterfaceArray, toPrefix(), toStringIterator(), StringIterator
+Cohesion: 0.22
+Nodes (3): InterfaceArray, toPrefix(), StringIterator
 
 ### Community 307 - "mobileCSQTTIPC"
-Cohesion: 0.14
-Nodes (21): mrttArguments(), mrttBootstrap(), mrttFatalMessage(), mrttRoutingCommand(), mrttShare(), mrttSharePayload(), parseMRTTTunnel(), readMRTTConfig() (+13 more)
+Cohesion: 0.11
+Nodes (19): mrttArguments(), mrttBootstrap(), mrttFatalMessage(), readMRTTConfig(), reserveMRTTGeneration(), runMRTTBridge(), scanMRTTOutput(), mrttTestConfig() (+11 more)
 
 ### Community 308 - "RouteProfile"
-Cohesion: 0.07
+Cohesion: 0.08
 Nodes (5): MobileViewStyle, OnChildAttachStateChangeListener, ProfileAdapter, ProfileHolder, RouteFragment
 
 ### Community 310 - "QwdttAccessActivity"
-Cohesion: 0.15
-Nodes (4): Access, QwdttAdmin, QwdttAccessActivity, TextWatcher
-
-### Community 313 - "DnsServers"
-Cohesion: 0.18
-Nodes (4): DnsAddress, DnsAddressParse, DnsServers, echResolverRule()
+Cohesion: 0.10
+Nodes (5): Access, QwdttAdmin, TrustAllManager, QwdttAccessActivity, TextWatcher
 
 ### Community 314 - "BackupExport"
 Cohesion: 0.26
 Nodes (4): BackupExport, Selection, Snapshot, BackupTemp
 
 ### Community 315 - "authTestEndpoint"
-Cohesion: 0.06
-Nodes (13): TestMobileAPIsWithoutRunningInstance(), FetchThroughProxy(), pendingOpenConnectAuth(), replyOpenConnectAuth(), TestOpenConnectAuthContinuation(), TestOpenConnectRejectsExpiredAndBrowserAnswers(), ResolveDomains(), authTestEndpoint (+5 more)
+Cohesion: 0.05
+Nodes (18): TestMobileAPIsWithoutRunningInstance(), FetchThroughProxy(), pendingOpenConnectAuth(), replyOpenConnectAuth(), TestOpenConnectAuthContinuation(), TestOpenConnectRejectsExpiredAndBrowserAnswers(), ResolveDomains(), directTransport() (+10 more)
 
 ### Community 319 - "build_mrtt.sh"
 Cohesion: 0.29
 Nodes (7): CARGO_TARGET_DIR, CC, CGO_ENABLED, fetch_source(), GOOS, PATH, build_mrtt.sh script
+
+### Community 322 - ".quote"
+Cohesion: 0.35
+Nodes (5): unmarkedRawlineDataProbe(), deployStdinPlan(), framedStdinCommand(), RootStdinPlan, WdttPlusSshInputTest
 
 ### Community 325 - "check_release_ssh.py"
 Cohesion: 0.36
 Nodes (4): classes(), descriptor(), u32(), verify()
 
 ### Community 326 - "ProfileRowHolder"
-Cohesion: 0.12
-Nodes (5): Flags, Item, ProfileRowHolder, RowContent, TypeLabel
+Cohesion: 0.16
+Nodes (3): Flags, ProfileRowHolder, TypeLabel
 
 ### Community 327 - "build_carrier_clients.sh"
 Cohesion: 0.29
@@ -1390,37 +1391,53 @@ Nodes (7): CARGO_TARGET_DIR, CC, CGO_ENABLED, fetch_source(), GOOS, PATH, build_
 Cohesion: 0.21
 Nodes (3): MemberAdapter, MemberHolder, Row
 
-### Community 334 - "CarrierCaptchaBridge"
+### Community 331 - "RouteManager"
 Cohesion: 0.12
-Nodes (5): CarrierCaptchaBridge, BroadcastReceiver, CarrierUiRequests, HeadlessCaptcha, VkTokenRequest
+Nodes (3): RouteManager, Observer, RouteRepo
 
-### Community 335 - "PortLease"
-Cohesion: 0.14
-Nodes (3): DatabaseProfiles, LocalPorts, PortLease
+### Community 334 - "CarrierCaptchaBridge"
+Cohesion: 0.10
+Nodes (6): CarrierCaptchaBridge, BroadcastReceiver, CarrierUiRequests, HeadlessCaptcha, VkTokenRequest, BroadcastReceiver
 
-### Community 338 - "markerValue"
+### Community 340 - "xrayUnmodelledKeys"
+Cohesion: 0.29
+Nodes (10): xrayCollectUnmodelled(), XrayKey, XrayUnmodelledKey, xrayUnmodelledKeys(), XrayValue, Flag, Object, Text (+2 more)
+
+### Community 341 - "markerValue"
 Cohesion: 0.16
 Nodes (13): WdttPlusDeployOps, Committed, friendlyAdminSudoError(), None, parseServerUpdateRollbackState(), PreparationIncomplete, PreparedCorrupted, PreparedValid (+5 more)
 
-### Community 340 - "ServerScreenActivity"
-Cohesion: 0.27
-Nodes (3): MrttServerActivity, ProviderRouteActivity, ServerScreenActivity
+### Community 342 - "DiagnosticsFragment"
+Cohesion: 0.15
+Nodes (3): DiagnosticsCapture, Options, DiagnosticsFragment
 
 ### Community 343 - "build_dns_engines.sh"
 Cohesion: 0.33
 Nodes (6): CC, CGO_ENABLED, fetch_source(), GOARCH, GOOS, build_dns_engines.sh script
 
-### Community 344 - "WifiPermissionFlow"
-Cohesion: 0.19
-Nodes (6): WifiPermissionFlow, Status, LOCATION_OFF, NEED_BACKGROUND, NEED_FOREGROUND, OK
+### Community 347 - ".setup"
+Cohesion: 0.25
+Nodes (3): Column, Marker, Row
+
+### Community 349 - "SubscriptionClient"
+Cohesion: 0.11
+Nodes (3): Connection, ServiceConnection, SubscriptionClient
+
+### Community 351 - "LogRedactor"
+Cohesion: 0.12
+Nodes (5): CarrierLogRedactor, LogRedactor, Match, CarrierLogRedactorTest, LogRedactorTest
 
 ### Community 352 - ".compare"
 Cohesion: 0.31
 Nodes (3): Semver, Version, SemverTagTest
 
+### Community 353 - "Freeturn"
+Cohesion: 0.10
+Nodes (3): NativeCarrier, Freeturn, S3Bypass
+
 ### Community 354 - "RouteRule"
-Cohesion: 0.06
-Nodes (5): RouteRule, RuleEnv, RuleIssue, RouteRuleChecks, RouteRuleOptionsTest
+Cohesion: 0.07
+Nodes (3): RouteRule, RuleEnv, RouteJson
 
 ### Community 356 - "internal/mschap"
 Cohesion: 0.33
@@ -1438,17 +1455,21 @@ Nodes (5): CC, CGO_ENABLED, GOARCH, GOOS, build_sstp.sh script
 Cohesion: 0.33
 Nodes (3): Entry, UdpOwnerCache, UdpOwnerCacheTest
 
+### Community 365 - "Data"
+Cohesion: 0.09
+Nodes (8): Data, Interface, State, Connected, Connecting, Idle, Stopped, Stopping
+
 ### Community 366 - "LogcatFragment.kt"
-Cohesion: 0.05
-Nodes (8): BlankActivity, getColorForLine(), onDestroyView(), onViewCreated(), updateExportOptions(), CrashHandler, LogExport, SendLog
+Cohesion: 0.08
+Nodes (6): safeSnackbar(), BlankActivity, LogcatFragment, CrashHandler, LogExport, SendLog
 
 ### Community 369 - "2.4.2 release preparation"
 Cohesion: 0.40
 Nodes (4): 2.4.2 release preparation, Checks and pending work, Native sources, Scope
 
-### Community 372 - ".show"
-Cohesion: 0.26
-Nodes (3): DeployQuestion, DeployState, MrttDeployJobs
+### Community 373 - "LiveChartView.kt"
+Cohesion: 0.05
+Nodes (8): SpeedTestSnapshot, dp2pxf(), onFinishInflate(), TypeLineLayout, TestPanelScrollView, SpeedSample, ThroughputChartView, ColorPickerPreference
 
 ### Community 374 - "build_freeturn.sh"
 Cohesion: 0.33
@@ -1462,49 +1483,85 @@ Nodes (3): Describe the problem, How to reproduce, Logs & Configs
 Cohesion: 0.50
 Nodes (3): 如何复现, 描述问题, 日志与配置
 
-### Community 382 - "LogRedactor"
-Cohesion: 0.12
-Nodes (5): CarrierLogRedactor, LogRedactor, Match, CarrierLogRedactorTest, LogRedactorTest
+### Community 388 - ".get"
+Cohesion: 0.09
+Nodes (5): GroupSortAction, insertProfilesBefore(), SubscriptionStartupViewModel, Stub, ProfileOrderTest
 
-### Community 384 - "init"
-Cohesion: 0.67
-Nodes (4): cache(), freeturnCalls(), freeturnSlots(), init()
+### Community 390 - ".of"
+Cohesion: 0.09
+Nodes (5): xrayLegacyXdnsDomain(), xrayUpgradeXdnsSettings(), MasterDnsFiles, DnsTunnel, MasterDnsFilesTest
+
+### Community 392 - "GroupSortMethod"
+Cohesion: 0.20
+Nodes (10): GroupSortMethod, BY_ADDRESS, BY_ID, BY_LATENCY, BY_NAME, BY_SECURITY, BY_TEST_RESULT, BY_TRAFFIC (+2 more)
+
+### Community 409 - "rawline.rs"
+Cohesion: 0.32
+Nodes (4): argv(), Config, fail(), loopback()
 
 ### Community 410 - "ProxyEntity"
 Cohesion: 0.05
-Nodes (3): Listener, ProfilePosition, ProxyEntity
+Nodes (5): DeleteOutcome, Listener, ProfilePosition, ProxyEntity, ProfileConfigExport
+
+### Community 412 - "runOnDefaultDispatcher"
+Cohesion: 0.05
+Nodes (7): SubscriptionEditorLayoutTest, WidgetActionReceiver, ProfileOrder, runOnDefaultDispatcher(), AnchoredTextPreference, UpdateSettingsFragment, TvControls
+
+### Community 413 - "assertequals"
+Cohesion: 0.07
+Nodes (7): GroupRemovalTest, LatencyColorTest, FreeturnCallsTest, TurnPlusImportTest, TrustTunnelCongestionTest, VkCallHashTest, TrafficFormatTest
 
 ### Community 424 - "State"
 Cohesion: 0.40
 Nodes (5): State, AFTER_VALUE, COLON, KEY, VALUE
 
+### Community 427 - "build_aivpn.sh"
+Cohesion: 0.33
+Nodes (6): CC, CGO_ENABLED, fetch_source(), GOOS, PATH, build_aivpn.sh script
+
 ### Community 431 - "JvmStatic"
-Cohesion: 0.16
+Cohesion: 0.15
 Nodes (4): SettingValidators, PredefinedDns, PredefinedDnsEntry, StringListPreference
 
-### Community 435 - ".setup"
-Cohesion: 0.25
-Nodes (3): Column, Marker, Row
+### Community 436 - "XraySubType"
+Cohesion: 0.33
+Nodes (6): XraySubType, ConfigJsonArray, Invalid, OutboundInJson, OutboundJsonArray, OutboundObject
+
+### Community 439 - ".call"
+Cohesion: 0.14
+Nodes (4): Report, Stub, TextImport, CoreDiagnosticsDialog
+
+### Community 444 - "DataStore.kt"
+Cohesion: 0.24
+Nodes (6): boolean(), int(), long(), PreferenceProxy, string(), stringToInt()
+
+### Community 446 - "Kind"
+Cohesion: 0.33
+Nodes (6): Kind, Host, Range, Skip, System, Url
+
+### Community 450 - "JsonArray"
+Cohesion: 0.08
+Nodes (5): JsonArray, cache(), freeturnCalls(), freeturnSlots(), init()
 
 ## Knowledge Gaps
-- **259 isolated node(s):** `Idle`, `Connecting`, `Connected`, `Stopping`, `Stopped` (+254 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1911 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **220 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **273 isolated node(s):** `Idle`, `Connecting`, `Connected`, `Stopping`, `Stopped` (+268 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1940 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **208 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `Instance` connect `authTestEndpoint` to `openflux/main.go`?**
-  _High betweenness centrality (0.179) - this node is a cross-community bridge._
+  _High betweenness centrality (0.169) - this node is a cross-community bridge._
 - **Are the 6 inferred relationships involving `JsonObject` (e.g. with `NativeTransportSettingsActivity.kt` and `init()`) actually correct?**
   _`JsonObject` has 6 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `Idle`, `Connecting`, `Connected` to the rest of the system?**
-  _259 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `SubscribeFlows.kt` be split into smaller, more focused modules?**
-  _Cohesion score 0.14166666666666666 - nodes in this community are weakly interconnected._
-- **Why does `JsonObject` connect `JsonObject` to `init`, `r`, `Mieru`, `RuleSetCatalog`, `vtr`, `RwlBackupTest.kt`, `Logs`, `ClashYaml.kt`, `QwdttIntegrationTest`, `XrayVless`, `jsonObjectOf`, `.parseObject`, `OpenConnect`, `OpenVpn.kt`, `.warn`, `Custom`, `.parse`, `Outbound`, `ProxyEntity`, `AnyTls`, `Hysteria`, `.append`, `Freeturn`, `ShadowTls`, `OutboundFactory`, `CarrierBridgeCredentials`, `ProviderGeoAssets`, `Fixes331Test.kt`, `WireGuard`, `Direct`, `ProviderRouteProfiles`, `r`, `Provider`, `Qwdtt`, `OpenFluxLinkTest`, `.check`, `ProviderRouting`, `DnsServers`, `SubUserInfo`, `ResolverSources`, `Sstp`, `NativeWarpChainTest.kt`, `DnsTunnel`, `AutoSelector`, `Chain`, `RwlBackup`, `SubscriptionOptions`, `XrayStreamSetting.kt`, `PortLease`, `.proxies`, `ServerScreenActivity`, `WebDavBackup`, `Trojan`, `TrustTunnel`, `Mrtt`, `release_assets.py`, `Masque`, `XrayGeoAssets`, `LinkCodec`, `S3Bypass`, `RouteRule`, `DnsTunnelLinkTest`, `RouteProfile`, `ClashProxy`, `RouteShare`, `RouteDns`, `assertequals`, `AutoSelectorStatus`, `SubscriptionRoute`, `ClashYaml`, `OpenFluxKey`?**
-  _High betweenness centrality (0.120) - this node is a cross-community bridge._
+  _273 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `OutboundFactory` be split into smaller, more focused modules?**
+  _Cohesion score 0.07450980392156863 - nodes in this community are weakly interconnected._
+- **Why does `JsonObject` connect `JsonObject` to `OutboundFactory`, `MrttServerActivity.kt`, `Mieru`, `RuleSetCatalog`, `vtr`, `.of`, `Custom.kt`, `Logs`, `ClashYaml.kt`, `RwlBackupTest.kt`, `XrayVless`, `OpenFluxLinkTest`, `.parseObject`, `OpenConnect`, `.warn`, `Custom`, `.parse`, `CoreSupport`, `ProxyEntity`, `hashlib`, `AnyTls`, `Hysteria`, `.append`, `ShadowTls`, `CarrierBridgeCredentials`, `ProfileImport.kt`, `Aivpn`, `Outbound`, `ProviderGeoAssets`, `WireGuard`, `RouteShare`, `.parseObjectOrNull`, `ServerScreenActivity`, `r`, `Provider`, `Bundle`, `Juicity`, `Qwdtt`, `OpenFlux`, `.check`, `ProviderRouting`, `BindingSettingsActivity`, `SubUserInfo`, `ResolverSources`, `Sstp`, `JsonArray`, `jsonObjectOf`, `AutoSelector`, `RwlBackup`, `OpenFluxKey`, `SubscriptionOptions`, `RuleType`, `DnsServers`, `xrayUnmodelledKeys`, `WebDavBackup`, `MobileAlertDialogBuilder`, `Trojan`, `CsqttRebirthTest`, `TrustTunnel`, `Mrtt`, `Test`, `Masque`, `Freeturn`, `XrayGeoAssets`, `OlcRtc`, `RouteRule`, `Fixes331Test.kt`, `Http`, `RouteProfile`, `ClashProxy`, `.buildMainWith`, `AutoSelectorStatus`, `Validation`, `SubscriptionRoute`, `Outbound`?**
+  _High betweenness centrality (0.104) - this node is a cross-community bridge._
 - **Are the 5 inferred relationships involving `vtr()` (e.g. with `.headerPairs()` and `.serverName()`) actually correct?**
   _`vtr()` has 5 INFERRED edges - model-reasoned connections that need verification._
-- **Should `r` be split into smaller, more focused modules?**
-  _Cohesion score 0.04531346989447548 - nodes in this community are weakly interconnected._
+- **Should `MrttServerActivity.kt` be split into smaller, more focused modules?**
+  _Cohesion score 0.042666666666666665 - nodes in this community are weakly interconnected._
