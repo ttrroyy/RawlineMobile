@@ -92,21 +92,22 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
     }
 
     // A swipe turns the page: to the left the next step, to the right the one before.
-    private val swipes = android.view.GestureDetector(context, object : android.view.GestureDetector.SimpleOnGestureListener() {
-        override fun onDown(e: android.view.MotionEvent) = true
-        override fun onFling(e1: android.view.MotionEvent?, e2: android.view.MotionEvent, velocityX: Float, velocityY: Float): Boolean {
-            val start = e1 ?: return false
-            val dx = e2.x - start.x
-            if (kotlin.math.abs(dx) < dp(48f) || kotlin.math.abs(dx) < kotlin.math.abs(e2.y - start.y)) return false
-            val target = step + if (dx < 0) 1 else -1
-            if (target in Step.values().indices) show(target)
-            return true
-        }
-    })
+    // By the distance alone: a fling detector missed slow swipes and those its long press had taken.
+    private var downX = 0f
+    private var downY = 0f
 
-    // Every touch passes the swipe detector once; the buttons still get their taps.
+    // Every touch passes here once; the buttons still get their taps.
     override fun dispatchTouchEvent(event: android.view.MotionEvent): Boolean {
-        swipes.onTouchEvent(event)
+        when (event.actionMasked) {
+            android.view.MotionEvent.ACTION_DOWN -> { downX = event.x; downY = event.y }
+            android.view.MotionEvent.ACTION_UP -> {
+                val dx = event.x - downX
+                if (kotlin.math.abs(dx) >= dp(48f) && kotlin.math.abs(dx) > kotlin.math.abs(event.y - downY)) {
+                    val target = step + if (dx < 0) 1 else -1
+                    if (target in Step.values().indices) show(target)
+                }
+            }
+        }
         return super.dispatchTouchEvent(event)
     }
 
@@ -158,6 +159,7 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
             groupText = context.getString(R.string.subscription); serverText = Locale("", "de").displayCountry
         }
         private val flags = listOf("de", "fi", "nl", "se", "us", "jp", "gb", "ca", "fr", "pl")
+        private val countries = flags.map { Locale("", it).displayCountry }
         private val clock = ValueAnimator.ofFloat(0f, 1f).apply {
             duration = 4200; repeatCount = ValueAnimator.INFINITE; interpolator = LinearInterpolator()
             addUpdateListener {
@@ -305,7 +307,7 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                         box.set(side + dp(12f), y + dp(17f), side + dp(42f), y + dp(39f))
                         c.drawBitmap(flag, null, box, paint)
                     }
-                    text(Locale("", flags[i % flags.size]).displayCountry, side + dp(54f), y + dp(33f), dp(15f))
+                    text(countries[i % flags.size], side + dp(54f), y + dp(33f), dp(15f))
                     y += dp(56f); i++
                 }
                 c.restore()
@@ -314,9 +316,11 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                 // Across the part, 16 dp taller than the disc, as on the home screen.
                 // Fixed bounds and a moved canvas: bounds that moved every frame rebuilt the button's shaders every
                 // frame, and the loop ran at a few frames a second.
-                orb.discSize = size.toInt()
-                orb.setBounds(0, 0, (right - left).toInt(), (size + dp(16f)).toInt())
-                c.save(); c.translate(left, top); orb.draw(c); c.restore()
+                // One size, scaled on the canvas: a size changing every frame (the pinch) rebuilt them all the same.
+                orb.discSize = orbSize.toInt()
+                orb.setBounds(0, 0, (right - left).toInt(), (orbSize + dp(16f)).toInt())
+                val k = size / orbSize
+                c.save(); c.translate(left, top); c.scale(k, k, (right - left) / 2, 0f); orb.draw(c); c.restore()
             }
             val switchesHeight = dp(52f) + dp(40f)
             fun switches(top: Float) {

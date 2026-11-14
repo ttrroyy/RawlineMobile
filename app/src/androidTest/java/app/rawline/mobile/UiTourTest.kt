@@ -389,13 +389,13 @@ class UiTourTest {
         },
         // Regression: a profile added to a new chain is its hop; once it was only shown and the chain saved empty.
         "chain-add" to {
-            val hop = fixtures().second
-            val picked = instrumentation.addMonitor(app.rawline.mobile.ui.ProfileSelectActivity::class.java.name,
-                android.app.Instrumentation.ActivityResult(Activity.RESULT_OK, Intent().putExtra(app.rawline.mobile.ui.ProfileSelectActivity.EXTRA_PROFILE_ID, hop.id)), true)
+            // The way a user does it: the picker, the group, the server.
+            val (group, hop) = fixtures()
             open(app.rawline.mobile.ui.profile.ChainSettingsActivity::class.java)
             tap(R.string.add_profile)
-            instrumentation.removeMonitor(picked)
-            Thread.sleep(800)
+            tapTopmost(group.name)
+            tapTopmost(hop.displayName())
+            Thread.sleep(1500)
             val stored = DataStore.profileCacheStore.getString("chainProxyIds").orEmpty()
             check(stored.split(',').contains(hop.id.toString())) { "the added hop is not in the chain: \"$stored\"" }
             check(topmost(context.getString(R.string.validation_chain_empty)) == null) { "the chain with a hop still says it is empty" }

@@ -400,14 +400,15 @@ func TestAuthenticatedLoopbackInboundRejectsFirstPacketRaceAndKeepsUDP(t *testin
 	checkServer(t, done)
 }
 
-func TestAuthenticatedLoopbackInboundRejectsUnknownUDPSourcePort(t *testing.T) {
+// A UDP source that is half declared (a port without an address of the peer) is still refused.
+func TestAuthenticatedLoopbackInboundRejectsForeignUDPSource(t *testing.T) {
 	listener := &trackedInboundListener{}
 	server, done := localSOCKSTest(t, func(tcp net.Conn) error {
 		err := HandleConnectionEx(context.Background(), tcp, bufio.NewReader(tcp),
 			auth.NewAuthenticator([]auth.User{{Username: "session", Password: "secret"}}), &inboundEcho{tcp: tcp}, listener, time.Second,
 			M.SocksaddrFromNet(tcp.RemoteAddr()), nil)
 		if err == nil {
-			return errors.New("inbound accepted unknown UDP source port")
+			return errors.New("inbound accepted a UDP source of another host")
 		}
 		if listener.socket() != nil {
 			return errors.New("inbound allocated UDP relay before source validation")
@@ -421,7 +422,31 @@ func TestAuthenticatedLoopbackInboundRejectsUnknownUDPSourcePort(t *testing.T) {
 	defer tcp.Close()
 	_ = tcp.SetDeadline(time.Now().Add(5 * time.Second))
 	if _, err = ClientHandshake5(tcp, socks5.CommandUDPAssociate, M.ParseSocksaddr("1.1.1.1:53"), "session", "secret"); err == nil {
-		t.Fatal("legacy unknown-source handshake unexpectedly accepted")
+		t.Fatal("a foreign UDP source unexpectedly accepted")
 	}
 	checkServer(t, done)
+}
+
+// Regression: an ordinary client with a password asks for UDP with 0.0.0.0:0, as the
+// SOCKS5 RFC allows; the system proxy refused it and UDP did not work at all.
+func TestAuthenticatedLoopbackInboundAcceptsUndeclaredUDPSource(t *testing.T) {
+	listener := &trackedInboundListener{}
+	server, done := localSOCKSTest(t, func(tcp net.Conn) error {
+		return HandleConnectionEx(context.Background(), tcp, bufio.NewReader(tcp),
+			auth.NewAuthenticator([]auth.User{{Username: "session", Password: "secret"}}), &inboundEcho{tcp: tcp}, listener, time.Second,
+			M.SocksaddrFromNet(tcp.RemoteAddr()), nil)
+	})
+	tcp, err := net.Dial("tcp", server.String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = tcp.SetDeadline(time.Now().Add(5 * time.Second))
+	if _, err = ClientHandshake5(tcp, socks5.CommandUDPAssociate, M.ParseSocksaddr("0.0.0.0:0"), "session", "secret"); err != nil {
+		t.Fatal("an undeclared UDP source was refused:", err)
+	}
+	if listener.socket() == nil {
+		t.Fatal("no UDP relay for an undeclared source")
+	}
+	_ = tcp.Close()
+	_ = done
 }

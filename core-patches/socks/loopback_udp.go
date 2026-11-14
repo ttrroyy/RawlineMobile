@@ -98,14 +98,19 @@ func (c *loopbackRelayConn) Write(p []byte) (int, error) {
 
 func (c *loopbackRelayConn) RemoteAddr() net.Addr { return c.relay.UDPAddr() }
 
-// An authenticated local inbound cannot safely learn a UDP sender from the first
-// packet. Require its port in the TCP request, before accepting any UDP traffic.
+// A declared UDP source binds the association to it: our own carriers always declare
+// theirs, so a first packet from another local app cannot take their association.
+// Ordinary SOCKS5 clients (browsers, games, the system proxy) send 0.0.0.0:0 and keep
+// the standard behaviour; rejecting them left the user's proxy without UDP.
 func authenticatedLoopbackUDPSource(tcpConn net.Conn, requested M.Socksaddr) (M.Socksaddr, error) {
 	peer := M.SocksaddrFromNet(tcpConn.RemoteAddr()).Unwrap()
 	if !peer.Addr.IsLoopback() {
 		return M.Socksaddr{}, nil
 	}
 	requested = requested.Unwrap()
+	if requested.Port == 0 && requested.Fqdn == "" && (!requested.Addr.IsValid() || requested.Addr.IsUnspecified()) {
+		return M.Socksaddr{}, nil
+	}
 	if requested.Port == 0 || requested.Fqdn != "" ||
 		(!requested.Addr.IsUnspecified() && requested.Addr != peer.Addr) {
 		return M.Socksaddr{}, net.InvalidAddrError("authenticated loopback SOCKS UDP source must be declared")

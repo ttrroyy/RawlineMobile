@@ -133,6 +133,9 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         blink = ValueAnimator.ofFloat(0f, (Math.PI * 2).toFloat()).apply {
             duration = 1300; repeatCount = ValueAnimator.INFINITE; interpolator = android.view.animation.LinearInterpolator()
             addUpdateListener { animator ->
+                // Hidden under the tutorial: trembling every part redrew the whole miniature each frame and the
+                // tutorial over it dropped to some 20 frames a second.
+                if (tutorial != null) return@addUpdateListener
                 val phase = animator.animatedValue as Float
                 // The outlines breathe; the parts tremble slightly, each a little out of step.
                 val alpha = (157 + 98 * kotlin.math.sin(phase)).toInt()
