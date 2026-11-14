@@ -121,9 +121,8 @@ class AppearanceSettingsFragment : SettingsScreenFragment(R.xml.settings_appeara
         // The new style is black or white with one look: accent colours and a bottom tile bar mean nothing there.
         val modern = app.rawline.mobile.ui.MobileStyle.new
         listOf(Key.APP_THEME, Key.ALWAYS_SHOW_ADDRESS, Key.COMPACT_PROFILE_ROWS, Key.COMPACT_GROUP_CARDS).forEach { pref<Preference>(it).isVisible = !modern }
-        // The editor shapes the new style's home screen; the list mode was the old classic home's, the classic style has the group tabs now.
+        // The editor shapes the new style's home screen; the classic style has the group tabs instead.
         pref<Preference>("qmobileEditLayout").isVisible = modern
-        pref<Preference>("qmobileListMode").isVisible = false
         pref<Preference>("qmobileEditLayout").setOnPreferenceClickListener {
             startActivity(android.content.Intent(requireContext(), app.rawline.mobile.ui.MobileLayoutEditorActivity::class.java)); true
         }

@@ -34,33 +34,30 @@ object MobileHomeLayout {
     private fun position(bottom: Boolean) = if (bottom) "bottom" else "top"
 
     var tilesBottom: Boolean
-        get() = if (MobileStyle.new) store.getString("qmobileNewTilesPosition") == "bottom"
-            else (store.getString("qmobileTilesPosition") ?: position(store.getBoolean("qmobileTilesBottom", false))) == "bottom"
-        set(value) = store.putString(if (MobileStyle.new) "qmobileNewTilesPosition" else "qmobileTilesPosition", position(value))
+        get() = store.getString("qmobileNewTilesPosition") == "bottom"
+        set(value) = store.putString("qmobileNewTilesPosition", position(value))
     var extendedTiles: Boolean
-        get() = if (MobileStyle.new) store.getString("qmobileNewTiles") == "on" else store.getString("qmobileHomeTilesMode") != "standard"
-        set(value) = if (MobileStyle.new) store.putString("qmobileNewTiles", if (value) "on" else "off")
-            else store.putString("qmobileHomeTilesMode", if (value) "extended" else "standard")
+        get() = store.getString("qmobileNewTiles") == "on"
+        set(value) = store.putString("qmobileNewTiles", if (value) "on" else "off")
     var controlBottom: Boolean
         get() = store.getString("qmobileControlPosition") == "bottom"
         set(value) = store.putString("qmobileControlPosition", position(value))
     var controlSwitches: Boolean
         get() = store.getString("qmobileHomeControl") == "switches"
         set(value) = store.putString("qmobileHomeControl", if (value) "switches" else "button")
-    /** The classic style has no subscription row. */
     var chipBottom: Boolean
-        get() = MobileStyle.new && store.getString("qmobileChipPosition") == "bottom"
+        get() = store.getString("qmobileChipPosition") == "bottom"
         set(value) = store.putString("qmobileChipPosition", position(value))
     /** Between the connection control and the servers, rather than on the control's outer side. */
     var chipNearList: Boolean
-        get() = MobileStyle.new && store.getBoolean("qmobileChipNearList", false)
+        get() = store.getBoolean("qmobileChipNearList", false)
         set(value) = store.putBoolean("qmobileChipNearList", value)
     /** The parts ("tiles", "chip", "control") above the server list that scroll away with it (portrait); the rest stay on the screen. */
     var scrollParts: Set<String>
         get() = store.getString("qmobileScrollParts").orEmpty().split(',').filter { it.isNotEmpty() }.toSet().let { stored ->
             // Joined parts lie together right above the list: the subscription between a joined control and the list
             // scrolls too, and one above a control that stays on the screen does not.
-            if (!MobileStyle.new || chipBottom || controlBottom) stored
+            if (chipBottom || controlBottom) stored
             else if ("control" in stored) if (chipNearList) stored + "chip" else stored
             else if (!chipNearList) stored - "chip" else stored
         }

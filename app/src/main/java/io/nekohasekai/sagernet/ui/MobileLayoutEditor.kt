@@ -91,7 +91,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         }
         host = if (landscape) LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; clipChildren = false; clipToPadding = false } else column
         list = serverList()
-        val available = if (MobileStyle.new) Part.values().toList() else listOf(Part.TILES, Part.CONTROL)
+        val available = Part.values().toList()
         available.forEach { parts[it] = frameFor(it); fill(it) }
         arrange()
 
@@ -363,7 +363,6 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
 
     private fun tiles(items: MutableList<LayoutAction>) = LinearLayout(this).apply {
         gravity = Gravity.CENTER
-        val new = MobileStyle.new
         val size = dp(MobileHomeLayout.tileSize())
         if (MobileHomeLayout.extendedTiles) {
             val hidden = MobileHomeLayout.hiddenTiles
@@ -374,7 +373,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
                     MobileHomeLayout.hiddenTiles = if (removed) hidden - id else hidden + id
                     TransitionManager.beginDelayedTransition(column, ChangeBounds().setDuration(160)); fill(Part.TILES)
                 }
-            } + if (new) emptyList() else listOf(icon(R.drawable.ic_mobile_add))
+            }
             // Spanning the row as on the home screen; a narrow frame (a tablet's side column) shrinks them instead.
             views.forEachIndexed { index, view -> addView(view, LinearLayout.LayoutParams(0, size, 1f).apply { if (index < views.lastIndex) marginEnd = dp(8) }) }
             addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
@@ -383,9 +382,9 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
                 if (fit < size) post { views.forEach { view -> view.layoutParams = (view.layoutParams as LinearLayout.LayoutParams).apply { width = fit; height = fit; weight = 0f } } }
             }
         } else {
-            addView(icon(if (new) R.drawable.ic_mobile_more else R.drawable.ic_mobile_settings), LinearLayout.LayoutParams(size, size))
+            addView(icon(R.drawable.ic_mobile_more), LinearLayout.LayoutParams(size, size))
             addView(ui.text(getString(R.string.app_name), 18f, bold = true).apply { gravity = Gravity.CENTER; maxLines = 1 }, LinearLayout.LayoutParams(0, -2, 1f))
-            addView(icon(if (new) R.drawable.ic_mobile_settings else R.drawable.ic_mobile_add), LinearLayout.LayoutParams(size, size))
+            addView(icon(R.drawable.ic_mobile_settings), LinearLayout.LayoutParams(size, size))
         }
     }
 
@@ -400,12 +399,11 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     private fun check() = ui.text(getString(R.string.qmobile_check_connection), 12f, MobilePalette.muted).apply { gravity = Gravity.CENTER_VERTICAL }
 
     private fun control(items: MutableList<LayoutAction>): View {
-        val new = MobileStyle.new
         val bottom = MobileHomeLayout.controlBottom
         val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         fun status() = box.addView(check().apply { setPadding(dp(10), 0, dp(6), 0) }, LinearLayout.LayoutParams(-1, dp(34)))
         if (MobileHomeLayout.controlSwitches) {
-            if (new && bottom) status()
+            if (bottom) status()
             val hidden = MobileHomeLayout.hiddenSwitch
             val height = dp(if (MobileHomeLayout.compactControl) 44 else 52)
             box.addView(LinearLayout(this).apply {
@@ -425,24 +423,24 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
                     addView(wrapped, LinearLayout.LayoutParams(0, height, 1f).apply { if (index > 0) marginStart = dp(8) })
                 }
             }, LinearLayout.LayoutParams(-1, -2))
-            if (new && !bottom) status()
+            if (!bottom) status()
             return box
         }
-        val size = dp(MobileHomeLayout.orbSize(new))
+        val size = dp(MobileHomeLayout.orbSize(true))
         val orb = View(this).apply {
             // As the home screen draws it: the disc, the caption and the subscription and server line under them.
-            background = if (new) MobileOrbArtwork(context, getString(R.string.qmobile_orb_idle)).apply {
+            background = MobileOrbArtwork(context, getString(R.string.qmobile_orb_idle)).apply {
                 discSize = size; groupText = getString(R.string.subscription); serverText = Locale("", "de").displayCountry
-            } else MobilePowerArtwork(accent).apply { statusText = getString(R.string.qmobile_connect) }
+            }
         }
         val centre = FrameLayout(this)
-        centre.addView(orb, if (new) FrameLayout.LayoutParams(-1, size + dp(16), Gravity.TOP) else FrameLayout.LayoutParams(size, size, Gravity.TOP or Gravity.CENTER_HORIZONTAL))
-        if (new && bottom) {
+        centre.addView(orb, FrameLayout.LayoutParams(-1, size + dp(16), Gravity.TOP))
+        if (bottom) {
             centre.background = MobileDockGlass(MobilePalette.cardDp * resources.displayMetrics.density, MobileOrbArtwork.centerY(size), MobileOrbArtwork.radius(size) * 1.26f, dp(104).toFloat() * size / dp(190))
             centre.addView(check().apply { maxLines = 3 }, FrameLayout.LayoutParams(dp(92), -2, Gravity.START or Gravity.BOTTOM).apply { marginStart = dp(14); bottomMargin = dp(14) })
         }
-        box.addView(centre, LinearLayout.LayoutParams(-1, if (new) size + dp(if (bottom) 20 else 16) else size + dp(18)))
-        if (new && !bottom) status()
+        box.addView(centre, LinearLayout.LayoutParams(-1, size + dp(if (bottom) 20 else 16)))
+        if (!bottom) status()
         return box
     }
 
@@ -451,7 +449,6 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
         addView(LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            if (!MobileStyle.new) addView(check(), LinearLayout.LayoutParams(-1, dp(32)))
             for (code in listOf("de", "fi", "nl", "se", "us", "jp", "gb", "ca", "fr", "pl")) addView(LinearLayout(context).apply {
                 gravity = Gravity.CENTER_VERTICAL; setPadding(dp(12), 0, dp(12), 0); background = MobilePalette.rowShape(context)
                 addView(ImageView(context).apply {
@@ -508,7 +505,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             if (near != MobileHomeLayout.chipNearList) { MobileHomeLayout.chipNearList = near; rearrange() }
         }
         // And the control, dragged past the subscription on its side, goes between it and the edge or the list.
-        if (part == Part.CONTROL && MobileStyle.new && Part.CHIP in parts && bottom == MobileHomeLayout.chipBottom) {
+        if (part == Part.CONTROL && Part.CHIP in parts && bottom == MobileHomeLayout.chipBottom) {
             val chip = parts.getValue(Part.CHIP)
             val middle = chip.top + chip.height / 2f
             val near = if (bottom) hostY > middle else hostY < middle
