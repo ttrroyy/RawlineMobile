@@ -491,10 +491,8 @@ class MainActivity : ThemedActivity(),
 
     fun displayFragmentWithId(@IdRes id: Int): Boolean {
         when (id) {
-            R.id.nav_mobile_home -> displayFragment(MobileHomeFragment())
-            R.id.nav_configuration -> {
-                displayFragment(ConfigurationFragment())
-            }
+            // Either home is the current style's own: the Rawline home never shows under ThroneForAndroid, nor its groups under the others.
+            R.id.nav_mobile_home, R.id.nav_configuration -> displayFragment(if (classic) ConfigurationFragment() else MobileHomeFragment())
 
             R.id.nav_group -> displayFragment(GroupFragment())
             R.id.nav_route -> displayFragment(RouteFragment())

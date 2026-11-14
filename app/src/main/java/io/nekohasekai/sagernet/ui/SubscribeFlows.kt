@@ -168,7 +168,7 @@ object SubscribeFlows {
                 GroupRepo.setCurrent(id)
                 onMainDispatcher {
                     if (!activity.isFinishing && !activity.isDestroyed)
-                        (activity as? MainActivity)?.displayFragmentWithId(R.id.nav_mobile_home)
+                        (activity as? MainActivity)?.let { it.displayFragmentWithId(it.homeId) }
                 }
             }
         }
