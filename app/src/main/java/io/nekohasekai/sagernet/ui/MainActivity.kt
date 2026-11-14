@@ -125,6 +125,7 @@ class MainActivity : ThemedActivity(),
         binding.drawerLayout.setDrawerLockMode(if (classic) DrawerLayout.LOCK_MODE_UNLOCKED else DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
         navigation.visibility = if (classic) View.VISIBLE else View.GONE
         navigation.menu.findItem(R.id.nav_faq)?.isVisible = false
+        lifecycleScope.launch { repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) { SubscriptionCountries.follow(this).join() } }
         if (classic) {
             classicExtras()
             lifecycleScope.launch {
