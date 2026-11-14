@@ -58,14 +58,39 @@ class UiTourTest {
         Thread.sleep(2000)
     }
     private fun tap(string: Int) = tap(context.getString(string))
-    /** A real touch at the middle of [label], as a finger presses it; some rows ignore an accessibility click. */
-    private fun press(label: String, required: Boolean = true): Boolean {
-        val nodes = instrumentation.uiAutomation.rootInActiveWindow?.findAccessibilityNodeInfosByText(label).orEmpty()
-        val node = nodes.firstOrNull { it.text?.toString() == label || it.contentDescription?.toString() == label } ?: nodes.firstOrNull()
-        if (node == null) { check(!required) { "no \"$label\" on the screen" }; return false }
-        val bounds = android.graphics.Rect().also(node::getBoundsInScreen)
+    /**
+     * The middle, on the screen, of the shown view whose text or description is [label] (or contains it, unless [exact]),
+     * looked up in the app's own windows, dialogs included, the topmost first: the accessibility tree missed some screens.
+     */
+    private fun centerOf(label: String, exact: Boolean = true): IntArray? {
+        var point: IntArray? = null
+        instrumentation.runOnMainSync {
+            fun matches(view: android.view.View): Boolean {
+                val text = (view as? android.widget.TextView)?.text?.toString()
+                val description = view.contentDescription?.toString()
+                return if (exact) text == label || description == label else text?.contains(label) == true || description?.contains(label) == true
+            }
+            fun find(view: android.view.View): android.view.View? {
+                if (!view.isShown) return null
+                if (matches(view)) return view
+                if (view is android.view.ViewGroup) for (i in 0 until view.childCount) find(view.getChildAt(i))?.let { return it }
+                return null
+            }
+            for (root in android.view.inspector.WindowInspector.getGlobalWindowViews().asReversed()) {
+                val view = find(root) ?: continue
+                val location = IntArray(2).also(view::getLocationOnScreen)
+                point = intArrayOf(location[0] + view.width / 2, location[1] + view.height / 2)
+                break
+            }
+        }
+        return point
+    }
+    /** A real touch at the middle of [label], as a finger presses it. */
+    private fun press(label: String, required: Boolean = true, exact: Boolean = true): Boolean {
+        val point = centerOf(label, exact)
+        if (point == null) { check(!required) { "no \"$label\" on the screen" }; return false }
         android.os.ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand(
-            "input tap ${bounds.centerX()} ${bounds.centerY()}")).use { it.readBytes() }
+            "input tap ${point[0]} ${point[1]}")).use { it.readBytes() }
         Thread.sleep(2000)
         return true
     }
@@ -406,7 +431,7 @@ class UiTourTest {
             press(context.getString(R.string.add_profile))
             press(group.name, required = false)
             // The list draws the leading flag emoji as a picture, so the name is found without it.
-            press(hop.displayName().substringAfterLast(' '))
+            press(hop.displayName().substringAfterLast(' '), exact = false)
             Thread.sleep(1500)
             val stored = DataStore.profileCacheStore.getString("chainProxyIds").orEmpty()
             check(stored.split(',').contains(hop.id.toString())) { "the added hop is not in the chain: \"$stored\"" }
@@ -448,7 +473,11 @@ class UiTourTest {
             app.rawline.mobile.deploy.DeployStore.save(server)
             open(VkRelayActivity::class.java)
             press("Деплой")
-            swipe("Removable VPS", .85f, .25f)
+            val row = checkNotNull(centerOf("Removable VPS")) { "the saved VPS is not in the list" }
+            val width = context.resources.displayMetrics.widthPixels
+            android.os.ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand(
+                "input swipe ${(width * .85f).toInt()} ${row[1]} ${(width * .25f).toInt()} ${row[1]} 350")).use { it.readBytes() }
+            Thread.sleep(1200)
             press("Удалить VPS из списка")
             press("Удалить")
             Thread.sleep(1000)
