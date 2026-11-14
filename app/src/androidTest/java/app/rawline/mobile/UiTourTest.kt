@@ -58,6 +58,17 @@ class UiTourTest {
         Thread.sleep(2000)
     }
     private fun tap(string: Int) = tap(context.getString(string))
+    /** A real touch at the middle of [label], as a finger presses it; some rows ignore an accessibility click. */
+    private fun press(label: String, required: Boolean = true): Boolean {
+        val nodes = instrumentation.uiAutomation.rootInActiveWindow?.findAccessibilityNodeInfosByText(label).orEmpty()
+        val node = nodes.firstOrNull { it.text?.toString() == label || it.contentDescription?.toString() == label } ?: nodes.firstOrNull()
+        if (node == null) { check(!required) { "no \"$label\" on the screen" }; return false }
+        val bounds = android.graphics.Rect().also(node::getBoundsInScreen)
+        android.os.ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand(
+            "input tap ${bounds.centerX()} ${bounds.centerY()}")).use { it.readBytes() }
+        Thread.sleep(2000)
+        return true
+    }
     private fun topmost(label: String) = instrumentation.uiAutomation.rootInActiveWindow?.findAccessibilityNodeInfosByText(label).orEmpty()
         .minByOrNull { node -> android.graphics.Rect().also(node::getBoundsInScreen).top }
     private fun tapTopmost(label: String) {
@@ -392,10 +403,10 @@ class UiTourTest {
             // The way a user does it: the picker, the group, the server.
             val (group, hop) = fixtures()
             open(app.rawline.mobile.ui.profile.ChainSettingsActivity::class.java)
-            tap(R.string.add_profile)
-            tapTopmost(group.name)
+            press(context.getString(R.string.add_profile))
+            press(group.name, required = false)
             // The list draws the leading flag emoji as a picture, so the name is found without it.
-            tapTopmost(hop.displayName().substringAfterLast(' '))
+            press(hop.displayName().substringAfterLast(' '))
             Thread.sleep(1500)
             val stored = DataStore.profileCacheStore.getString("chainProxyIds").orEmpty()
             check(stored.split(',').contains(hop.id.toString())) { "the added hop is not in the chain: \"$stored\"" }
@@ -436,10 +447,10 @@ class UiTourTest {
             for ((key, value) in listOf("name" to "Removable VPS", "host" to "203.0.113.30")) server[key] = value
             app.rawline.mobile.deploy.DeployStore.save(server)
             open(VkRelayActivity::class.java)
-            tap("Деплой")
+            press("Деплой")
             swipe("Removable VPS", .85f, .25f)
-            tap("Удалить VPS из списка")
-            tap("Удалить")
+            press("Удалить VPS из списка")
+            press("Удалить")
             Thread.sleep(1000)
             check(app.rawline.mobile.deploy.DeployStore.all().none { it.id == server.id }) { "the swiped VPS is still stored" }
             check(topmost("Removable VPS") == null) { "the removed VPS is still shown" }

@@ -15,7 +15,8 @@ permissions:
 
 concurrency:
   group: downloads-badge
-  cancel-in-progress: true
+  # A deploy cut off by a newer run is left as a failed Pages deployment: the newer one waits instead.
+  cancel-in-progress: false
 
 jobs:
   badge:
