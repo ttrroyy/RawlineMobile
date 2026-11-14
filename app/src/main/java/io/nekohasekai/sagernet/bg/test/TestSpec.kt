@@ -21,13 +21,15 @@ data class TestSpec(
     val speedTimeoutMs: Int = 0,
     val simpleDlUrl: String = "",
     val sortGroupId: Long = 0L,
+    /** A test the app started by itself (the flags of a new subscription): it stores what it found, never a failure. */
+    val quiet: Boolean = false,
 ) : Parcelable {
 
     override fun equals(other: Any?): Boolean = this === other ||
         other is TestSpec && kind == other.kind && profileIds.contentEquals(other.profileIds) &&
         testCurrent == other.testCurrent && scopeLabel == other.scopeLabel && url == other.url &&
         timeoutMs == other.timeoutMs && concurrency == other.concurrency && speedMode == other.speedMode &&
-        speedTimeoutMs == other.speedTimeoutMs && simpleDlUrl == other.simpleDlUrl && sortGroupId==other.sortGroupId
+        speedTimeoutMs == other.speedTimeoutMs && simpleDlUrl == other.simpleDlUrl && sortGroupId==other.sortGroupId && quiet == other.quiet
 
     override fun hashCode(): Int = 31 * kind + profileIds.contentHashCode()
 

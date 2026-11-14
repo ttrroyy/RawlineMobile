@@ -29,6 +29,6 @@ object SubscriptionCountries {
             SagerDatabase.proxyDao.getByGroup(gid).filter { it.testCountry.isNullOrEmpty() }.map { it.id }
         }
         // A test already running keeps its place: the flags then come with the next update.
-        if (ids.isNotEmpty()) TestSessionClient.startProfiles(TestSpec.KIND_IP, ids, gid)
+        if (ids.isNotEmpty()) TestSessionClient.start(TestSpec(TestSpec.KIND_IP, ids.toLongArray(), quiet = true), 0L)
     }
 }

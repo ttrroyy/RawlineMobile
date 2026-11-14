@@ -291,7 +291,7 @@ internal class TestSession(
 
     /** applyIpResult (TestRunner.cpp:144-157). */
     fun reportIp(results: List<ProbeResult>) {
-        persist(results) { ProfileManager.saveIpTestResult(it.profileId, it.ip, it.country, it.error) }
+        persist(if (spec.quiet) results.filter { it.measured && it.error.isEmpty() } else results) { ProfileManager.saveIpTestResult(it.profileId, it.ip, it.country, it.error) }
         for (result in results) {
             val success = result.measured && result.error.isEmpty()
             val failure = result.measured && !success && !ProxyEntity.isTestAborted(result.error)
