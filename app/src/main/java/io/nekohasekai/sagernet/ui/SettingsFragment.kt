@@ -139,7 +139,6 @@ class SettingsFragment : ToolbarFragment(R.layout.layout_config_settings),
         if (MobilePalette.light) {
             toolbar.navigationIcon?.setTint(ContextCompat.getColor(requireContext(), R.color.black))
         }
-        if (!nested) useDrawerIcon(toolbar)
     }
 
 }

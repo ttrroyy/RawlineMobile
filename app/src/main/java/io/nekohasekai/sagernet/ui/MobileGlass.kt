@@ -132,7 +132,6 @@ class MobileDockGlass(private val corner: Float, private val discY: Float, priva
 /** Where a remote, keyboard or car controller stands: a ring around the control in focus. Touch never shows it. */
 object MobileFocusRing {
     fun attach(window: android.view.Window) {
-        if (!MobileStyle.modern) return
         window.decorView.viewTreeObserver.addOnGlobalFocusChangeListener { old, now ->
             old?.foreground = null
             if (now == null || now.isInTouchMode || now.background is MobilePowerArtwork || now is android.widget.EditText) return@addOnGlobalFocusChangeListener

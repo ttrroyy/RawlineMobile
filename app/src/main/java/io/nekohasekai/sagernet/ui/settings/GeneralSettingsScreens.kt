@@ -26,7 +26,6 @@ import app.rawline.mobile.utils.AppLocale
 import app.rawline.mobile.utils.BatteryOptimizations
 import app.rawline.mobile.utils.OemBackground
 import app.rawline.mobile.utils.Theme
-import moe.matsuri.nb4a.ui.ColorPickerPreference
 import moe.matsuri.nb4a.ui.SimpleMenuPreference
 
 /** Service mode, auto connect (remember_enable) and the connection behaviour switches. */
@@ -124,34 +123,22 @@ class AppearanceSettingsFragment : SettingsScreenFragment(R.xml.settings_appeara
 
     override fun onResume() {
         super.onResume()
-        // The menu is not stored. Recreate restores whatever label was showing, and New's
-        // night label is OLED even though that choice was never saved. Pastel would then
-        // keep the check on OLED while its night paint stays plum.
+        // The menu is not stored: recreate would restore whatever label was showing.
         findPreference<SimpleMenuPreference>("qmobileSurfaceTheme")?.let(::showSurfaceChoice)
     }
 
     override fun bind() {
-        pref<SimpleMenuPreference>("qmobileUiStyle").setOnPreferenceChangeListener { _, _ -> applyThemeInstantly(); true }
-        // The new style is black or white with one look: accent colours and a bottom tile bar mean nothing there.
-        // Pastel keeps that structure, and uses the light/dark/OLED list so night is not forced to black.
-        val modern = app.rawline.mobile.ui.MobileStyle.modern
-        val pastel = app.rawline.mobile.ui.MobileStyle.pastel
-        listOf(Key.APP_THEME, Key.ALWAYS_SHOW_ADDRESS, Key.COMPACT_PROFILE_ROWS, Key.COMPACT_GROUP_CARDS).forEach { pref<Preference>(it).isVisible = !modern }
-        // The editor shapes the modern home screen; the classic style has the group tabs instead.
-        pref<Preference>("qmobileEditLayout").isVisible = modern
         pref<Preference>("qmobileEditLayout").setOnPreferenceClickListener {
             startActivity(android.content.Intent(requireContext(), app.rawline.mobile.ui.MobileLayoutEditorActivity::class.java)); true
-        }
-        pref<ColorPickerPreference>(Key.APP_THEME).setOnPreferenceChangeListener { _, _ ->
-            DataStore.useSystemTheme = false
-            applyThemeInstantly()
-            true
         }
         pref<SimpleMenuPreference>("qmobileSurfaceTheme").apply {
             showSurfaceChoice(this)
             setOnPreferenceChangeListener { _, selected ->
-                if (!modern || pastel) DataStore.amoledTheme = selected == "oled"
-                DataStore.nightTheme = when (selected) { "system" -> 0; "light" -> 2; else -> 1 }
+                // Pastel is a palette of its own, light by day and plum at night as the system has it; the others are
+                // black or white.
+                DataStore.uiStyle = if (selected == "pastel") "pastel" else "new"
+                DataStore.amoledTheme = false
+                DataStore.nightTheme = when (selected) { "pastel" -> 0; "light" -> 2; else -> 1 }
                 Theme.currentNightMode = DataStore.nightTheme
                 // The recreated host applies night mode. Applying it here as well
                 // causes a second recreation while the old preference row is rebinding.
@@ -166,23 +153,11 @@ class AppearanceSettingsFragment : SettingsScreenFragment(R.xml.settings_appeara
         reloadOn("qmobileNotificationSpeed")
     }
 
-    /** Night without the OLED flag is Dark. New has no separate Dark row, so its night stays OLED. */
     private fun showSurfaceChoice(preference: SimpleMenuPreference) {
-        val modern = app.rawline.mobile.ui.MobileStyle.new
-        if (modern) {
-            preference.setEntries(R.array.qmobile_surface_themes_new)
-            preference.setEntryValues(R.array.qmobile_surface_values_new)
-        } else {
-            preference.setEntries(R.array.qmobile_surface_themes)
-            preference.setEntryValues(R.array.qmobile_surface_values)
-        }
-        val night = DataStore.nightTheme
         preference.value = when {
-            night == 0 -> "system"
-            night == 2 -> "light"
-            modern -> "oled"
-            DataStore.amoledTheme && night == 1 -> "oled"
-            else -> "dark"
+            app.rawline.mobile.ui.MobileStyle.pastel -> "pastel"
+            DataStore.nightTheme == 2 -> "light"
+            else -> "oled"
         }
     }
 

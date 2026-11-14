@@ -1695,7 +1695,6 @@ class MobileHomeFragment : ToolbarFragment() {
                 FrameLayout.LayoutParams(dp(40),dp(4),Gravity.CENTER))
         }
         body.addView(handle,LinearLayout.LayoutParams(-1,dp(48)))
-        dialog.dragOnlyFrom(handle)
         body.addView(text(group.displayName(),18f).apply { setTypeface(typeface,Typeface.BOLD) })
         fun entry(label:String,icon:Int,action:()->Unit) {
             val row=LinearLayout(requireContext()).apply { gravity=Gravity.CENTER_VERTICAL; minimumHeight=dp(56);background=tile(); isFocusable=true; contentDescription=label; setOnClickListener { dialog.dismiss();action() }; MobileFeedback.apply(this) }

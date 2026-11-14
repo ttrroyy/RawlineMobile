@@ -357,6 +357,9 @@ class ChainSettingsActivity : ProfileSettingsActivity<Chain>(R.layout.layout_cha
                             proxyList.add(profile)
                             configurationAdapter.notifyItemInserted(proxyList.size)
                         }
+                        // The saved and validated chain reads its hops from the cache, as move and remove keep it.
+                        cacheChain()
+                        DataStore.dirty = true
                         hopsChanged()
                     }
                 }

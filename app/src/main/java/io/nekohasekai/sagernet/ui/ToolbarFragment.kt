@@ -42,18 +42,6 @@ open class ToolbarFragment : Fragment {
         toolbar?.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-        toolbar?.let(::useDrawerIcon)
-    }
-
-    /** A screen of the side menu (classic style) opens the menu from its corner instead of going back. */
-    fun useDrawerIcon(bar: Toolbar): Boolean {
-        val main = activity as? MainActivity ?: return false
-        if (!main.isDrawerScreen(this)) return false
-        bar.setNavigationIcon(R.drawable.ic_navigation_menu)
-        bar.setNavigationContentDescription(R.string.navigation_open_drawer)
-        bar.navigationIcon?.setTint(if (Theme.isWhiteTheme()) ContextCompat.getColor(requireContext(), R.color.black) else MobilePalette.text)
-        bar.setNavigationOnClickListener { main.binding.drawerLayout.openDrawer(GravityCompat.START) }
-        return true
     }
 
     open fun onKeyDown(ketCode: Int, event: KeyEvent) = false

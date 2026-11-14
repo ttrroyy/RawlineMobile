@@ -507,9 +507,12 @@ class PanelDeployActivity : ServerScreenActivity() {
         if (state.trust.isBlank()) shownTrust = ""
         if (state.trust.isNotBlank() && state.trust != shownTrust) {
             shownTrust = state.trust
-            MobileAlertDialogBuilder(this).setTitle("Ключ SSH сервера")
-                .setMessage("Первое подключение к ${server["host"]}.\n\nОтпечаток ключа:\n${state.trust}\n\nСверьте его с ключом VPS у провайдера.")
-                .setPositiveButton("Доверять") { _, _ -> PanelOperation.approve(true) }
+            MobileAlertDialogBuilder(this).setTitle(if (state.trustChanged) "Ключ SSH сервера изменился" else "Ключ SSH сервера")
+                .setMessage(if (state.trustChanged)
+                    "У ${server["host"]} другой ключ SSH, чем при прошлом подключении. Так бывает после переустановки системы на VPS.\n\n" +
+                        "Новый отпечаток:\n${state.trust}\n\nЕсли вы не переустанавливали VPS, отмените: это может быть подмена сервера."
+                    else "Первое подключение к ${server["host"]}.\n\nОтпечаток ключа:\n${state.trust}\n\nСверьте его с ключом VPS у провайдера.")
+                .setPositiveButton(if (state.trustChanged) "Доверять новому" else "Доверять") { _, _ -> PanelOperation.approve(true) }
                 .setNegativeButton(android.R.string.cancel) { _, _ -> PanelOperation.approve(false) }
                 .setOnCancelListener { PanelOperation.approve(false) }.show()
         }

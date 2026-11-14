@@ -315,7 +315,7 @@ object SubscribeFlows {
             val message = try {
                 val target=if(gid>0) gid else targetGroupId()
                 requireNotNull(GroupRepo.get(target)) { activity.getString(R.string.qmobile_import_group_missing) }
-                activity.getString(R.string.grp_imported_count, SubscriptionClient.importText(content, target))
+                activity.getString(R.string.grp_imported_count, SubscriptionClient.importText(content, target).count)
             } catch (e: Exception) {
                 Logs.w(e)
                 e.readableMessage

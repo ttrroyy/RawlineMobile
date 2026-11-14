@@ -96,6 +96,16 @@ class SagerNet : Application(),
                 DataStore.useSystemTheme = false
                 DataStore.configurationStore.putBoolean("mobile_gray_300_color_migrated", true)
             }
+            // 1.1.3 has one interface, Rawline, with three palettes: OLED, White and Pastel. The classic and the old
+            // themes go; a palette that followed the system becomes the one in use now, Pastel stays as it was.
+            if (!DataStore.configurationStore.getBoolean("rawline_only_113_migrated", false)) {
+                if (DataStore.uiStyle != "pastel") {
+                    DataStore.uiStyle = "new"
+                    if (DataStore.nightTheme == 0) DataStore.nightTheme = if (app.rawline.mobile.utils.Theme.usingNightMode()) 1 else 2
+                }
+                DataStore.amoledTheme = false
+                DataStore.configurationStore.putBoolean("rawline_only_113_migrated", true)
+            }
             // 2.6.2 sets the test defaults once: 32 profiles at a time, 5 s for a ping and for a speed test.
             if(!DataStore.testDefaults262Migrated) {
                 DataStore.testConcurrent=32

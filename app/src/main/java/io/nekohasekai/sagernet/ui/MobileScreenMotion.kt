@@ -45,34 +45,41 @@ object MobileScreenMotion {
         cover.postDelayed({ cover.animate().alpha(0f).setDuration(220).withEndAction { decor.removeView(cover) }.start() }, 260)
     }
 
+    /** A screen inside the window moves as a new window does (the screen_soft animations), so every screen opens alike. */
     fun create(fragment: Fragment, nextAnim: Int): Animator? {
         val view = fragment.view ?: return null
-        val incoming = nextAnim == R.anim.settings_enter || nextAnim == R.anim.settings_pop_enter
         if (nextAnim !in listOf(R.anim.settings_enter, R.anim.settings_exit, R.anim.settings_pop_enter, R.anim.settings_pop_exit)) return null
-        view.translationX = 0f
-        val fade = ObjectAnimator.ofFloat(view, View.ALPHA, if (incoming) 0f else 1f, if (incoming) 1f else 0f)
-        if (!MobileStyle.modern) return fade.apply { duration = 90 }
-        fade.duration = if (incoming) 180 else 120
-        val rise = view.resources.displayMetrics.density * 12
+        val dp = view.resources.displayMetrics.density
+        fun alpha(from: Float, to: Float, ms: Long) = ObjectAnimator.ofFloat(view, View.ALPHA, from, to).setDuration(ms)
+        fun scale(from: Float, to: Float, ms: Long) = listOf(ObjectAnimator.ofFloat(view, View.SCALE_X, from, to).setDuration(ms), ObjectAnimator.ofFloat(view, View.SCALE_Y, from, to).setDuration(ms))
+        fun rise(from: Float, to: Float, ms: Long) = ObjectAnimator.ofFloat(view, View.TRANSLATION_Y, from * dp, to * dp).setDuration(ms)
+        val parts: List<Animator> = when (nextAnim) {
+            R.anim.settings_enter -> listOf(alpha(0f, 1f, 200), rise(24f, 0f, 300)) + scale(.985f, 1f, 300)
+            R.anim.settings_exit -> listOf(alpha(1f, 0f, 180)) + scale(1f, .97f, 260)
+            R.anim.settings_pop_enter -> listOf(alpha(0f, 1f, 200)) + scale(.97f, 1f, 260)
+            else -> listOf(alpha(1f, 0f, 160), rise(0f, 24f, 220))
+        }
         MobileOrbArtwork.frozen = true
         view.setLayerType(View.LAYER_TYPE_HARDWARE, null)
         return AnimatorSet().apply {
-            val soft = AnimationUtils.loadInterpolator(view.context, android.R.interpolator.fast_out_slow_in)
-            interpolator = soft
-            if (incoming) playTogether(fade, ObjectAnimator.ofFloat(view, View.TRANSLATION_Y, rise, 0f).setDuration(220))
-            else play(fade)
+            interpolator = AnimationUtils.loadInterpolator(view.context, android.R.interpolator.fast_out_slow_in)
+            playTogether(parts)
             addListener(object : android.animation.AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator) { MobileOrbArtwork.frozen = false; view.translationY = 0f; view.setLayerType(View.LAYER_TYPE_NONE, null) }
+                override fun onAnimationEnd(animation: Animator) {
+                    MobileOrbArtwork.frozen = false
+                    view.translationY = 0f; view.scaleX = 1f; view.scaleY = 1f; view.alpha = 1f
+                    view.setLayerType(View.LAYER_TYPE_NONE, null)
+                }
             })
         }
     }
 
     @Suppress("DEPRECATION")
     fun open(activity: Activity) {
-        val enter = if (MobileStyle.modern) R.anim.screen_soft_enter else R.anim.settings_enter
-        val exit = if (MobileStyle.modern) R.anim.screen_soft_exit else R.anim.settings_exit
-        val popEnter = if (MobileStyle.modern) R.anim.screen_soft_pop_enter else R.anim.settings_pop_enter
-        val popExit = if (MobileStyle.modern) R.anim.screen_soft_pop_exit else R.anim.settings_pop_exit
+        val enter = R.anim.screen_soft_enter
+        val exit = R.anim.screen_soft_exit
+        val popEnter = R.anim.screen_soft_pop_enter
+        val popExit = R.anim.screen_soft_pop_exit
         if (Build.VERSION.SDK_INT >= 34) {
             activity.overrideActivityTransition(Activity.OVERRIDE_TRANSITION_OPEN, enter, exit)
             activity.overrideActivityTransition(Activity.OVERRIDE_TRANSITION_CLOSE, popEnter, popExit)
@@ -82,7 +89,6 @@ object MobileScreenMotion {
     @Suppress("DEPRECATION")
     fun close(activity: Activity) {
         if (Build.VERSION.SDK_INT >= 34) return
-        if (MobileStyle.modern) activity.overridePendingTransition(R.anim.screen_soft_pop_enter, R.anim.screen_soft_pop_exit)
-        else activity.overridePendingTransition(R.anim.settings_pop_enter, R.anim.settings_pop_exit)
+        activity.overridePendingTransition(R.anim.screen_soft_pop_enter, R.anim.screen_soft_pop_exit)
     }
 }

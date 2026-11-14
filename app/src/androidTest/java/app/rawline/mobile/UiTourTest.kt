@@ -225,7 +225,7 @@ class UiTourTest {
         "dns" to { screen("app.rawline.mobile.ui.settings.DnsSettingsFragment") },
         "subscription-settings" to { screen("app.rawline.mobile.ui.settings.SubscriptionSettingsFragment") },
         "appearance" to { screen("app.rawline.mobile.ui.settings.AppearanceSettingsFragment") },
-        "style-menu" to { screen("app.rawline.mobile.ui.settings.AppearanceSettingsFragment"); tap(R.string.qmobile_ui_style) },
+        "style-menu" to { screen("app.rawline.mobile.ui.settings.AppearanceSettingsFragment"); tap(R.string.theme) },
         "routing-settings" to { screen("app.rawline.mobile.ui.settings.RoutingSettingsFragment") },
         "logs" to { main(R.id.nav_settings); tap(R.string.qmobile_logs) },
         "vk" to { open(VkRelayActivity::class.java) },
@@ -386,6 +386,41 @@ class UiTourTest {
         },
         "layout-editor-joined-chip-near" to {
             layout(); MobileHomeLayout.chipNearList = true; MobileHomeLayout.scrollParts = setOf("control"); editor(); Thread.sleep(800)
+        },
+        // Regression: a profile added to a new chain is its hop; once it was only shown and the chain saved empty.
+        "chain-add" to {
+            val hop = fixtures().second
+            val picked = instrumentation.addMonitor(app.rawline.mobile.ui.ProfileSelectActivity::class.java.name,
+                android.app.Instrumentation.ActivityResult(Activity.RESULT_OK, Intent().putExtra(app.rawline.mobile.ui.ProfileSelectActivity.EXTRA_PROFILE_ID, hop.id)), true)
+            open(app.rawline.mobile.ui.profile.ChainSettingsActivity::class.java)
+            tap(R.string.add_profile)
+            instrumentation.removeMonitor(picked)
+            Thread.sleep(800)
+            val stored = DataStore.profileCacheStore.getString(app.rawline.mobile.ui.profile.ChainSettingsActivity.KEY_CHAIN_IDS).orEmpty()
+            check(stored.split(',').contains(hop.id.toString())) { "the added hop is not in the chain: \"$stored\"" }
+            check(topmost(context.getString(R.string.validation_chain_empty)) == null) { "the chain with a hop still says it is empty" }
+        },
+        // Regression: the import notice says how many came in, not the class of the result.
+        "import-notice" to {
+            main(R.id.nav_mobile_home)
+            val group = fixtures().first
+            val before = SagerDatabase.proxyDao.getByGroup(group.id).size
+            instrumentation.runOnMainSync {
+                app.rawline.mobile.ui.SubscribeFlows.importInto(resumed() as androidx.fragment.app.FragmentActivity,
+                    "vless://00000000-0000-0000-0000-000000000001@192.0.2.9:443?security=none#import-check", group.id)
+            }
+            Thread.sleep(2500)
+            check(SagerDatabase.proxyDao.getByGroup(group.id).size == before + 1) { "the pasted server was not imported" }
+            check(topmost("TextImport") == null) { "the import notice shows the result's class instead of a count" }
+        },
+        // The tutorial turns its pages by a swipe as well as by its button.
+        "layout-tutorial-swipe" to {
+            layout(); editor(tutorial = true)
+            val width = context.resources.displayMetrics.widthPixels; val height = context.resources.displayMetrics.heightPixels
+            android.os.ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand(
+                "input swipe ${(width * .85f).toInt()} ${height / 2} ${(width * .15f).toInt()} ${height / 2} 200")).use { it.readBytes() }
+            Thread.sleep(1500)
+            check(topmost(context.getString(R.string.qmobile_layout_step_double)) != null) { "a swipe to the left did not open the second step" }
         },
     )
 

@@ -76,7 +76,6 @@ class MainActivity : ThemedActivity(),
     companion object {
         /** Texts to import (the QR scanner): URLs and deep links one by one, the rest as one import. */
         const val EXTRA_IMPORT_TEXTS = "importTexts"
-        private const val STATE_CLASSIC = "classicStyle"
     }
 
     lateinit var binding: LayoutMainBinding
@@ -122,19 +121,10 @@ class MainActivity : ThemedActivity(),
         }
         navigation.setNavigationItemSelectedListener(this)
         binding.drawerLayout.closeDrawers()
-        // The classic style is the side menu, the group tabs and the connect button; the new style has its own home screen.
-        binding.drawerLayout.setDrawerLockMode(if (classic) DrawerLayout.LOCK_MODE_UNLOCKED else DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
-        navigation.visibility = if (classic) View.VISIBLE else View.GONE
-        navigation.menu.findItem(R.id.nav_faq)?.isVisible = false
+        // The home screen has its own menus: the side menu stays closed.
+        binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+        navigation.visibility = View.GONE
         lifecycleScope.launch { repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) { SubscriptionCountries.follow(this).join() } }
-        if (classic) {
-            classicExtras()
-            lifecycleScope.launch {
-                repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-                    app.rawline.mobile.route.ProviderGeoAssets.states.collect { showGeoStatus() }
-                }
-            }
-        }
         supportFragmentManager.addOnBackStackChangedListener {
             currentMainFragment = supportFragmentManager.findFragmentById(R.id.fragment_holder) as? ToolbarFragment
         }
@@ -157,15 +147,7 @@ class MainActivity : ThemedActivity(),
         })
 
         val restored = supportFragmentManager.findFragmentById(R.id.fragment_holder)
-        // A style change recreates the screen: nothing of the other style stays, not even under the settings in the back
-        // stack. This style's home comes up with the appearance settings over it, where the change was made.
-        val styleChanged = savedInstanceState != null && savedInstanceState.getBoolean(STATE_CLASSIC, classic) != classic
-        if (styleChanged) {
-            supportFragmentManager.popBackStackImmediate(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
-            displayFragmentWithId(homeId)
-            supportFragmentManager.executePendingTransactions()
-            if (restored is SettingsFragment) openSettingsScreen(app.rawline.mobile.ui.settings.AppearanceSettingsFragment::class.java.name, getString(R.string.settings_appearance))
-        } else if (savedInstanceState == null || (restored is MobileHomeFragment || restored is ConfigurationFragment) && !isHome(restored)) {
+        if (savedInstanceState == null || restored is ConfigurationFragment) {
             displayFragmentWithId(homeId)
         } else {
             currentMainFragment = restored as? ToolbarFragment
@@ -396,35 +378,11 @@ class MainActivity : ThemedActivity(),
     }
 
 
-    private val classic get() = !MobileStyle.modern
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putBoolean(STATE_CLASSIC, classic)
-    }
-    val homeId get() = if (classic) R.id.nav_configuration else R.id.nav_mobile_home
-    private fun isHome(fragment: Any?) = if (classic) fragment is ConfigurationFragment else fragment is MobileHomeFragment
-
-    /** The screens of the side menu (classic style): each replaces the last, and back from them leads to the groups. */
-    fun isDrawerScreen(fragment: Any?) = classic && (fragment is ConfigurationFragment || fragment is GroupFragment || fragment is RouteFragment ||
-        fragment is SettingsFragment || fragment is DashboardFragment || fragment is ToolsFragment || fragment is LogcatFragment ||
-        fragment is LiveGraphsFragment || fragment is AboutFragment)
+    val homeId get() = R.id.nav_mobile_home
+    private fun isHome(fragment: Any?) = fragment is MobileHomeFragment
 
     @SuppressLint("CommitTransaction")
     fun displayFragment(fragment: ToolbarFragment) {
-        if (classic) {
-            val top = isDrawerScreen(fragment)
-            if (top) supportFragmentManager.popBackStackImmediate(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
-            currentMainFragment = fragment
-            val transaction = supportFragmentManager.beginTransaction().setReorderingAllowed(true)
-                .setCustomAnimations(R.anim.settings_enter, R.anim.settings_exit, R.anim.settings_pop_enter, R.anim.settings_pop_exit)
-                .replace(R.id.fragment_holder, fragment)
-            if (!top) transaction.addToBackStack(null)
-            transaction.commitAllowingStateLoss()
-            binding.drawerLayout.closeDrawers()
-            syncMainControls(fragment, showWhenConnected = false, animate = true)
-            return
-        }
         if (fragment is MobileHomeFragment) {
             supportFragmentManager.popBackStackImmediate(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
         }
@@ -491,8 +449,7 @@ class MainActivity : ThemedActivity(),
 
     fun displayFragmentWithId(@IdRes id: Int): Boolean {
         when (id) {
-            // Either home is the current style's own: the Rawline home never shows under ThroneForAndroid, nor its groups under the others.
-            R.id.nav_mobile_home, R.id.nav_configuration -> displayFragment(if (classic) ConfigurationFragment() else MobileHomeFragment())
+            R.id.nav_mobile_home, R.id.nav_configuration -> displayFragment(MobileHomeFragment())
 
             R.id.nav_group -> displayFragment(GroupFragment())
             R.id.nav_route -> displayFragment(RouteFragment())
@@ -613,43 +570,6 @@ class MainActivity : ThemedActivity(),
             true
         }
         popup.show()
-    }
-
-    /**
-     * What the new style's home screen shows and the side menu has not: the HWID a subscription is bound to, at the
-     * top of the menu (a tap copies it).
-     */
-    private fun classicExtras() {
-        val hwid = app.rawline.mobile.group.RequestIdentity.applyCustomHwidParams(app.rawline.mobile.group.DeviceDetails.get(), DataStore.subCustomHwidParams).hwid
-        if (hwid.isBlank()) return
-        val pad = (16 * resources.displayMetrics.density).toInt()
-        navigation.addHeaderView(android.widget.TextView(this).apply {
-            text = "HWID: $hwid"
-            setTextColor(MobilePalette.muted)
-            textSize = 13f
-            setPadding(pad, pad + (24 * resources.displayMetrics.density).toInt(), pad, pad / 2)
-            contentDescription = getString(R.string.action_copy) + " HWID"
-            setOnClickListener { if (SagerNet.trySetPrimaryClip(hwid)) snackbar(R.string.grp_copied).show() }
-        })
-    }
-
-    private var geoBar: Snackbar? = null
-
-    /** The provider's geo files loading, as the new style's home screen shows them in a card. */
-    private fun showGeoStatus() {
-        val states = app.rawline.mobile.route.ProviderGeoAssets.states.value.values
-        val active = states.firstOrNull { !it.complete } ?: states.lastOrNull()
-        if (active == null) { geoBar?.dismiss(); geoBar = null; return }
-        val text = when {
-            active.error.isNotBlank() -> active.error
-            active.complete -> getString(R.string.provider_geo_complete)
-            else -> getString(R.string.provider_geo_loading) + " " + active.file + if (active.total > 0) " · ${active.bytes * 100 / active.total}%" else ""
-        }
-        val done = active.complete || active.error.isNotBlank()
-        val bar = geoBar?.takeIf { it.isShownOrQueued } ?: snackbar(text).also { geoBar = it }
-        bar.setText(text).setDuration(if (done) Snackbar.LENGTH_LONG else Snackbar.LENGTH_INDEFINITE)
-        if (!bar.isShownOrQueued) bar.show()
-        if (done) { geoBar = null; app.rawline.mobile.route.ProviderGeoAssets.dismiss() }
     }
 
     override fun snackbarInternal(text: CharSequence): Snackbar {

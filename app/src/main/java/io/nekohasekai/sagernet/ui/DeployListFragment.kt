@@ -80,11 +80,9 @@ class DeployListFragment : Fragment() {
     }
 
     private fun tile(title: String, subtitle: String?, icon: Int, server: DeployServer? = null, click: () -> Unit) {
-        fun background() = GradientDrawable().apply { setColor(MobilePalette.surface); cornerRadius=dp(MobilePalette.rowDp).toFloat(); setStroke(1,MobilePalette.outline) }
-        val glass = MobileStyle.modern
         val tile = LinearLayout(requireContext()).apply {
             gravity = Gravity.CENTER_VERTICAL; setPadding(dp(12), dp(8), dp(12), dp(8))
-            minimumHeight = dp(48); this.background = if (glass) MobilePalette.rowShape(context) else background()
+            minimumHeight = dp(48); this.background = MobilePalette.rowShape(context)
             isFocusable = true; setOnClickListener { click() }; MobileFeedback.apply(this)
         }
         tile.addView(ImageView(requireContext()).apply {
@@ -99,37 +97,37 @@ class DeployListFragment : Fragment() {
             })
         }, LinearLayout.LayoutParams(0, -2, 1f))
         val entry: View = if (server == null) tile else {
+            // A swipe shows the delete button; a long press asks at once, for those who do not know the swipe.
+            tile.setOnLongClickListener { confirmRemove(server); true }
             val delete = ImageButton(requireContext()).apply {
                 setImageResource(R.drawable.ic_mobile_delete)
                 val red = Color.rgb(220, 66, 61)
-                if (glass) {
-                    imageTintList = ColorStateList.valueOf(red)
-                    this.background = MobilePalette.actionShape(context, red); MobileFeedback.apply(this)
-                    setPadding(dp(20), dp(12), dp(20), dp(12))
-                } else {
-                    imageTintList = ColorStateList.valueOf(Color.WHITE)
-                    setBackgroundColor(red); setPadding(dp(18), dp(18), dp(18), dp(18))
-                }
+                imageTintList = ColorStateList.valueOf(red)
+                this.background = MobilePalette.actionShape(context, red); MobileFeedback.apply(this)
+                setPadding(dp(20), dp(12), dp(20), dp(12))
                 contentDescription = "Удалить VPS из списка"
-                setOnClickListener {
-                    if (PanelOperation.state.value.running && PanelOperation.state.value.serverId == server.id)
-                        Toast.makeText(context, "Дождитесь завершения операции", Toast.LENGTH_SHORT).show()
-                    else MobileAlertDialogBuilder(context).setMessage("Удалить VPS из списка? Панель и нода на сервере останутся.")
-                        .setNegativeButton(android.R.string.cancel, null)
-                        .setPositiveButton("Удалить") { _, _ -> viewLifecycleOwner.lifecycleScope.launch {
-                            val result = withContext(Dispatchers.IO) { runCatching { DeployStore.remove(server.id) } }
-                            if (result.isSuccess) refresh()
-                            else Toast.makeText(context, "Не удалось удалить VPS", Toast.LENGTH_LONG).show()
-                        } }.show()
-                }
+                setOnClickListener { confirmRemove(server) }
             }
             MobileSwipeTile(requireContext(), tile, View(requireContext()), View(requireContext()), delete, deleteOnly = true).apply {
-                // In the new style the glass is the row's alone: a second layer here would show through it.
-                this.background = if (glass) GradientDrawable().apply { setColor(Color.TRANSPARENT); cornerRadius = dp(MobilePalette.rowDp).toFloat() } else background()
+                // The glass is the row's alone: a second layer here would show through it.
+                this.background = GradientDrawable().apply { setColor(Color.TRANSPARENT); cornerRadius = dp(MobilePalette.rowDp).toFloat() }
                 clipToOutline = true
                 onOpened = { opened -> openSwipe?.takeIf { it !== opened }?.closeActions(); openSwipe = opened }
             }
         }
         body.addView(entry, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
+    }
+
+    private fun confirmRemove(server: DeployServer) {
+        val context = requireContext()
+        if (PanelOperation.state.value.running && PanelOperation.state.value.serverId == server.id)
+            Toast.makeText(context, "Дождитесь завершения операции", Toast.LENGTH_SHORT).show()
+        else MobileAlertDialogBuilder(context).setMessage("Удалить VPS из списка? Панель и нода на сервере останутся.")
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton("Удалить") { _, _ -> viewLifecycleOwner.lifecycleScope.launch {
+                val result = withContext(Dispatchers.IO) { runCatching { DeployStore.remove(server.id) } }
+                if (result.isSuccess) refresh()
+                else Toast.makeText(context, "Не удалось удалить VPS", Toast.LENGTH_LONG).show()
+            } }.show()
     }
 }

@@ -19,8 +19,11 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONObject
 
-/** One SSH connection to the VPS; the host key remembered first is the only one accepted after. */
-class PanelSsh(private val server: DeployServer, private val trust: (String) -> Boolean) : AutoCloseable {
+/**
+ * One SSH connection to the VPS. The host key remembered first is accepted silently after; a different one (a VPS
+ * reinstalled) is asked about again, [trust] told that it changed, and remembered once accepted.
+ */
+class PanelSsh(private val server: DeployServer, private val trust: (fingerprint: String, changed: Boolean) -> Boolean) : AutoCloseable {
     private var session: Session? = null
 
     fun connect(): PanelSsh {
@@ -32,8 +35,8 @@ class PanelSsh(private val server: DeployServer, private val trust: (String) -> 
                 val fingerprint = "SHA256:" + android.util.Base64.encodeToString(java.security.MessageDigest.getInstance("SHA-256").digest(bytes),
                     android.util.Base64.NO_WRAP or android.util.Base64.NO_PADDING)
                 val known = server["hostKey"]
-                if (known.isNotBlank()) return if (known == fingerprint) HostKeyRepository.OK else HostKeyRepository.CHANGED
-                if (!trust(fingerprint)) return HostKeyRepository.CHANGED
+                if (known == fingerprint) return HostKeyRepository.OK
+                if (!trust(fingerprint, known.isNotBlank())) return HostKeyRepository.CHANGED
                 server["hostKey"] = fingerprint
                 return HostKeyRepository.OK
             }
@@ -125,6 +128,8 @@ data class PanelState(
     val log: String = "",
     val error: String = "",
     val trust: String = "",
+    /** The server already had another key: reinstalled, or not the same machine. */
+    val trustChanged: Boolean = false,
     // The result of the last action: a check's text and verdict, or the addresses of a name.
     val checkOk: Boolean = false,
     val checkText: String = "",
@@ -157,7 +162,7 @@ object PanelOperation {
         job = scope.launch {
             try {
                 PanelCommands.validateConnection(copy)
-                PanelSsh(copy) { fingerprint -> ask(fingerprint) }.also { ssh = it }.use { connection ->
+                PanelSsh(copy) { fingerprint, changed -> ask(fingerprint, changed) }.also { ssh = it }.use { connection ->
                     connection.connect()
                     run(connection, copy, action, argument, user, password)
                 }
@@ -177,11 +182,11 @@ object PanelOperation {
         }
     }
 
-    private fun ask(fingerprint: String): Boolean {
+    private fun ask(fingerprint: String, changed: Boolean): Boolean {
         val reply = CompletableDeferred<Boolean>(); trustReply = reply
-        state.update { it.copy(trust = fingerprint) }
+        state.update { it.copy(trust = fingerprint, trustChanged = changed) }
         val accepted = runBlocking { withTimeoutOrNull(120_000) { reply.await() } } == true
-        state.update { it.copy(trust = "") }; trustReply = null
+        state.update { it.copy(trust = "", trustChanged = false) }; trustReply = null
         return accepted
     }
 
@@ -239,7 +244,7 @@ object PanelTunnels {
         open[server.id]?.let { (ssh, port) -> if (ssh.connected) return port else ssh.close() }
         val port = server["panelPort"].toIntOrNull()?.takeIf { it in 1..65535 } ?: error("Неизвестный порт панели")
         // Only a key already confirmed is accepted here.
-        val ssh = PanelSsh(server) { false }.connect()
+        val ssh = PanelSsh(server) { _, _ -> false }.connect()
         val local = runCatching { ssh.forward(port) }.getOrElse { ssh.close(); throw it }
         open[server.id] = ssh to local
         return local

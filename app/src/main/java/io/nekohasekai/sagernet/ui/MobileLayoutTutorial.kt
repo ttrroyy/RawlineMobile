@@ -91,6 +91,25 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
         demo.step = current
     }
 
+    // A swipe turns the page: to the left the next step, to the right the one before.
+    private val swipes = android.view.GestureDetector(context, object : android.view.GestureDetector.SimpleOnGestureListener() {
+        override fun onDown(e: android.view.MotionEvent) = true
+        override fun onFling(e1: android.view.MotionEvent?, e2: android.view.MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+            val start = e1 ?: return false
+            val dx = e2.x - start.x
+            if (kotlin.math.abs(dx) < dp(48f) || kotlin.math.abs(dx) < kotlin.math.abs(e2.y - start.y)) return false
+            val target = step + if (dx < 0) 1 else -1
+            if (target in Step.values().indices) show(target)
+            return true
+        }
+    })
+
+    // Every touch passes the swipe detector once; the buttons still get their taps.
+    override fun dispatchTouchEvent(event: android.view.MotionEvent): Boolean {
+        swipes.onTouchEvent(event)
+        return super.dispatchTouchEvent(event)
+    }
+
     fun close() {
         animate().alpha(0f).setDuration(180).withEndAction { (parent as? ViewGroup)?.removeView(this); onClose() }.start()
     }
@@ -293,9 +312,11 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
             }
             fun drawOrb(top: Float, size: Float) {
                 // Across the part, 16 dp taller than the disc, as on the home screen.
+                // Fixed bounds and a moved canvas: bounds that moved every frame rebuilt the button's shaders every
+                // frame, and the loop ran at a few frames a second.
                 orb.discSize = size.toInt()
-                orb.setBounds(left.toInt(), top.toInt(), right.toInt(), (top + size + dp(16f)).toInt())
-                orb.draw(c)
+                orb.setBounds(0, 0, (right - left).toInt(), (size + dp(16f)).toInt())
+                c.save(); c.translate(left, top); orb.draw(c); c.restore()
             }
             val switchesHeight = dp(52f) + dp(40f)
             fun switches(top: Float) {
