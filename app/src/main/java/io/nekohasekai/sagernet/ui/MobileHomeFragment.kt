@@ -1338,7 +1338,6 @@ class MobileHomeFragment : ToolbarFragment() {
                     if(dockBottom) controlParent.addView(statusRow,0,LinearLayout.LayoutParams(-1,dp(34)))
                     else side.addView(statusRow,LinearLayout.LayoutParams(-1,dp(34)))
                     }
-                    }
                 }
                 updateState()
                 val imports = LinearLayout(requireContext())
