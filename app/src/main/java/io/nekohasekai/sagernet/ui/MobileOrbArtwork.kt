@@ -199,12 +199,14 @@ class MobileOrbArtwork(context: Context, private val idleText: String) : MobileP
         }
         // The subscription and the server in use, under the time, or under the caption while idle.
         if (withServer) serverLine(canvas, cx, top + (if (connected || workersText.isNotEmpty()) 44f else 22f) * density * fit, 12f * density * fit, wide, ink)
-        // A slow wave needs no more than 60 frames a second, whatever the screen's rate; a window over it,
-        // a screen change or a scrolling list pauses it, so that all the frame time is theirs.
+        // The wave moves at the screen's own rate, as the list scrolling beside it does (at 60 a second it looked
+        // jerky next to a 120 Hz scroll); a window over it or a screen change pauses it.
         if (animated) {
             unscheduleSelf(waitForFocus)
-            val free = !frozen && now >= scrollingUntil && (callback as? android.view.View)?.hasWindowFocus() != false
-            scheduleSelf(waitForFocus, now + if (free) 16L else 150L)
+            val view = callback as? android.view.View
+            val free = !frozen && view?.hasWindowFocus() != false
+            val frame = (1000f / (view?.display?.refreshRate?.takeIf { it > 0f } ?: 60f)).toLong().coerceIn(4L, 16L)
+            scheduleSelf(waitForFocus, now + if (free) frame else 150L)
         }
     }
 
@@ -238,8 +240,6 @@ class MobileOrbArtwork(context: Context, private val idleText: String) : MobileP
     companion object {
         /** A screen change draws through a layer; repainting that layer every frame is what makes it stutter. */
         @JvmStatic var frozen = false
-        private var scrollingUntil = 0L
-        fun pauseWhileScrolling() { scrollingUntil = SystemClock.uptimeMillis() + 180L }
         /** Where the disc sits in a button of [size]: the panel at the bottom curves around it. */
         fun radius(size: Int) = size * .27f
         fun centerY(size: Int) = radius(size) * 1.6f

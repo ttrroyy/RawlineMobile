@@ -125,6 +125,14 @@ class MainActivity : ThemedActivity(),
         binding.drawerLayout.setDrawerLockMode(if (classic) DrawerLayout.LOCK_MODE_UNLOCKED else DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
         navigation.visibility = if (classic) View.VISIBLE else View.GONE
         navigation.menu.findItem(R.id.nav_faq)?.isVisible = false
+        if (classic) {
+            classicExtras()
+            lifecycleScope.launch {
+                repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                    app.rawline.mobile.route.ProviderGeoAssets.states.collect { showGeoStatus() }
+                }
+            }
+        }
         supportFragmentManager.addOnBackStackChangedListener {
             currentMainFragment = supportFragmentManager.findFragmentById(R.id.fragment_holder) as? ToolbarFragment
         }
@@ -593,6 +601,43 @@ class MainActivity : ThemedActivity(),
             true
         }
         popup.show()
+    }
+
+    /**
+     * What the new style's home screen shows and the side menu has not: the HWID a subscription is bound to, at the
+     * top of the menu (a tap copies it).
+     */
+    private fun classicExtras() {
+        val hwid = app.rawline.mobile.group.RequestIdentity.applyCustomHwidParams(app.rawline.mobile.group.DeviceDetails.get(), DataStore.subCustomHwidParams).hwid
+        if (hwid.isBlank()) return
+        val pad = (16 * resources.displayMetrics.density).toInt()
+        navigation.addHeaderView(android.widget.TextView(this).apply {
+            text = "HWID: $hwid"
+            setTextColor(MobilePalette.muted)
+            textSize = 13f
+            setPadding(pad, pad + (24 * resources.displayMetrics.density).toInt(), pad, pad / 2)
+            contentDescription = getString(R.string.action_copy) + " HWID"
+            setOnClickListener { if (SagerNet.trySetPrimaryClip(hwid)) snackbar(R.string.grp_copied).show() }
+        })
+    }
+
+    private var geoBar: Snackbar? = null
+
+    /** The provider's geo files loading, as the new style's home screen shows them in a card. */
+    private fun showGeoStatus() {
+        val states = app.rawline.mobile.route.ProviderGeoAssets.states.value.values
+        val active = states.firstOrNull { !it.complete } ?: states.lastOrNull()
+        if (active == null) { geoBar?.dismiss(); geoBar = null; return }
+        val text = when {
+            active.error.isNotBlank() -> active.error
+            active.complete -> getString(R.string.provider_geo_complete)
+            else -> getString(R.string.provider_geo_loading) + " " + active.file + if (active.total > 0) " · ${active.bytes * 100 / active.total}%" else ""
+        }
+        val done = active.complete || active.error.isNotBlank()
+        val bar = geoBar?.takeIf { it.isShownOrQueued } ?: snackbar(text).also { geoBar = it }
+        bar.setText(text).setDuration(if (done) Snackbar.LENGTH_LONG else Snackbar.LENGTH_INDEFINITE)
+        if (!bar.isShownOrQueued) bar.show()
+        if (done) { geoBar = null; app.rawline.mobile.route.ProviderGeoAssets.dismiss() }
     }
 
     override fun snackbarInternal(text: CharSequence): Snackbar {

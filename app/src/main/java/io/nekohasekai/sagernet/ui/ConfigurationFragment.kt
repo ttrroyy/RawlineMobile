@@ -35,6 +35,7 @@ import app.rawline.mobile.R
 import app.rawline.mobile.SagerNet
 import app.rawline.mobile.aidl.TrafficData
 import app.rawline.mobile.database.DataStore
+import app.rawline.mobile.database.SagerDatabase
 import app.rawline.mobile.database.GroupRepo
 import app.rawline.mobile.database.ProfileManager
 import app.rawline.mobile.database.ProxyEntity
@@ -597,6 +598,26 @@ class ConfigurationFragment : ToolbarFragment(R.layout.layout_group_list),
         val card = infoCard ?: return
         card.bind(if (select) null else currentGroup())
         header?.cardWanted = card.wanted
+        updateRouteLine()
+    }
+
+    /** Under the title: which routing the shown group's servers run with, as the new style writes it under the subscription. */
+    private fun updateRouteLine() {
+        val group = currentGroup()?.takeIf { !select }
+        if (group == null) { toolbar?.subtitle = null; return }
+        val context = context ?: return
+        runOnDefaultDispatcher {
+            val label = RouteLabel.of(context, group, SagerDatabase.proxyDao.getById(DataStore.selectedProxy)?.takeIf { it.groupId == group.id })
+            onMainDispatcher {
+                val bar = toolbar ?: return@onMainDispatcher
+                if (select || currentGroup()?.id != group.id) return@onMainDispatcher
+                bar.subtitle = label.ifEmpty { null }
+                // A tap on the line opens the routing, as on the new home screen.
+                for (i in 0 until bar.childCount) (bar.getChildAt(i) as? android.widget.TextView)?.takeIf { it.text == label && label.isNotEmpty() }?.apply {
+                    setOnClickListener { (activity as? MainActivity)?.displayFragmentWithId(R.id.nav_route) }
+                }
+            }
+        }
     }
 
     override suspend fun groupRemoved(groupId: Long) {

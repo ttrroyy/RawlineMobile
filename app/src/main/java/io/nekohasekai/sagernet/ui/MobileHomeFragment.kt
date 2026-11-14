@@ -561,27 +561,9 @@ class MobileHomeFragment : ToolbarFragment() {
         sheet.show()
     }
     /** The routing of the subscription in use, for the chip beside it; set off the main thread by refresh(). */
-    /** [xrayFull]: the subscription's servers are full Xray configs, whose own routing CoreConfigs keeps. */
-    private fun routeText(info: app.rawline.mobile.route.RouteSource.Info, xrayFull: Boolean = false): String {
-        val rest=if(xrayFull) getString(R.string.qmobile_route_label_xray_rest) else ""
-        val base=if(xrayFull && info.providerLocked) getString(R.string.qmobile_route_label_provider_xray) else when(info.kind) {
-            app.rawline.mobile.route.RouteSource.Kind.PROVIDER -> getString(R.string.qmobile_route_label_provider,info.name)
-            app.rawline.mobile.route.RouteSource.Kind.PROVIDER_OFF -> getString(R.string.qmobile_route_label_provider_off)
-            app.rawline.mobile.route.RouteSource.Kind.GROUP -> getString(R.string.qmobile_route_label_group,info.name)+rest
-            app.rawline.mobile.route.RouteSource.Kind.CLIENT -> getString(R.string.qmobile_route_label_client,info.name)+rest
-        }
-        val apps=info.apps?.let { when {
-            it.off -> getString(R.string.qmobile_route_apps_off)
-            it.bypass -> getString(R.string.qmobile_route_apps_bypass,it.packages.size)
-            else -> getString(R.string.qmobile_route_apps_proxy,it.packages.size)
-        } }
-        return if(apps==null) base else "$base · $apps"
-    }
+    private fun routeText(info: app.rawline.mobile.route.RouteSource.Info, xrayFull: Boolean = false)=RouteLabel.text(requireContext(),info,xrayFull)
     /** The card's routing line: every subscription, and a plain group only when it has a routing profile of its own. */
-    private fun routeLabel(group: ProxyGroup, server: ProxyEntity?): String {
-        val info=runCatching { app.rawline.mobile.route.RouteSource.of(group) }.getOrNull() ?: return ""
-        return routeText(info,runCatching { server?.outbound?.isXrayFullConfig() == true }.getOrDefault(false))
-    }
+    private fun routeLabel(group: ProxyGroup, server: ProxyEntity?)=RouteLabel.of(requireContext(),group,server)
     /** The chip shows the routing the subscription in use really runs with. */
     private fun routeChipText(info: app.rawline.mobile.route.RouteSource.Info?): String? = when(info?.kind) {
         null -> null
@@ -1221,7 +1203,6 @@ class MobileHomeFragment : ToolbarFragment() {
                     if(byGroups && !MobileStyle.new) setPadding(0,dp(8),0,0)
                     addView(serverColumn,FrameLayout.LayoutParams(-1,-2))
                     setOnScrollChangeListener { _, _, y, _, _ ->
-                        MobileOrbArtwork.pauseWhileScrolling()
                         if(byGroups) groupScrollPositions[renderedGroupId]=y else serverScrollPosition=y
                     }
                 }
