@@ -131,8 +131,10 @@ class MobilePastelArtwork(context: Context, @Suppress("unused") private val idle
         val settled = abs(lit - litTo) < .004f && spin < .01f && !pulse
         if (moving() && !settled) {
             unscheduleSelf(tick)
-            val windowFocused = (callback as? android.view.View)?.hasWindowFocus() != false
-            scheduleSelf(tick, now + MobileOrbArtwork.frameDelay(now, windowFocused))
+            // At the display's own rate, as the New button runs; a window over it slows it down.
+            val view = callback as? android.view.View
+            val frame = (1000f / (view?.display?.refreshRate?.takeIf { it > 0f } ?: 60f)).toLong().coerceIn(4L, 16L)
+            scheduleSelf(tick, now + if (!MobileOrbArtwork.frozen && view?.hasWindowFocus() != false) frame else 150L)
         }
     }
 }
