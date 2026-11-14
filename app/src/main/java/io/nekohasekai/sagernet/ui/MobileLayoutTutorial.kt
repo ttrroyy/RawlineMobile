@@ -105,6 +105,11 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                 if (kotlin.math.abs(dx) >= dp(48f) && kotlin.math.abs(dx) > kotlin.math.abs(event.y - downY)) {
                     val target = step + if (dx < 0) 1 else -1
                     if (target in Step.values().indices) show(target)
+                    // A swipe ending on "Next" must not also press it: the buttons get a cancel instead.
+                    val cancel = android.view.MotionEvent.obtain(event).apply { action = android.view.MotionEvent.ACTION_CANCEL }
+                    super.dispatchTouchEvent(cancel)
+                    cancel.recycle()
+                    return true
                 }
             }
         }

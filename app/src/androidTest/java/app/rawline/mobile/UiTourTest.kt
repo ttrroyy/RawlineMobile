@@ -394,7 +394,8 @@ class UiTourTest {
             open(app.rawline.mobile.ui.profile.ChainSettingsActivity::class.java)
             tap(R.string.add_profile)
             tapTopmost(group.name)
-            tapTopmost(hop.displayName())
+            // The list draws the leading flag emoji as a picture, so the name is found without it.
+            tapTopmost(hop.displayName().substringAfterLast(' '))
             Thread.sleep(1500)
             val stored = DataStore.profileCacheStore.getString("chainProxyIds").orEmpty()
             check(stored.split(',').contains(hop.id.toString())) { "the added hop is not in the chain: \"$stored\"" }
@@ -421,6 +422,13 @@ class UiTourTest {
                 "input swipe ${(width * .85f).toInt()} ${height / 2} ${(width * .15f).toInt()} ${height / 2} 200")).use { it.readBytes() }
             Thread.sleep(1500)
             check(topmost(context.getString(R.string.qmobile_layout_step_double)) != null) { "a swipe to the left did not open the second step" }
+            // Back to the right, ending on "Next": one page back, and the button is not pressed as well.
+            val next = android.graphics.Rect().also { topmost(context.getString(R.string.qmobile_layout_tutorial_next))?.getBoundsInScreen(it) }
+            check(!next.isEmpty) { "no Next button in the tutorial" }
+            android.os.ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand(
+                "input swipe ${(width * .15f).toInt()} ${next.centerY()} ${next.centerX()} ${next.centerY()} 300")).use { it.readBytes() }
+            Thread.sleep(1500)
+            check(topmost(context.getString(R.string.qmobile_layout_step_drag)) != null) { "a swipe to the right ending on Next did not go back to the first step" }
         },
     )
 
