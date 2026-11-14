@@ -60,6 +60,12 @@ class ProfileItemMenu(private val host: ConfigurationFragment) {
         val popup = PopupMenu(anchor.context, anchor)
         popup.menuInflater.inflate(R.menu.double_column_item_menu, popup.menu)
         val menu = popup.menu
+        val pinned = profile.id in app.rawline.mobile.ui.PinnedServers.ids()
+        menu.add(if (pinned) R.string.qmobile_unpin else R.string.qmobile_pin).setOnMenuItemClickListener {
+            app.rawline.mobile.ui.PinnedServers.toggle(profile.id)
+            host.launchIo { app.rawline.mobile.database.GroupRepo.postReload(profile.groupId) }
+            true
+        }
         menu.add(R.string.connection_test_clear_results).setOnMenuItemClickListener {
             host.launchIo {
                 ProfileManager.clearTestResults(listOf(profile.id))

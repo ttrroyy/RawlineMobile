@@ -614,7 +614,11 @@ class ConfigurationFragment : ToolbarFragment(R.layout.layout_group_list),
                 bar.subtitle = label.ifEmpty { null }
                 // A tap on the line opens the routing, as on the new home screen.
                 for (i in 0 until bar.childCount) (bar.getChildAt(i) as? android.widget.TextView)?.takeIf { it.text == label && label.isNotEmpty() }?.apply {
-                    setOnClickListener { (activity as? MainActivity)?.displayFragmentWithId(R.id.nav_route) }
+                    // A subscription whose provider sets the routing opens that routing; otherwise the routing profiles.
+                    setOnClickListener {
+                        if (group.subOptions.routingProvider.isNotBlank()) startActivity(android.content.Intent(context, ProviderRoutingActivity::class.java).putExtra("groupId", group.id))
+                        else (activity as? MainActivity)?.displayFragmentWithId(R.id.nav_route)
+                    }
                 }
             }
         }

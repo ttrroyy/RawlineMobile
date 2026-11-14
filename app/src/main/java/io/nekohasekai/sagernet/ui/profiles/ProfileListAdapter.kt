@@ -237,7 +237,7 @@ internal class ProfileListAdapter(private val fragment: ProfileListFragment) :
                 val selected = host?.pickedOrSelectedId() ?: 0L
                 val (loadedGroup, names, rows) = withContext(Dispatchers.IO) {
                     val loadedGroup = GroupRepo.get(groupId)
-                    val names = SagerDatabase.proxyDao.getNamesByGroup(groupId)
+                    val names = app.rawline.mobile.ui.PinnedServers.first(SagerDatabase.proxyDao.getNamesByGroup(groupId)) { it.id }
                     Triple(loadedGroup, names, ProfileManager.getProfiles(known ?: firstRows(loadedGroup, names, selected)))
                 }
                 // a removed group's page goes away with the tabs

@@ -291,6 +291,9 @@ internal class ProfileRowHolder(view: View, private val adapter: ProfileListAdap
         placeholder = false
         val context = itemView.context
         name.text = profile.displayName()
+        // A pinned server leads its group and says so beside its name.
+        name.setCompoundDrawablesRelativeWithIntrinsicBounds(if (profile.id in app.rawline.mobile.ui.PinnedServers.ids()) R.drawable.ic_mobile_pin_small else 0, 0, 0, 0)
+        name.compoundDrawablePadding = (4 * context.resources.displayMetrics.density).toInt()
         type.text = TypeLabel.of(profile)
         type.setTextColor(context.getProtocolColor(profile.type))
         bindContent()

@@ -2155,11 +2155,9 @@ class MobileHomeFragment : ToolbarFragment() {
         else Toast.makeText(requireContext(), R.string.qmobile_clipboard_empty, Toast.LENGTH_SHORT).show()
     }
     private fun pinnedGroups() = DataStore.mobilePinnedGroups.split(',').mapNotNull { it.toLongOrNull() }.toSet()
-    private fun pinnedProfiles() = DataStore.mobilePinnedProfiles.split(',').mapNotNull { it.toLongOrNull() }.toSet()
+    private fun pinnedProfiles() = PinnedServers.ids()
     private fun togglePinnedProfile(id:Long) {
-        val ids=pinnedProfiles().toMutableSet()
-        if(!ids.remove(id)) ids.add(id)
-        DataStore.mobilePinnedProfiles=ids.joinToString(",")
+        PinnedServers.toggle(id)
         renderedStructure=null
         refresh()
     }
