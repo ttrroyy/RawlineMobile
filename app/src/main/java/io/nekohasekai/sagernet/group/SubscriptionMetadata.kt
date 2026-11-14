@@ -43,7 +43,7 @@ internal object SubscriptionMetadata {
             info.valid = true
         }
         decodeHeaderValue(header("Announce")).takeIf { it.isNotEmpty() }?.let {
-            info.announce = it
+            info.announce = lineBreaks(it)
             info.valid = true
         }
 
@@ -90,7 +90,7 @@ internal object SubscriptionMetadata {
                 }
 
                 info.announce.isEmpty() && (has("announce") || has("notice")) -> {
-                    info.announce = decodeHeaderValue(value)
+                    info.announce = lineBreaks(decodeHeaderValue(value))
                     if (info.announce.isNotEmpty()) info.valid = true
                 }
             }
@@ -126,6 +126,9 @@ internal object SubscriptionMetadata {
     }
 
     /** decodeHeaderValue (GroupUpdater.cpp:208-222): a `base64:` value, url-safe first, then lenient standard. */
+    /** A header holds no line breaks: providers write them as a backslash and n, which mean one. */
+    fun lineBreaks(text: String): String = text.replace("\\n", "\n")
+
     fun decodeHeaderValue(raw: String): String {
         val str = raw.trim()
         if (!str.startsWith("base64:", ignoreCase = true)) return str
