@@ -34,11 +34,7 @@ class PanelSsh(private val server: DeployServer, private val trust: (fingerprint
             override fun check(host: String, bytes: ByteArray): Int {
                 val fingerprint = "SHA256:" + android.util.Base64.encodeToString(java.security.MessageDigest.getInstance("SHA-256").digest(bytes),
                     android.util.Base64.NO_WRAP or android.util.Base64.NO_PADDING)
-                val known = server["hostKey"]
-                if (known == fingerprint) return HostKeyRepository.OK
-                if (!trust(fingerprint, known.isNotBlank())) return HostKeyRepository.CHANGED
-                server["hostKey"] = fingerprint
-                return HostKeyRepository.OK
+                return if (acceptHostKey(server, fingerprint, trust)) HostKeyRepository.OK else HostKeyRepository.CHANGED
             }
             override fun add(hostkey: HostKey?, userinfo: UserInfo?) {}
             override fun remove(host: String?, type: String?) {}
@@ -117,6 +113,17 @@ class PanelSsh(private val server: DeployServer, private val trust: (fingerprint
     val connected get() = session?.isConnected == true
 
     override fun close() { runCatching { session?.disconnect() } }
+
+    companion object {
+        /** The stored key passes silently; a new or a changed one only once [trust] accepts it, and is then stored. */
+        fun acceptHostKey(server: DeployServer, fingerprint: String, trust: (fingerprint: String, changed: Boolean) -> Boolean): Boolean {
+            val known = server["hostKey"]
+            if (known == fingerprint) return true
+            if (!trust(fingerprint, known.isNotBlank())) return false
+            server["hostKey"] = fingerprint
+            return true
+        }
+    }
 }
 
 data class PanelState(

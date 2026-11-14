@@ -5,12 +5,6 @@
     "ast_hash": "3f208598f641244e1a5f088e28976035",
     "semantic_hash": ""
   },
-  "app/src/main/assets/seasonal/manifest.json": {
-    "mtime": 1792475439.6168883,
-    "seen": 1793941383.6685302,
-    "ast_hash": "96a778680f3a63e292171c27d5ca433b",
-    "semantic_hash": ""
-  },
   "app/src/main/java/io/nekohasekai/sagernet/BootReceiver.kt": {
     "mtime": 1793969060.8805666,
     "seen": 1793969347.4984324,
@@ -30,9 +24,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/SagerNet.kt": {
-    "mtime": 1794504784.5751646,
-    "seen": 1794507567.0141406,
-    "ast_hash": "dc72a8334a7628e29de9d9b31839f872",
+    "mtime": 1794650741.5288973,
+    "seen": 1794651377.2221,
+    "ast_hash": "cc122c62a82534b523bbe8de4074d21a",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/TestSettings.kt": {
@@ -48,8 +42,8 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/aidl/SpeedDisplayData.kt": {
-    "mtime": 1793969060.883565,
-    "seen": 1793969347.4984324,
+    "mtime": 1794638096.0386941,
+    "seen": 1794651377.2221,
     "ast_hash": "5bbe13599d3299dd9c09567d18d3f61a",
     "semantic_hash": ""
   },
@@ -384,9 +378,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/bg/proto/BoxInstance.kt": {
-    "mtime": 1794458210.8372803,
-    "seen": 1794507567.0141406,
-    "ast_hash": "a4420bab476c5bf8fc81cb3d8fc735b2",
+    "mtime": 1794599162.1601405,
+    "seen": 1794651377.2221,
+    "ast_hash": "cf106e7fe5d099789a431059bb47877a",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/bg/proto/CoreConfig.kt": {
@@ -396,9 +390,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/bg/proto/CoreConfigs.kt": {
-    "mtime": 1794566201.1650455,
-    "seen": 1794567221.1217685,
-    "ast_hash": "fcf744f3ad281e5b206bf556524b3a71",
+    "mtime": 1794632780.6388319,
+    "seen": 1794651377.2221,
+    "ast_hash": "364812132cd36e3cf4be906e087f6d97",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/bg/proto/CoreUrlTest.kt": {
@@ -432,8 +426,8 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/bg/proto/TrafficLooper.kt": {
-    "mtime": 1794456910.2428274,
-    "seen": 1794456969.6936364,
+    "mtime": 1794638096.0391996,
+    "seen": 1794651377.2221,
     "ast_hash": "488c65cfd81ced1a6c0f386e68aa79da",
     "semantic_hash": ""
   },
@@ -492,21 +486,21 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/bg/test/TestProbe.kt": {
-    "mtime": 1794456377.1556807,
-    "seen": 1794456969.6936364,
-    "ast_hash": "9a212702a363cce4143d138cf7549211",
+    "mtime": 1794632787.7112355,
+    "seen": 1794651377.2221,
+    "ast_hash": "93f6ea85a4b60d29854843eac5b9c21d",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/bg/test/TestSession.kt": {
-    "mtime": 1794456202.3316143,
-    "seen": 1794456969.6936364,
-    "ast_hash": "501fd2f3809b17b5b12d4155d4c4467e",
+    "mtime": 1794634281.030284,
+    "seen": 1794651377.2221,
+    "ast_hash": "308b8ea6d780a359f0d9299d89c8a906",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/bg/test/TestSpec.kt": {
-    "mtime": 1793969060.9333751,
-    "seen": 1793969347.4984324,
-    "ast_hash": "a941ec5a0ebf31ca40c52562f09d40f8",
+    "mtime": 1794634281.030284,
+    "seen": 1794651377.2221,
+    "ast_hash": "c6741331ee1a966d07c6302f0b4e00e2",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/bg/test/TestTags.kt": {
@@ -522,9 +516,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/database/DataStore.kt": {
-    "mtime": 1794565806.00772,
-    "seen": 1794567221.1217685,
-    "ast_hash": "798c46d4d58e483d4634cffb0f2a35be",
+    "mtime": 1794633304.841387,
+    "seen": 1794651377.2221,
+    "ast_hash": "db7184e5168224e8f8f4e3a0aca68ac4",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/database/DnsServerHistory.kt": {
@@ -588,9 +582,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/database/RouteManager.kt": {
-    "mtime": 1794456933.8448193,
-    "seen": 1794456969.6936364,
-    "ast_hash": "664cb99f019d9b49b6e48be16b4b3c57",
+    "mtime": 1794587438.299002,
+    "seen": 1794651377.2221,
+    "ast_hash": "2b04b0c3c9239ab3f72b925d053fa698",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/database/RouteProfileEntity.kt": {
@@ -660,9 +654,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/database/backup/DesktopSchema.kt": {
-    "mtime": 1794456202.3346136,
-    "seen": 1794456969.6936364,
-    "ast_hash": "98a34593516acc1cf61e97e005b2a335",
+    "mtime": 1794632577.556441,
+    "seen": 1794651377.2221,
+    "ast_hash": "dedb0965192856a8f00e4d382eacc40a",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/database/backup/SqlRows.kt": {
@@ -713,24 +707,6 @@
     "ast_hash": "1b25f7e96a1dbb883a0984a0ee285333",
     "semantic_hash": ""
   },
-  "app/src/main/java/io/nekohasekai/sagernet/deploy/CsqttDeployPolicy.kt": {
-    "mtime": 1793969060.9587598,
-    "seen": 1793969347.4984324,
-    "ast_hash": "c9da4141ae6c9697a30ed47a919df86c",
-    "semantic_hash": ""
-  },
-  "app/src/main/java/io/nekohasekai/sagernet/deploy/DeployConfig.kt": {
-    "mtime": 1793969060.9597669,
-    "seen": 1793969347.4984324,
-    "ast_hash": "9da5f7433a353fd35eb0c1fd72d13919",
-    "semantic_hash": ""
-  },
-  "app/src/main/java/io/nekohasekai/sagernet/deploy/DeployEngine.kt": {
-    "mtime": 1793997732.8054545,
-    "seen": 1793997817.138161,
-    "ast_hash": "97125b05802c4640c4c3b441ac95f66c",
-    "semantic_hash": ""
-  },
   "app/src/main/java/io/nekohasekai/sagernet/deploy/DeployProtocol.kt": {
     "mtime": 1794035038.0634434,
     "seen": 1794049521.2751284,
@@ -741,12 +717,6 @@
     "mtime": 1794035409.2694533,
     "seen": 1794049521.2751284,
     "ast_hash": "9ea2cd5215e233c2a6f8f288328efe64",
-    "semantic_hash": ""
-  },
-  "app/src/main/java/io/nekohasekai/sagernet/deploy/QwdttAdmin.kt": {
-    "mtime": 1793969060.9607658,
-    "seen": 1793969347.4984324,
-    "ast_hash": "6cb5f62c0c89cd54be1c171da2d7c9af",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/deploy/QwdttProfileApi.kt": {
@@ -761,27 +731,9 @@
     "ast_hash": "3ba214ad779c71587d43438327b86075",
     "semantic_hash": ""
   },
-  "app/src/main/java/io/nekohasekai/sagernet/deploy/WdttPlusDeployOps.kt": {
-    "mtime": 1793979175.9080758,
-    "seen": 1793979726.2092347,
-    "ast_hash": "ebad9aceffd31f653b56fac74c799e56",
-    "semantic_hash": ""
-  },
-  "app/src/main/java/io/nekohasekai/sagernet/deploy/WdttPlusDeploySafety.kt": {
-    "mtime": 1793976087.5999398,
-    "seen": 1793976172.8163884,
-    "ast_hash": "3bea856dc7474553d5c9b3d1eb3e7ad9",
-    "semantic_hash": ""
-  },
-  "app/src/main/java/io/nekohasekai/sagernet/deploy/WdttPlusExit.kt": {
-    "mtime": 1793976087.598415,
-    "seen": 1793976172.8163884,
-    "ast_hash": "c0b871c896aee438d1d095246c71314a",
-    "semantic_hash": ""
-  },
   "app/src/main/java/io/nekohasekai/sagernet/deploy/WdttPlusSshInput.kt": {
-    "mtime": 1793969060.964764,
-    "seen": 1793969347.4984324,
+    "mtime": 1794581522.4531913,
+    "seen": 1794651377.2221,
     "ast_hash": "19b55cbe648a86aaed594d276fb98a72",
     "semantic_hash": ""
   },
@@ -828,9 +780,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/group/SubscriptionFetch.kt": {
-    "mtime": 1794566189.556982,
-    "seen": 1794567221.1217685,
-    "ast_hash": "2665f70743c56a9e766e39c9bed13e6e",
+    "mtime": 1794632684.294201,
+    "seen": 1794651377.2221,
+    "ast_hash": "f57bbc931072ff9b874791e9aeda6ec5",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/group/SubscriptionFilters.kt": {
@@ -840,9 +792,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/group/SubscriptionMetadata.kt": {
-    "mtime": 1793969060.9707778,
-    "seen": 1793969347.4984324,
-    "ast_hash": "0505d1c7b34008e78642f510100e1947",
+    "mtime": 1794633480.8687503,
+    "seen": 1794651377.2221,
+    "ast_hash": "02bac186b47073cd6caf290889bb0a90",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/group/SubscriptionNameFilter.kt": {
@@ -1032,9 +984,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/outbound/config/ChainBuilder.kt": {
-    "mtime": 1794566358.2779372,
-    "seen": 1794567221.1217685,
-    "ast_hash": "b119123686de9e1d00857abd460fd6ac",
+    "mtime": 1794599089.6434984,
+    "seen": 1794651377.2221,
+    "ast_hash": "062b7a409541e366b8718eeeb77746fe",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/outbound/config/Cidrs.kt": {
@@ -1044,9 +996,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/outbound/config/ConfigGenerator.kt": {
-    "mtime": 1794566358.2789414,
-    "seen": 1794567221.1217685,
-    "ast_hash": "19f71866ac42990f9de4357853d4a3c6",
+    "mtime": 1794638837.4839144,
+    "seen": 1794651377.2221,
+    "ast_hash": "f8584e7bbc1cbe2959a054d6c5ee2001",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/outbound/config/DnsDefaults.kt": {
@@ -1392,9 +1344,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/outbound/types/WdttPlus.kt": {
-    "mtime": 1794405405.9531908,
-    "seen": 1794423501.2065282,
-    "ast_hash": "164bb74ce06a59ccc608f4f28270250d",
+    "mtime": 1794606229.1781182,
+    "seen": 1794651377.2221,
+    "ast_hash": "6f379a12186794e12bbe4456c987e447",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/outbound/types/WireGuard.kt": {
@@ -1422,9 +1374,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/route/ProviderGeoAssets.kt": {
-    "mtime": 1794487222.5236578,
-    "seen": 1794507567.0141406,
-    "ast_hash": "ff184216b17bafed51b7fb858bcc90a0",
+    "mtime": 1794633333.1820765,
+    "seen": 1794651377.2221,
+    "ast_hash": "4a1511308a4634f9a52e93d16d738903",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/route/ProviderRouteProfiles.kt": {
@@ -1512,9 +1464,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/AutoSelectorStatusActivity.kt": {
-    "mtime": 1793969061.0672748,
-    "seen": 1793969347.4984324,
-    "ast_hash": "0060e046650031f92a44784e158cb765",
+    "mtime": 1794632853.2302103,
+    "seen": 1794651377.2221,
+    "ast_hash": "b93e46f03b7e49a3802d7de4b8b7a1aa",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/AutoSelectorStatusLine.kt": {
@@ -1530,9 +1482,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/BackupFragment.kt": {
-    "mtime": 1794488279.509429,
-    "seen": 1794507567.0141406,
-    "ast_hash": "a95e02bc8ee42c1e92a7d9e1c0ab25c1",
+    "mtime": 1794650524.6966023,
+    "seen": 1794651377.2221,
+    "ast_hash": "19eb7ec00ced611175fb6a55a5d1f7f6",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/BlankActivity.kt": {
@@ -1554,9 +1506,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/ConfigurationFragment.kt": {
-    "mtime": 1794456202.3474438,
-    "seen": 1794456969.6936364,
-    "ast_hash": "8f527ca1e2663907170027e89341157f",
+    "mtime": 1794636350.5801582,
+    "seen": 1794651377.2221,
+    "ast_hash": "76127c6afb88c5350772aa2fbb88efe3",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/DashboardFragment.kt": {
@@ -1565,22 +1517,10 @@
     "ast_hash": "d527a5622d38ac1ec94e72f18520311e",
     "semantic_hash": ""
   },
-  "app/src/main/java/io/nekohasekai/sagernet/ui/DeployActivity.kt": {
-    "mtime": 1794039233.4411438,
-    "seen": 1794049521.2751284,
-    "ast_hash": "77f7378594855f1bf75174e066efd815",
-    "semantic_hash": ""
-  },
-  "app/src/main/java/io/nekohasekai/sagernet/ui/DeployEditorFragment.kt": {
-    "mtime": 1794049111.5895734,
-    "seen": 1794049521.2751284,
-    "ast_hash": "5543574209cd5339691f7d883373a574",
-    "semantic_hash": ""
-  },
   "app/src/main/java/io/nekohasekai/sagernet/ui/DeployListFragment.kt": {
-    "mtime": 1794039233.4396367,
-    "seen": 1794049521.2751284,
-    "ast_hash": "79f4d5ff5705b54b68b048ed172741fe",
+    "mtime": 1794650841.2443142,
+    "seen": 1794651377.2221,
+    "ast_hash": "13cb9a46c6c9a1e70b488b9b8f2215e7",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/DnsServerSuggestions.kt": {
@@ -1614,15 +1554,15 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/LogcatFragment.kt": {
-    "mtime": 1794487323.6351314,
-    "seen": 1794507567.0141406,
-    "ast_hash": "5c86f4acb96ad139e391a09b415e07c6",
+    "mtime": 1794640746.9392176,
+    "seen": 1794651377.2221,
+    "ast_hash": "c3e15c7dbf2a4aca8f30085fd954c9af",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MainActivity.kt": {
-    "mtime": 1794456202.3542895,
-    "seen": 1794456969.6936364,
-    "ast_hash": "c02208aba52844c2478a324b54be4b86",
+    "mtime": 1794640658.6605875,
+    "seen": 1794651377.2221,
+    "ast_hash": "a5fa0327786dfcd3f72d661a298e87d3",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MessageStore.kt": {
@@ -1632,9 +1572,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileAlertDialogBuilder.kt": {
-    "mtime": 1793978564.6649723,
-    "seen": 1793978627.7900956,
-    "ast_hash": "ec554ddf8c44f31b7a487ba50330def5",
+    "mtime": 1794640746.9532294,
+    "seen": 1794651377.2221,
+    "ast_hash": "e996611f30fa8e4db3c33ae3cea62065",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileCaptchaController.kt": {
@@ -1650,27 +1590,27 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileFeedback.kt": {
-    "mtime": 1793994774.2192276,
-    "seen": 1793994909.9367523,
-    "ast_hash": "343ba7e679fd57ad8ccffdeb5998ff0d",
+    "mtime": 1794640746.964642,
+    "seen": 1794651377.2221,
+    "ast_hash": "32e9964ab7cc9c0a7b09796f52353a72",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileHomeArtwork.kt": {
-    "mtime": 1794545022.4882233,
-    "seen": 1794546517.3645108,
-    "ast_hash": "10fdb89e0f99edd526825892d3b51066",
+    "mtime": 1794635853.2646685,
+    "seen": 1794651377.2221,
+    "ast_hash": "ed00ccb006ea42409deb3db55fb26c80",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileHomeFragment.kt": {
-    "mtime": 1794580444.2507973,
-    "seen": 1794580749.8945897,
-    "ast_hash": "c91016064f3a2de82e4baf3e5db82656",
+    "mtime": 1794650537.8301609,
+    "seen": 1794651377.2221,
+    "ast_hash": "668f0b75b39b5ff680f366f0c55d5996",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobilePalette.kt": {
-    "mtime": 1793973123.3696973,
-    "seen": 1793973143.0821898,
-    "ast_hash": "65a82691c74b07b00fc6370c0b73a526",
+    "mtime": 1794650564.1864932,
+    "seen": 1794651377.2221,
+    "ast_hash": "2432fd938b8907e1d1bfd4e4dc0b31ef",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobilePreferenceDialog.kt": {
@@ -1686,9 +1626,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileReorder.kt": {
-    "mtime": 1793969061.1018417,
-    "seen": 1793969347.499441,
-    "ast_hash": "d9ab5f999e079e6d7d32d4d38114cb9a",
+    "mtime": 1794640746.9851649,
+    "seen": 1794651377.2221,
+    "ast_hash": "eca29496eae8ab1b702c6ebad56c4626",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileRoutingFragment.kt": {
@@ -1698,15 +1638,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileScreenMotion.kt": {
-    "mtime": 1793975776.9378743,
-    "seen": 1793975895.4223588,
-    "ast_hash": "76e0afdebf2987f724f6dd06ac12aff7",
-    "semantic_hash": ""
-  },
-  "app/src/main/java/io/nekohasekai/sagernet/ui/MobileSeasonalView.kt": {
-    "mtime": 1793969061.1035151,
-    "seen": 1793969347.499441,
-    "ast_hash": "39a03d5fb3ed1c9a5b32ca5aadc961a9",
+    "mtime": 1794650655.5729883,
+    "seen": 1794651377.2221,
+    "ast_hash": "7ebba5aa01e73d22a543524f6c50266c",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileSelector.kt": {
@@ -1716,27 +1650,27 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileSettingsStyle.kt": {
-    "mtime": 1794505262.8220174,
-    "seen": 1794507567.0151496,
-    "ast_hash": "0903c509ed243107c550cad8ec3058eb",
+    "mtime": 1794650555.489119,
+    "seen": 1794651377.2221,
+    "ast_hash": "4f8cf9deeb86ff4de14786f7ff1d1a2e",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileSheetDialog.kt": {
-    "mtime": 1793978564.6649723,
-    "seen": 1793978627.7900956,
-    "ast_hash": "8c840264811f39c843f5d3eee3550a3c",
+    "mtime": 1794650537.829061,
+    "seen": 1794651377.2221,
+    "ast_hash": "533e42ea497f54a91b67027e0211712a",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileSwipeTile.kt": {
-    "mtime": 1793973037.4154649,
-    "seen": 1793973143.0821898,
-    "ast_hash": "0c56ba912d484dee84de0aeda246512e",
+    "mtime": 1794650524.698226,
+    "seen": 1794651377.2221,
+    "ast_hash": "ca29c7b410f9b360a4a828aefebe113b",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileTopNotice.kt": {
-    "mtime": 1793993792.122837,
-    "seen": 1793993933.146555,
-    "ast_hash": "07c7c54032399606957091de7c4751ac",
+    "mtime": 1794640747.0455084,
+    "seen": 1794651377.2221,
+    "ast_hash": "43c52a8a0cf4b64bbac38fb2879e9cdd",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileViewStyle.kt": {
@@ -1781,16 +1715,10 @@
     "ast_hash": "574f6f8e91502aa527f768ef64180221",
     "semantic_hash": ""
   },
-  "app/src/main/java/io/nekohasekai/sagernet/ui/QwdttAccessActivity.kt": {
-    "mtime": 1794049069.0133877,
-    "seen": 1794049521.2751284,
-    "ast_hash": "5d6246302831c9141f3b77235bf98143",
-    "semantic_hash": ""
-  },
   "app/src/main/java/io/nekohasekai/sagernet/ui/RouteFragment.kt": {
-    "mtime": 1794456202.355829,
-    "seen": 1794456969.6936364,
-    "ast_hash": "fd50d49cebb01eabed950eeb5b254cff",
+    "mtime": 1794650524.6987748,
+    "seen": 1794651377.2221,
+    "ast_hash": "5faae1da860551fdd7d4adfe37a56e88",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/SaveDocument.kt": {
@@ -1805,28 +1733,16 @@
     "ast_hash": "ade715fc35aa18f8d1f930fa9305e161",
     "semantic_hash": ""
   },
-  "app/src/main/java/io/nekohasekai/sagernet/ui/SeasonalPolicy.kt": {
-    "mtime": 1793969061.1169248,
-    "seen": 1793969347.499441,
-    "ast_hash": "492e6d25f4c7d9102c799220dc80c547",
-    "semantic_hash": ""
-  },
-  "app/src/main/java/io/nekohasekai/sagernet/ui/ServerActivity.kt": {
-    "mtime": 1794049060.9149911,
-    "seen": 1794049521.2751284,
-    "ast_hash": "3a8c84f9f5b1f07679b774ccb08ee7bb",
-    "semantic_hash": ""
-  },
   "app/src/main/java/io/nekohasekai/sagernet/ui/ServerUi.kt": {
-    "mtime": 1794048791.813197,
-    "seen": 1794049521.2751284,
-    "ast_hash": "e171a7d7532718bf07864605050bd7fb",
+    "mtime": 1794640747.0670292,
+    "seen": 1794651377.2221,
+    "ast_hash": "9dff54dd93614bd4407b4ee7f00b7ef8",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/SettingsFragment.kt": {
-    "mtime": 1793969061.1194391,
-    "seen": 1793969347.499441,
-    "ast_hash": "2b9b638f2f0329cb405e2f668df1a823",
+    "mtime": 1794640669.7618592,
+    "seen": 1794651377.2221,
+    "ast_hash": "188a373c62245a03284f424807899ccf",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/SettingsPreferenceFragment.kt": {
@@ -1836,9 +1752,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/SubscribeFlows.kt": {
-    "mtime": 1794487961.8505576,
-    "seen": 1794507567.0151496,
-    "ast_hash": "118d262d0e7336836e6f43433ce292ba",
+    "mtime": 1794650584.3385704,
+    "seen": 1794651377.2221,
+    "ast_hash": "f3962dee8a0bb2321491c7f4ab2037a8",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/SubscriptionEditorActivity.kt": {
@@ -1866,14 +1782,14 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/ThemedActivity.kt": {
-    "mtime": 1794405479.4725993,
-    "seen": 1794423501.2065282,
-    "ast_hash": "784000d52abef2cff2655740d23ca3d1",
+    "mtime": 1794640747.0756333,
+    "seen": 1794651377.2221,
+    "ast_hash": "d3b98b9752639791e0a533617f31ef8f",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/ToolbarFragment.kt": {
-    "mtime": 1793969061.1234384,
-    "seen": 1793969347.499441,
+    "mtime": 1794640669.7613423,
+    "seen": 1794651377.2221,
     "ast_hash": "91f69e96835e85cd77179ad6a25ad430",
     "semantic_hash": ""
   },
@@ -1890,21 +1806,21 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/VkHashesActivity.kt": {
-    "mtime": 1794034851.5266013,
-    "seen": 1794049521.2751284,
-    "ast_hash": "146c49865bd1fd3636e6db47c5c57041",
+    "mtime": 1794638125.4236455,
+    "seen": 1794651377.2221,
+    "ast_hash": "c7777d58748c4bf61302424f100a3e47",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/VkRelayActivity.kt": {
-    "mtime": 1794487428.0004728,
-    "seen": 1794507567.0151496,
-    "ast_hash": "c88459c51cb55a41d77d7e0193dc486a",
+    "mtime": 1794598345.9562123,
+    "seen": 1794651377.2221,
+    "ast_hash": "d852bc8004f45f73c58c4274dfffcf63",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/VkRelayPreferences.kt": {
-    "mtime": 1794035038.0664556,
-    "seen": 1794049521.2751284,
-    "ast_hash": "f3b564eda7cca1754af1270a6f62e7e5",
+    "mtime": 1794598345.9562123,
+    "seen": 1794651377.2221,
+    "ast_hash": "82c60b3c40d131629f6ff04fd3b5dba6",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/VkTurnPayload.kt": {
@@ -1923,24 +1839,6 @@
     "mtime": 1793969061.1299584,
     "seen": 1793969347.499441,
     "ast_hash": "c304c1ada2776328eb5b8e0bb1b8f00e",
-    "semantic_hash": ""
-  },
-  "app/src/main/java/io/nekohasekai/sagernet/ui/WdttPlusBackupsActivity.kt": {
-    "mtime": 1794049060.8923035,
-    "seen": 1794049521.2751284,
-    "ast_hash": "22394fff1c76775fece82d21bf96918f",
-    "semantic_hash": ""
-  },
-  "app/src/main/java/io/nekohasekai/sagernet/ui/WdttPlusClientsActivity.kt": {
-    "mtime": 1794049060.8788388,
-    "seen": 1794049521.2751284,
-    "ast_hash": "717e2886ca3f4467b517296db9bf87e9",
-    "semantic_hash": ""
-  },
-  "app/src/main/java/io/nekohasekai/sagernet/ui/WdttPlusExitActivity.kt": {
-    "mtime": 1794049060.9048154,
-    "seen": 1794049521.2751284,
-    "ast_hash": "ea675d75599c685972e9b32bfe0a7c56",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/WebDAVSettingsActivity.kt": {
@@ -2046,9 +1944,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/profile/ChainSettingsActivity.kt": {
-    "mtime": 1794456202.3589258,
-    "seen": 1794456969.6936364,
-    "ast_hash": "60a6f03c7976007e75150a58ccef0af8",
+    "mtime": 1794650612.698205,
+    "seen": 1794651377.2221,
+    "ast_hash": "f8d73a87e92deac97a5a6f25fa820c3e",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/profile/CustomSettingsActivity.kt": {
@@ -2100,9 +1998,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/profile/NativeTransportSettingsActivity.kt": {
-    "mtime": 1794544282.8823943,
-    "seen": 1794546517.3650346,
-    "ast_hash": "fdff3ab179f0bc78cbc65b43951a20b8",
+    "mtime": 1794598353.2793279,
+    "seen": 1794651377.2221,
+    "ast_hash": "f1dc4be52ab062f88130671b4238dcda",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/profile/OpenConnectSettingsActivity.kt": {
@@ -2232,15 +2130,15 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/profiles/ProfileItemMenu.kt": {
-    "mtime": 1794487962.6945465,
-    "seen": 1794507567.0151496,
-    "ast_hash": "ab4751c803121253118b91a7df6a1a5d",
+    "mtime": 1794636350.5801582,
+    "seen": 1794651377.2221,
+    "ast_hash": "76f198c670e43f45689965dac225fb4b",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/profiles/ProfileListAdapter.kt": {
-    "mtime": 1794456202.3240085,
-    "seen": 1794456969.6936364,
-    "ast_hash": "7e9a227293165ce434e05aa8fb186845",
+    "mtime": 1794636335.8317015,
+    "seen": 1794651377.2221,
+    "ast_hash": "56c98f13abb1e73fee1922f29a19f4fe",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/profiles/ProfileListFragment.kt": {
@@ -2250,9 +2148,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/profiles/ProfileRowHolder.kt": {
-    "mtime": 1794456202.3245578,
-    "seen": 1794456969.6936364,
-    "ast_hash": "87eb7e96b325d8c7cb1ed542d51135b5",
+    "mtime": 1794636335.8322296,
+    "seen": 1794651377.2221,
+    "ast_hash": "1ac6b501ed2f7e0a4d154f51d55dc4fd",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/profiles/ProfileTests.kt": {
@@ -2364,9 +2262,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/settings/GeneralSettingsScreens.kt": {
-    "mtime": 1794456202.3704598,
-    "seen": 1794456969.6936364,
-    "ast_hash": "408a180b449b8c28467f90d1148f3cc5",
+    "mtime": 1794650741.5294225,
+    "seen": 1794651377.2221,
+    "ast_hash": "fd24f95051abfaa0702c03fe64bd1905",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/settings/LanSharingSettingsFragment.kt": {
@@ -2628,9 +2526,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/utils/Theme.kt": {
-    "mtime": 1794488134.4236968,
-    "seen": 1794507567.0156543,
-    "ast_hash": "5ff7673a81aadbb66f7ee56900789425",
+    "mtime": 1794640747.0861394,
+    "seen": 1794651377.2221,
+    "ast_hash": "fe35ab8801b106ede5013912ed1b5b7d",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/utils/WifiStateAccess.kt": {
@@ -3005,28 +2903,10 @@
     "ast_hash": "8befa8bccd9f2eccd16bbcdd12fcec56",
     "semantic_hash": ""
   },
-  "app/src/test/java/io/nekohasekai/sagernet/deploy/CsqttDeployPolicyTest.kt": {
-    "mtime": 1793969061.6205049,
-    "seen": 1793969347.499441,
-    "ast_hash": "6812ddc10fe96d2461ea7e731c5cbd7e",
-    "semantic_hash": ""
-  },
-  "app/src/test/java/io/nekohasekai/sagernet/deploy/DeployConfigTest.kt": {
-    "mtime": 1793969061.6205049,
-    "seen": 1793969347.499441,
-    "ast_hash": "2a5f891a3e2b02ecada15f0a37cad97e",
-    "semantic_hash": ""
-  },
   "app/src/test/java/io/nekohasekai/sagernet/deploy/DeployDraftTest.kt": {
     "mtime": 1793969061.6215053,
     "seen": 1793969347.499441,
     "ast_hash": "6fd727750812c65e96fa3bbb6aa4e9ce",
-    "semantic_hash": ""
-  },
-  "app/src/test/java/io/nekohasekai/sagernet/deploy/DeployEngineStopTest.kt": {
-    "mtime": 1793969061.6215053,
-    "seen": 1793969347.499441,
-    "ast_hash": "80ac27d650ab4e320482093e509ecb37",
     "semantic_hash": ""
   },
   "app/src/test/java/io/nekohasekai/sagernet/deploy/DeployProtocolTest.kt": {
@@ -3041,27 +2921,9 @@
     "ast_hash": "7a2a473a64457435e7a222cf5903f390",
     "semantic_hash": ""
   },
-  "app/src/test/java/io/nekohasekai/sagernet/deploy/ServerUpdateSafetyTest.kt": {
-    "mtime": 1793969061.622506,
-    "seen": 1793969347.499441,
-    "ast_hash": "efd9ac6cf84104bb70c81966e4501c45",
-    "semantic_hash": ""
-  },
-  "app/src/test/java/io/nekohasekai/sagernet/deploy/WdttPlusDeploySafetyTest.kt": {
-    "mtime": 1793979175.9090767,
-    "seen": 1793979726.2092347,
-    "ast_hash": "e02a9a9258e5c19a49c30c2b3df03df5",
-    "semantic_hash": ""
-  },
-  "app/src/test/java/io/nekohasekai/sagernet/deploy/WdttPlusExitTest.kt": {
-    "mtime": 1793969061.622506,
-    "seen": 1793969347.499441,
-    "ast_hash": "48283021d0fa60b2967c23b0abd0c2d5",
-    "semantic_hash": ""
-  },
   "app/src/test/java/io/nekohasekai/sagernet/deploy/WdttPlusSshInputTest.kt": {
-    "mtime": 1793969061.6235044,
-    "seen": 1793969347.499441,
+    "mtime": 1794581522.454191,
+    "seen": 1794651377.2231035,
     "ast_hash": "f8efa08c68bcc64c608a30d365d6b972",
     "semantic_hash": ""
   },
@@ -3329,12 +3191,6 @@
     "ast_hash": "6164bdd3a7ab8c04aff6228aea5e48ec",
     "semantic_hash": ""
   },
-  "app/src/test/java/io/nekohasekai/sagernet/ui/SeasonalPolicyTest.kt": {
-    "mtime": 1793969061.6495538,
-    "seen": 1793969347.499441,
-    "ast_hash": "004c024a7a773d98445c316c6e4b2284",
-    "semantic_hash": ""
-  },
   "app/src/test/java/io/nekohasekai/sagernet/ui/VkTurnPayloadTest.kt": {
     "mtime": 1793969061.6495538,
     "seen": 1793969347.499441,
@@ -3389,12 +3245,6 @@
     "ast_hash": "0e0aad09a7b1a2de8a8c86399944a03f",
     "semantic_hash": ""
   },
-  "buildScript/bake_mobile_seasonal.py": {
-    "mtime": 1792475440.0950885,
-    "seen": 1793941383.6695292,
-    "ast_hash": "d6be80cf6b51da0506f7d9ae83a4ebd5",
-    "semantic_hash": ""
-  },
   "buildScript/check_release_ssh.py": {
     "mtime": 1792475440.0956192,
     "seen": 1793941383.6695292,
@@ -3411,12 +3261,6 @@
     "mtime": 1794456911.2575889,
     "seen": 1794456969.6946363,
     "ast_hash": "a042ad30f020be2b13314f932bb189eb",
-    "semantic_hash": ""
-  },
-  "buildScript/prepare_mobile_seasonal.py": {
-    "mtime": 1792475440.097644,
-    "seen": 1793941383.6695292,
-    "ast_hash": "3f30f8955fff4e1b3cdfbb7150b7a4f6",
     "semantic_hash": ""
   },
   "buildScript/publish_release.py": {
@@ -3456,9 +3300,9 @@
     "semantic_hash": ""
   },
   "buildSrc/src/main/kotlin/Helpers.kt": {
-    "mtime": 1794050308.6308563,
-    "seen": 1794053142.236507,
-    "ast_hash": "f7af8c9782d1626d7b2ba6694fb1428f",
+    "mtime": 1794635853.2766898,
+    "seen": 1794651377.2231035,
+    "ast_hash": "790506a310b2c4bdfbe9aa9a9fb716bd",
     "semantic_hash": ""
   },
   "carriers/cottendns/main.go": {
@@ -3996,15 +3840,15 @@
     "semantic_hash": ""
   },
   "core-patches/socks/loopback_udp.go": {
-    "mtime": 1792730095.7066784,
-    "seen": 1793941383.6695292,
-    "ast_hash": "ab2e6f952a82aa31001911f8186cdc6f",
+    "mtime": 1794653515.7809117,
+    "seen": 1794654331.12725,
+    "ast_hash": "6a5370edc397528f5d7f973e21e1b705",
     "semantic_hash": ""
   },
   "core-patches/socks/loopback_udp_test.go": {
-    "mtime": 1792730095.7071838,
-    "seen": 1793941383.6695292,
-    "ast_hash": "32fa1c67d13e70d89bf599eb5355fcc3",
+    "mtime": 1794654160.9198315,
+    "seen": 1794654331.12725,
+    "ast_hash": "854072f99e7c01c219d49b79994de157",
     "semantic_hash": ""
   },
   "core-patches/trusttunnel/https_fallback.go": {
@@ -4356,9 +4200,9 @@
     "semantic_hash": ""
   },
   "RELEASE_NOTES.md": {
-    "mtime": 1794068514.6972535,
-    "seen": 1794423501.2070212,
-    "ast_hash": "6724567f05f1154aada4fc7e876aa6ba",
+    "mtime": 1794653664.0530946,
+    "seen": 1794654331.1278124,
+    "ast_hash": "bb1a22cfb37a37abe0004955955be6a6",
     "semantic_hash": ""
   },
   "app/src/main/assets/flags/SOURCE.txt": {
@@ -6023,684 +5867,6 @@
     "ast_hash": "f494230321db20305663a1694373fbeb",
     "semantic_hash": ""
   },
-  "app/src/main/assets/seasonal/easter-wide-000.webp": {
-    "mtime": 1792475439.4246297,
-    "seen": 1793941383.6705291,
-    "ast_hash": "ba879197c2cdc37c51e2dc170db5b078",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-001.webp": {
-    "mtime": 1792475439.4266367,
-    "seen": 1793941383.6705291,
-    "ast_hash": "57540919507066c5c2918c907efac884",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-002.webp": {
-    "mtime": 1792475439.4286344,
-    "seen": 1793941383.6705291,
-    "ast_hash": "c43b7519118a4f2be4862d575de3d264",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-003.webp": {
-    "mtime": 1792475439.4311512,
-    "seen": 1793941383.6705291,
-    "ast_hash": "8386c5a6563bd0a5727110ebeb7d5a2d",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-004.webp": {
-    "mtime": 1792475439.433769,
-    "seen": 1793941383.6705291,
-    "ast_hash": "3cf29e8d612d6f067272377f92b90296",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-005.webp": {
-    "mtime": 1792475439.4365928,
-    "seen": 1793941383.6705291,
-    "ast_hash": "d3b9cda162db8f676c942bc5890c8e3d",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-006.webp": {
-    "mtime": 1792475439.4387193,
-    "seen": 1793941383.6705291,
-    "ast_hash": "80a4a3469b2a4682af4de4c30cc88b0b",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-007.webp": {
-    "mtime": 1792475439.4410338,
-    "seen": 1793941383.6705291,
-    "ast_hash": "21199ec0667542334ac02433b62faeb3",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-008.webp": {
-    "mtime": 1792475439.4427485,
-    "seen": 1793941383.6705291,
-    "ast_hash": "b1c38b954c0db494425450b01b58304e",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-009.webp": {
-    "mtime": 1792475439.4448693,
-    "seen": 1793941383.6705291,
-    "ast_hash": "80881a97c52468d5b56fc6a034c09858",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-010.webp": {
-    "mtime": 1792475439.4472444,
-    "seen": 1793941383.6705291,
-    "ast_hash": "cdb8253166970c498e801b7c5bf35973",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-011.webp": {
-    "mtime": 1792475439.4495072,
-    "seen": 1793941383.6705291,
-    "ast_hash": "b52703ceb3f41e49fd211dc9bc7c5fb2",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-012.webp": {
-    "mtime": 1792475439.4510975,
-    "seen": 1793941383.6705291,
-    "ast_hash": "6f764dc7bfd55e9247d1a6b5a45b1713",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-013.webp": {
-    "mtime": 1792475439.453351,
-    "seen": 1793941383.6705291,
-    "ast_hash": "affa918bb193f95d1076f3446573fdac",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-014.webp": {
-    "mtime": 1792475439.4561594,
-    "seen": 1793941383.6705291,
-    "ast_hash": "357fdb2958aef3c9deae49cffb62afe2",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-015.webp": {
-    "mtime": 1792475439.4581563,
-    "seen": 1793941383.6705291,
-    "ast_hash": "140ce9445fc8707fe545c4b80067ec80",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-016.webp": {
-    "mtime": 1792475439.4606636,
-    "seen": 1793941383.6705291,
-    "ast_hash": "20839e8600ce97676b38be746d35122d",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-017.webp": {
-    "mtime": 1792475439.464442,
-    "seen": 1793941383.6705291,
-    "ast_hash": "a5247aab0ac96a18857db43050b805eb",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-018.webp": {
-    "mtime": 1792475439.4664497,
-    "seen": 1793941383.6705291,
-    "ast_hash": "67a070f1f565dad6d9052bd861dfa78f",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-019.webp": {
-    "mtime": 1792475439.4689627,
-    "seen": 1793941383.6705291,
-    "ast_hash": "6adaa87adfcac5150f6c238876d0ca82",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-020.webp": {
-    "mtime": 1792475439.4704707,
-    "seen": 1793941383.6705291,
-    "ast_hash": "bac321c79be9d4b55998465950c8ac6b",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-021.webp": {
-    "mtime": 1792475439.4724765,
-    "seen": 1793941383.6705291,
-    "ast_hash": "ef9232b530a651fd2e6818b126f8b56c",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-022.webp": {
-    "mtime": 1792475439.474479,
-    "seen": 1793941383.6705291,
-    "ast_hash": "de1a58c2a48904163b9cf300265392c0",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-023.webp": {
-    "mtime": 1792475439.4764774,
-    "seen": 1793941383.6705291,
-    "ast_hash": "0f3cb767aa454c802ca5881f1c8ba20d",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-024.webp": {
-    "mtime": 1792475439.478477,
-    "seen": 1793941383.6705291,
-    "ast_hash": "3acaee829f9717c1d1ec258e294ca5bc",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-025.webp": {
-    "mtime": 1792475439.4809914,
-    "seen": 1793941383.6705291,
-    "ast_hash": "9e1f5286176942855c4d4cec1567a5eb",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-026.webp": {
-    "mtime": 1792475439.483267,
-    "seen": 1793941383.6705291,
-    "ast_hash": "2c3e42342a36e23682c9eb7fe6dd65ef",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-027.webp": {
-    "mtime": 1792475439.4859724,
-    "seen": 1793941383.6705291,
-    "ast_hash": "2a9ad178c6a6713cb29a2a5f116ee0dd",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-028.webp": {
-    "mtime": 1792475439.488092,
-    "seen": 1793941383.6705291,
-    "ast_hash": "410f7c0f8d6a53bd9d3c62663a566ad5",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/easter-wide-029.webp": {
-    "mtime": 1792475439.489681,
-    "seen": 1793941383.6705291,
-    "ast_hash": "deaf478c2c88335959a3176e431767c5",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-000.webp": {
-    "mtime": 1792475439.4919784,
-    "seen": 1793941383.6705291,
-    "ast_hash": "22d7b515b19c1f7ba51ccdba2c634365",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-001.webp": {
-    "mtime": 1792475439.4941459,
-    "seen": 1793941383.6705291,
-    "ast_hash": "3454da11423468bfdecfc9387feab7b0",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-002.webp": {
-    "mtime": 1792475439.496833,
-    "seen": 1793941383.6705291,
-    "ast_hash": "1de40bfb503b19e5c60e2b98c960e7d9",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-003.webp": {
-    "mtime": 1792475439.4984252,
-    "seen": 1793941383.6705291,
-    "ast_hash": "61447fad5ce9c3184e3399408419d7ae",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-004.webp": {
-    "mtime": 1792475439.4999886,
-    "seen": 1793941383.6705291,
-    "ast_hash": "00fe52fb4645b5cff9a506b37f6fd308",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-005.webp": {
-    "mtime": 1792475439.5021346,
-    "seen": 1793941383.6705291,
-    "ast_hash": "fb607c4c5da1561f9db5dc079752b9f2",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-006.webp": {
-    "mtime": 1792475439.5036473,
-    "seen": 1793941383.6705291,
-    "ast_hash": "00b352176bc275947f77531b108b657b",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-007.webp": {
-    "mtime": 1792475439.505298,
-    "seen": 1793941383.6705291,
-    "ast_hash": "4beacd1df3e8e219f78857247c6b1847",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-008.webp": {
-    "mtime": 1792475439.507506,
-    "seen": 1793941383.6705291,
-    "ast_hash": "d7093103a78ac060d050af2887d57af4",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-009.webp": {
-    "mtime": 1792475439.5090983,
-    "seen": 1793941383.6705291,
-    "ast_hash": "08f4c2220221f13212366cf14704ed6d",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-010.webp": {
-    "mtime": 1792475439.5112088,
-    "seen": 1793941383.6705291,
-    "ast_hash": "f1a636c81cc3475d5da8fe60544a1664",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-011.webp": {
-    "mtime": 1792475439.5133305,
-    "seen": 1793941383.6705291,
-    "ast_hash": "042871d805aacb859abcfc34c963fb82",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-012.webp": {
-    "mtime": 1792475439.5150125,
-    "seen": 1793941383.6705291,
-    "ast_hash": "25c189e27415eab5b75f5fa81a5201a6",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-013.webp": {
-    "mtime": 1792475439.5160174,
-    "seen": 1793941383.6705291,
-    "ast_hash": "5a7613f43badc5767cf3ccf45b89b9d3",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-014.webp": {
-    "mtime": 1792475439.5180156,
-    "seen": 1793941383.6705291,
-    "ast_hash": "74f0d42e763dcd1cdbe61ad7f28616b5",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-015.webp": {
-    "mtime": 1792475439.5200176,
-    "seen": 1793941383.6705291,
-    "ast_hash": "c85374d51d9cc6c9a241d14500bf3d97",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-016.webp": {
-    "mtime": 1792475439.521052,
-    "seen": 1793941383.6705291,
-    "ast_hash": "acf4df8c38ea6a9f5aa3f27c6af378ff",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-017.webp": {
-    "mtime": 1792475439.523866,
-    "seen": 1793941383.6705291,
-    "ast_hash": "f977e09d11f28e06f0c09ea87ffa758c",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-018.webp": {
-    "mtime": 1792475439.5259798,
-    "seen": 1793941383.6705291,
-    "ast_hash": "9d910f53e584b059ffe6cb21ca314695",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-019.webp": {
-    "mtime": 1792475439.5275996,
-    "seen": 1793941383.6705291,
-    "ast_hash": "b1e915e966472bce905feb6d0e8d0edf",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-020.webp": {
-    "mtime": 1792475439.529169,
-    "seen": 1793941383.6705291,
-    "ast_hash": "9ed053f4f4c3baed5c34e115ed3da267",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-021.webp": {
-    "mtime": 1792475439.531298,
-    "seen": 1793941383.6705291,
-    "ast_hash": "e2522ca660f0d9197c751491a1e7722c",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/halloween-wide-022.webp": {
-    "mtime": 1792475439.5330694,
-    "seen": 1793941383.6705291,
-    "ast_hash": "d138c9523696c8f86e1b1e54bc5acd81",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-000.webp": {
-    "mtime": 1792475439.5357392,
-    "seen": 1793941383.6705291,
-    "ast_hash": "54743678f1326981ef46f664cab0659e",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-001.webp": {
-    "mtime": 1792475439.5383282,
-    "seen": 1793941383.6705291,
-    "ast_hash": "d8cd50d9aacd101b4a36f0ab8bc64253",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-002.webp": {
-    "mtime": 1792475439.5410511,
-    "seen": 1793941383.6705291,
-    "ast_hash": "1318c1bfdc3629f21116e374d9049fe9",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-003.webp": {
-    "mtime": 1792475439.5437021,
-    "seen": 1793941383.6705291,
-    "ast_hash": "18216699f48f4600e799e53105a18a31",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-004.webp": {
-    "mtime": 1792475439.5464075,
-    "seen": 1793941383.6705291,
-    "ast_hash": "b4e55396a54f6349d406e592976c638b",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-005.webp": {
-    "mtime": 1792475439.5490773,
-    "seen": 1793941383.6705291,
-    "ast_hash": "2ef0532a952b8e19e9351c54a58203c2",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-006.webp": {
-    "mtime": 1792475439.551706,
-    "seen": 1793941383.6705291,
-    "ast_hash": "dcc801b2573e4d7ecb011d90cef02fb8",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-007.webp": {
-    "mtime": 1792475439.5544255,
-    "seen": 1793941383.6705291,
-    "ast_hash": "d4dc882c6228fb1d2913054c2bbdc39f",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-008.webp": {
-    "mtime": 1792475439.5584326,
-    "seen": 1793941383.6705291,
-    "ast_hash": "dfe2c996b390729f9977cf7a9c8248b9",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-009.webp": {
-    "mtime": 1792475439.561265,
-    "seen": 1793941383.6705291,
-    "ast_hash": "e3aa71a6192a0ade6e809650f5cba2fd",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-010.webp": {
-    "mtime": 1792475439.564474,
-    "seen": 1793941383.6705291,
-    "ast_hash": "5dbd9e0049bbb48445a3912cc5e27d3e",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-011.webp": {
-    "mtime": 1792475439.5682437,
-    "seen": 1793941383.6705291,
-    "ast_hash": "e3bb9a7be555ae580c5ead8954769e1d",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-012.webp": {
-    "mtime": 1792475439.571282,
-    "seen": 1793941383.6705291,
-    "ast_hash": "dbdf477127d29656fcea672a873cb34e",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-013.webp": {
-    "mtime": 1792475439.5750659,
-    "seen": 1793941383.6705291,
-    "ast_hash": "fd88e58609dbebb28eb1ab355277e11f",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-014.webp": {
-    "mtime": 1792475439.5782444,
-    "seen": 1793941383.6705291,
-    "ast_hash": "a61b66ff3d463587bf79b6386c25f020",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-015.webp": {
-    "mtime": 1792475439.580329,
-    "seen": 1793941383.6705291,
-    "ast_hash": "d22766c209b4d965b67740a736aed2cd",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-016.webp": {
-    "mtime": 1792475439.5831456,
-    "seen": 1793941383.6705291,
-    "ast_hash": "e2c017328689600b467987f7daf978f8",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-017.webp": {
-    "mtime": 1792475439.5870492,
-    "seen": 1793941383.6705291,
-    "ast_hash": "237bead0a2c71de9dd88ef4a87c1b811",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-018.webp": {
-    "mtime": 1792475439.588682,
-    "seen": 1793941383.6705291,
-    "ast_hash": "358c685904a6f04dfcc5e5310f0f9cf4",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-019.webp": {
-    "mtime": 1792475439.5914228,
-    "seen": 1793941383.6705291,
-    "ast_hash": "95ea68d04cebc28e58382f58ce2c9374",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-020.webp": {
-    "mtime": 1792475439.594319,
-    "seen": 1793941383.6705291,
-    "ast_hash": "008ae070581a57b7412721d087189e68",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-021.webp": {
-    "mtime": 1792475439.5968611,
-    "seen": 1793941383.6705291,
-    "ast_hash": "fa57f76690176568bdbe2e62f5fb8e5d",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-022.webp": {
-    "mtime": 1792475439.5988586,
-    "seen": 1793941383.6705291,
-    "ast_hash": "890b2c1a3d69b523dcaf757c65fa6670",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-023.webp": {
-    "mtime": 1792475439.601366,
-    "seen": 1793941383.6705291,
-    "ast_hash": "82d01bb3b06979a135eba19fc184ce29",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-024.webp": {
-    "mtime": 1792475439.6041975,
-    "seen": 1793941383.6705291,
-    "ast_hash": "8d7028f838ab0b4fa1fa497bfd7c4533",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-025.webp": {
-    "mtime": 1792475439.6057427,
-    "seen": 1793941383.6705291,
-    "ast_hash": "557ccba8cdee8b0885bec7738aa0d189",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-026.webp": {
-    "mtime": 1792475439.6093526,
-    "seen": 1793941383.6705291,
-    "ast_hash": "00813b182ac7c91f5dcd71c4784ee30e",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-027.webp": {
-    "mtime": 1792475439.6114147,
-    "seen": 1793941383.6705291,
-    "ast_hash": "721beb093217cabb9bd667fdd4c23662",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-028.webp": {
-    "mtime": 1792475439.6141443,
-    "seen": 1793941383.6705291,
-    "ast_hash": "3062d68b659ddd3e71b82567c57afd06",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/kupala-wide-029.webp": {
-    "mtime": 1792475439.6163702,
-    "seen": 1793941383.6705291,
-    "ast_hash": "24e9c280eb2dea13bddf5e7e07eaa6e1",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-000.webp": {
-    "mtime": 1792475439.6174147,
-    "seen": 1793941383.6705291,
-    "ast_hash": "14eaaa1621bc10b327702dfd6a88e515",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-001.webp": {
-    "mtime": 1792475439.6195858,
-    "seen": 1793941383.6705291,
-    "ast_hash": "dc85a36847820d58375b58c22e027ea7",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-002.webp": {
-    "mtime": 1792475439.6206388,
-    "seen": 1793941383.6705291,
-    "ast_hash": "0abd5e1896735475bd22ef721306ab4a",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-003.webp": {
-    "mtime": 1792475439.6216993,
-    "seen": 1793941383.6705291,
-    "ast_hash": "8a24f2674d23584fd692218e2ab46e7b",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-004.webp": {
-    "mtime": 1792475439.6227589,
-    "seen": 1793941383.6705291,
-    "ast_hash": "6b1f60c60a00300fb26e32bb3c003871",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-005.webp": {
-    "mtime": 1792475439.6238208,
-    "seen": 1793941383.6705291,
-    "ast_hash": "86e0868f765d9bef7296af2763bcfbf8",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-006.webp": {
-    "mtime": 1792475439.6248276,
-    "seen": 1793941383.6705291,
-    "ast_hash": "5bc4530b8a244a890ee6fe19c9477055",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-007.webp": {
-    "mtime": 1792475439.6258256,
-    "seen": 1793941383.6705291,
-    "ast_hash": "d1109eec4f4d2e61b58508410ddb8978",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-008.webp": {
-    "mtime": 1792475439.6268258,
-    "seen": 1793941383.6705291,
-    "ast_hash": "09e916b53666e4661f716593563b172d",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-009.webp": {
-    "mtime": 1792475439.6278262,
-    "seen": 1793941383.6705291,
-    "ast_hash": "9b37099410eccb779a865579d0ab96d6",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-010.webp": {
-    "mtime": 1792475439.6288254,
-    "seen": 1793941383.6705291,
-    "ast_hash": "e20897a801287344c23f61e7df3b0572",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-011.webp": {
-    "mtime": 1792475439.6299582,
-    "seen": 1793941383.6705291,
-    "ast_hash": "4813a152204af5dfac1e82e5f76b7ead",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-012.webp": {
-    "mtime": 1792475439.6309683,
-    "seen": 1793941383.6705291,
-    "ast_hash": "3ff586659750f3508c97049ac593dcbf",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-013.webp": {
-    "mtime": 1792475439.632475,
-    "seen": 1793941383.6705291,
-    "ast_hash": "d08e2589af35de073cec53111d1c1442",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-014.webp": {
-    "mtime": 1792475439.633479,
-    "seen": 1793941383.6705291,
-    "ast_hash": "c12ea2d7891bf9c68025351354924fdf",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-015.webp": {
-    "mtime": 1792475439.63448,
-    "seen": 1793941383.6705291,
-    "ast_hash": "4e013fc1d522afae7aaf42bc14d4fe9a",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-016.webp": {
-    "mtime": 1792475439.6364813,
-    "seen": 1793941383.6705291,
-    "ast_hash": "849c1658c14e701d41b0a531957f4918",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-017.webp": {
-    "mtime": 1792475439.6374798,
-    "seen": 1793941383.6705291,
-    "ast_hash": "62fc6f69d75f355fbebab368d919d629",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-018.webp": {
-    "mtime": 1792475439.6384804,
-    "seen": 1793941383.6705291,
-    "ast_hash": "eaaefe4dfaf0fb1f77d72052053e3536",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-019.webp": {
-    "mtime": 1792475439.6399856,
-    "seen": 1793941383.6705291,
-    "ast_hash": "2036a09872bf17f2cb67ea104c57c514",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-020.webp": {
-    "mtime": 1792475439.6409929,
-    "seen": 1793941383.6705291,
-    "ast_hash": "19aadb7ca8501721e9e65f3110a9d489",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-021.webp": {
-    "mtime": 1792475439.6424997,
-    "seen": 1793941383.6705291,
-    "ast_hash": "1cd9cd072c57ed03b3a9fc683ffcd602",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-022.webp": {
-    "mtime": 1792475439.643835,
-    "seen": 1793941383.6705291,
-    "ast_hash": "6b98e71e7bb83bb4f755e5ff18c5b374",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-023.webp": {
-    "mtime": 1792475439.644972,
-    "seen": 1793941383.6705291,
-    "ast_hash": "1e1661f01023711e67995907768231c4",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-024.webp": {
-    "mtime": 1792475439.6460369,
-    "seen": 1793941383.6705291,
-    "ast_hash": "edd2615267b3e9959c9b156f576ea4f8",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-025.webp": {
-    "mtime": 1792475439.647099,
-    "seen": 1793941383.6705291,
-    "ast_hash": "c4dc66495eb8f308448af52b3e119c76",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-026.webp": {
-    "mtime": 1792475439.6481893,
-    "seen": 1793941383.6705291,
-    "ast_hash": "34c66249c0efd7a8cb1159371ceddac3",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-027.webp": {
-    "mtime": 1792475439.6492455,
-    "seen": 1793941383.6705291,
-    "ast_hash": "40bc346c7c2775a39a9377704f235c0e",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-028.webp": {
-    "mtime": 1792475439.6497686,
-    "seen": 1793941383.6705291,
-    "ast_hash": "7fdadacaca4263d419179efcabb76a47",
-    "semantic_hash": ""
-  },
-  "app/src/main/assets/seasonal/newyear-wide-029.webp": {
-    "mtime": 1792475439.6508062,
-    "seen": 1793941383.6705291,
-    "ast_hash": "90732c5e01671149d2b55026b33a38b1",
-    "semantic_hash": ""
-  },
   "app/src/main/res/drawable-xhdpi/tv_banner.png": {
     "mtime": 1793997064.798929,
     "seen": 1793997817.1392112,
@@ -6960,9 +6126,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/ProviderRouteActivity.kt": {
-    "mtime": 1793969061.1095467,
-    "seen": 1793969347.499441,
-    "ast_hash": "aff9818ca2abe9496de0390ec28b6c31",
+    "mtime": 1794640747.0560145,
+    "seen": 1794651377.2221,
+    "ast_hash": "028eb8db77f318bafa51e0ea3f8bd273",
     "semantic_hash": ""
   },
   ".github/workflows/ui-tour.yml": {
@@ -6978,9 +6144,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileGlass.kt": {
-    "mtime": 1793978564.6644366,
-    "seen": 1793978627.7900956,
-    "ast_hash": "7352a6d6eb037289be7abcc90080c1f1",
+    "mtime": 1794650524.6971297,
+    "seen": 1794651377.2221,
+    "ast_hash": "72170a49766b71c3a44e63f1aec3a6c2",
     "semantic_hash": ""
   },
   "carriers/cottendns/main_test.go": {
@@ -7068,9 +6234,9 @@
     "semantic_hash": ""
   },
   "app/src/androidTest/java/app/rawline/mobile/UiTourTest.kt": {
-    "mtime": 1794054570.0005865,
-    "seen": 1794054605.3820648,
-    "ast_hash": "fad2faa14f587228f3af5b76e85d456c",
+    "mtime": 1794654281.1578887,
+    "seen": 1794654331.1259115,
+    "ast_hash": "56da89661738c9f075c68bb453784c2a",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/database/backup/RwlBackup.kt": {
@@ -7080,9 +6246,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileOrbArtwork.kt": {
-    "mtime": 1794545022.4892259,
-    "seen": 1794546517.3645108,
-    "ast_hash": "9df0f6d9911fd872f0e0fc1d4bd91a0b",
+    "mtime": 1794635659.9856641,
+    "seen": 1794651377.2221,
+    "ast_hash": "04c58e1ffc3198699e636085b561ba1d",
     "semantic_hash": ""
   },
   "app/src/test/java/io/nekohasekai/sagernet/database/backup/RwlBackupTest.kt": {
@@ -7104,27 +6270,15 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileLayoutEditorActivity.kt": {
-    "mtime": 1794566703.492152,
-    "seen": 1794567221.1217685,
-    "ast_hash": "7efb15080f5d3248c2f1ed72533de17d",
-    "semantic_hash": ""
-  },
-  "app/src/main/java/io/nekohasekai/sagernet/deploy/FreeturnAdmin.kt": {
-    "mtime": 1794039233.4421492,
-    "seen": 1794049521.2751284,
-    "ast_hash": "6692cd78ed56c357acaed4279ccbfa58",
+    "mtime": 1794635659.9846642,
+    "seen": 1794651377.2221,
+    "ast_hash": "25d0d39b6c1acdeede364b58e59db288",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/outbound/types/Freeturn.kt": {
     "mtime": 1794403642.9668546,
     "seen": 1794423501.2065282,
     "ast_hash": "c2b0cd5e333c546eb3eebd7d166b5405",
-    "semantic_hash": ""
-  },
-  "app/src/main/java/io/nekohasekai/sagernet/ui/FreeturnClientsActivity.kt": {
-    "mtime": 1794049023.668899,
-    "seen": 1794049521.2751284,
-    "ast_hash": "420ccec5356df0d621c5ff315a47b0f8",
     "semantic_hash": ""
   },
   "carriers/freeturn/bridge.go": {
@@ -7193,16 +6347,10 @@
     "ast_hash": "f5315e3dfd7cc18bf201682baa1b8b46",
     "semantic_hash": ""
   },
-  "app/src/main/java/io/nekohasekai/sagernet/deploy/MrttDeploy.kt": {
-    "mtime": 1794035034.5346203,
-    "seen": 1794049521.2751284,
-    "ast_hash": "40493c486144c2c608db645aa8b73ce9",
-    "semantic_hash": ""
-  },
   "app/src/main/java/io/nekohasekai/sagernet/outbound/types/Mrtt.kt": {
-    "mtime": 1794405405.9541914,
-    "seen": 1794423501.2065282,
-    "ast_hash": "21c3b74238d860022408c00f28447269",
+    "mtime": 1794598353.1998441,
+    "seen": 1794651377.2221,
+    "ast_hash": "4d7b2ba7ca1da9e66df4134ce1198b38",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MaxLoginActivity.kt": {
@@ -7212,27 +6360,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileProgress.kt": {
-    "mtime": 1794049155.7280178,
-    "seen": 1794049521.2751284,
-    "ast_hash": "87909c5545d9d51682144e382388fe26",
-    "semantic_hash": ""
-  },
-  "app/src/main/java/io/nekohasekai/sagernet/ui/MrttDeployJobs.kt": {
-    "mtime": 1794049111.5907192,
-    "seen": 1794049521.2751284,
-    "ast_hash": "fe56720efa4078d4829103227661fc49",
-    "semantic_hash": ""
-  },
-  "app/src/main/java/io/nekohasekai/sagernet/ui/MrttServerActivity.kt": {
-    "mtime": 1794048971.5903375,
-    "seen": 1794049521.2751284,
-    "ast_hash": "9a2716a980a54354a67d7e2a751fc737",
-    "semantic_hash": ""
-  },
-  "app/src/test/java/io/nekohasekai/sagernet/deploy/FreeturnCallsTest.kt": {
-    "mtime": 1794049476.6533258,
-    "seen": 1794049521.2751284,
-    "ast_hash": "ad10359807755e3b7a2a369a3e440ad1",
+    "mtime": 1794650524.697662,
+    "seen": 1794651377.2221,
+    "ast_hash": "73c3ba89dc788af061b8488f43da9139",
     "semantic_hash": ""
   },
   "app/src/test/java/io/nekohasekai/sagernet/outbound/types/MrttLinkTest.kt": {
@@ -7578,15 +6708,15 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileLayoutEditor.kt": {
-    "mtime": 1794566776.8773384,
-    "seen": 1794567221.1217685,
-    "ast_hash": "fe83e7657e0b686a2c605f08ced41122",
+    "mtime": 1794653587.645291,
+    "seen": 1794654331.1265187,
+    "ast_hash": "f96e472886b91b286cf97e7e8082cffc",
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/ui/MobileLayoutTutorial.kt": {
-    "mtime": 1794548189.496602,
-    "seen": 1794562341.432451,
-    "ast_hash": "5e4ecdae60cfa04c4e6bc1e5efe5fa2c",
+    "mtime": 1794654198.4708533,
+    "seen": 1794654331.1265187,
+    "ast_hash": "4ec75b716b2d0229867b32f995e0a6e1",
     "semantic_hash": ""
   },
   "app/src/test/java/io/nekohasekai/sagernet/outbound/config/SelectorTiersTest.kt": {
@@ -7638,9 +6768,9 @@
     "semantic_hash": ""
   },
   "app/src/main/java/io/nekohasekai/sagernet/route/RouteSource.kt": {
-    "mtime": 1794580394.027591,
-    "seen": 1794580749.8945897,
-    "ast_hash": "3bd9f865dacea9afc59fbb6a17e1a15c",
+    "mtime": 1794587438.299002,
+    "seen": 1794651377.2221,
+    "ast_hash": "73cf11752784624fd0a127ad2c8c41fe",
     "semantic_hash": ""
   },
   "app/src/test/java/io/nekohasekai/sagernet/group/ProviderAppsTest.kt": {
@@ -7650,15 +6780,93 @@
     "semantic_hash": ""
   },
   "app/src/test/java/io/nekohasekai/sagernet/outbound/config/XrayExplicitRoutingTest.kt": {
-    "mtime": 1794580353.6550357,
-    "seen": 1794580749.8945897,
-    "ast_hash": "87bc85032c48192a6fe7818601bfdd13",
+    "mtime": 1794599162.161141,
+    "seen": 1794651377.2231035,
+    "ast_hash": "fb0c725a949f29a24cee136e61c0d3e8",
     "semantic_hash": ""
   },
   "app/src/test/java/io/nekohasekai/sagernet/route/RouteSourceTest.kt": {
     "mtime": 1794566725.5210903,
     "seen": 1794567221.122278,
     "ast_hash": "3df795ed470e0f2e5774953872248b3b",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/io/nekohasekai/sagernet/deploy/PanelCommands.kt": {
+    "mtime": 1794588715.6045911,
+    "seen": 1794651377.2221,
+    "ast_hash": "be36a24c22390461fcb82d483f30ef5a",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/io/nekohasekai/sagernet/deploy/PanelSsh.kt": {
+    "mtime": 1794654253.7694557,
+    "seen": 1794654331.1259115,
+    "ast_hash": "ac11fee162b0c3b12a2c9a5962482b66",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/io/nekohasekai/sagernet/ui/PanelDeployActivity.kt": {
+    "mtime": 1794650807.7641268,
+    "seen": 1794651377.2221,
+    "ast_hash": "683c6ebe0870633aee8dfc0cededb79a",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/io/nekohasekai/sagernet/ui/PanelWebActivity.kt": {
+    "mtime": 1794581443.255306,
+    "seen": 1794651377.2221,
+    "ast_hash": "36ec605767267db970b5f68252b3fe6f",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/io/nekohasekai/sagernet/ui/PinnedServers.kt": {
+    "mtime": 1794636335.830139,
+    "seen": 1794651377.2221,
+    "ast_hash": "4344d2022bad1a7b6157443a0b850cff",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/io/nekohasekai/sagernet/ui/RouteLabel.kt": {
+    "mtime": 1794633699.8720567,
+    "seen": 1794651377.2221,
+    "ast_hash": "cc92747034a7c6dc1256c5c29ae58227",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/io/nekohasekai/sagernet/ui/SubscriptionCountries.kt": {
+    "mtime": 1794634281.0312843,
+    "seen": 1794651377.2221,
+    "ast_hash": "d233087264509f2440b58cf9a7eba3a0",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/io/nekohasekai/sagernet/database/backup/DesktopSchemaTest.kt": {
+    "mtime": 1794633776.4623423,
+    "seen": 1794651377.2231035,
+    "ast_hash": "8d35fd55a571b574ca9d0b14334d017c",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/io/nekohasekai/sagernet/deploy/PanelCommandsTest.kt": {
+    "mtime": 1794588715.6055908,
+    "seen": 1794651377.2231035,
+    "ast_hash": "38689429669e465cd12dd7908e8d6d30",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/io/nekohasekai/sagernet/group/AnnounceLineBreaksTest.kt": {
+    "mtime": 1794633484.1163232,
+    "seen": 1794651377.2231035,
+    "ast_hash": "bceed54128827bda6a7a77b7ade592e4",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/io/nekohasekai/sagernet/outbound/config/SelectorNativeMembersTest.kt": {
+    "mtime": 1794638837.517126,
+    "seen": 1794651377.2231035,
+    "ast_hash": "121f14043bf0f3b5e7aa731627f5a704",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/io/nekohasekai/sagernet/route/ProviderGeoTestRulesTest.kt": {
+    "mtime": 1794633776.4845715,
+    "seen": 1794651377.2231035,
+    "ast_hash": "48e1258d483eb0454e9700f0898aa27f",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/io/nekohasekai/sagernet/deploy/PanelHostKeyTest.kt": {
+    "mtime": 1794654253.7942603,
+    "seen": 1794654331.12725,
+    "ast_hash": "01d90f607fa7edd8235d41f49f0922a6",
     "semantic_hash": ""
   }
 }

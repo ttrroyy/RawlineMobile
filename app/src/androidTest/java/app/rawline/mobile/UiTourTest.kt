@@ -430,6 +430,20 @@ class UiTourTest {
             Thread.sleep(1500)
             check(topmost(context.getString(R.string.qmobile_layout_step_drag)) != null) { "a swipe to the right ending on Next did not go back to the first step" }
         },
+        // Regression: a VPS leaves the list by a swipe, its delete button and the confirmation.
+        "deploy-remove" to {
+            val server = app.rawline.mobile.deploy.PanelCommands.newServer()
+            for ((key, value) in listOf("name" to "Removable VPS", "host" to "203.0.113.30")) server[key] = value
+            app.rawline.mobile.deploy.DeployStore.save(server)
+            open(VkRelayActivity::class.java)
+            tap("Деплой")
+            swipe("Removable VPS", .85f, .25f)
+            tap("Удалить VPS из списка")
+            tap("Удалить")
+            Thread.sleep(1000)
+            check(app.rawline.mobile.deploy.DeployStore.all().none { it.id == server.id }) { "the swiped VPS is still stored" }
+            check(topmost("Removable VPS") == null) { "the removed VPS is still shown" }
+        },
     )
 
     /** The editor's choices back to the defaults, then [hiddenSwitch], [hiddenTiles] and [compact]. */
