@@ -907,7 +907,10 @@ class ConfigGenerator @JvmOverloads constructor(
         for (id in ids) {
             val outbound = reads.get(id) ?: continue
             val error = chains.candidateError(listOf(id))
-            if (error.isNotEmpty() && error != fragmentError) rejected[id] = error else valid.add(id to outbound)
+            if (error.isNotEmpty() && error != fragmentError) rejected[id] = error
+            // A native transport (qWDTT, CSQTT...) is reached through its loopback bridge, which candidateError just
+            // checked; on its own it builds no core outbound, so the core check would always turn it away.
+            else if (outbound !is app.rawline.mobile.bg.carrier.NativeCarrier) valid.add(id to outbound)
         }
         val check = routing.memberCheck ?: return rejected
         if (valid.isNotEmpty()) rejected.putAll(check.rejected(valid, buildContext))
