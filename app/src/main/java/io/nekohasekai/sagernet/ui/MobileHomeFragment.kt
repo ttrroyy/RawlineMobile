@@ -95,7 +95,6 @@ class MobileHomeFragment : ToolbarFragment() {
             host().toggleService()
         }
     }
-    }
     /** A dot in the accent colour on the updates tile while a newer version is offered. */
     private fun updateUpdatesBadge() {
         val tile=updatesTile ?: return
@@ -213,8 +212,6 @@ class MobileHomeFragment : ToolbarFragment() {
             }
             finally { profileTransferPending=false;reorderActive(false) }
         }
-    }
-        column.doOnPreDraw { scroll.scrollTo(0,(item.top-before).coerceAtLeast(0)) }
     }
     private val latencyViews=mutableMapOf<Long,FrameLayout>()
     /** Subscriptions whose description is shown whole; the rest show two lines, so a long one does not hide the servers. */
@@ -1471,9 +1468,7 @@ class MobileHomeFragment : ToolbarFragment() {
             serverScroll.viewTreeObserver.addOnPreDrawListener(object: android.view.ViewTreeObserver.OnPreDrawListener {
                 override fun onPreDraw(): Boolean {
                     serverScroll.viewTreeObserver.removeOnPreDrawListener(this)
-                    val retained=anchorId?.let { nextGroupViews[it]?.second }
                     serverScroll.scrollTo(0,restorePosition)
-                    else if(retained != null) serverScroll.scrollTo(0,(retained.top+serverColumn.top-anchorOffset).coerceAtLeast(0))
                     pendingMovedProfile?.let { nextProfileRows[it] }?.let { row ->
                         pendingMovedProfile=null
                         row.post { row.requestRectangleOnScreen(android.graphics.Rect(0,0,row.width,row.height),false) }
