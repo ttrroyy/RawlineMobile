@@ -421,7 +421,8 @@ func TestAuthenticatedLoopbackInboundRejectsForeignUDPSource(t *testing.T) {
 	}
 	defer tcp.Close()
 	_ = tcp.SetDeadline(time.Now().Add(5 * time.Second))
-	if _, err = ClientHandshake5(tcp, socks5.CommandUDPAssociate, M.ParseSocksaddr("1.1.1.1:53"), "session", "secret"); err == nil {
+	// The source-bound handshake sends the address as given; the public one would send 0.0.0.0:0.
+	if _, err = clientHandshake5(tcp, socks5.CommandUDPAssociate, M.ParseSocksaddr("1.1.1.1:53"), "session", "secret", true); err == nil {
 		t.Fatal("a foreign UDP source unexpectedly accepted")
 	}
 	checkServer(t, done)
