@@ -396,7 +396,7 @@ class UiTourTest {
             tap(R.string.add_profile)
             instrumentation.removeMonitor(picked)
             Thread.sleep(800)
-            val stored = DataStore.profileCacheStore.getString(app.rawline.mobile.ui.profile.ChainSettingsActivity.KEY_CHAIN_IDS).orEmpty()
+            val stored = DataStore.profileCacheStore.getString("chainProxyIds").orEmpty()
             check(stored.split(',').contains(hop.id.toString())) { "the added hop is not in the chain: \"$stored\"" }
             check(topmost(context.getString(R.string.validation_chain_empty)) == null) { "the chain with a hop still says it is empty" }
         },
