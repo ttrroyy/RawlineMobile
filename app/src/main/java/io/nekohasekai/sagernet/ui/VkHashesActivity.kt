@@ -51,7 +51,7 @@ class VkHashesActivity : ServerScreenActivity() {
         super.onCreate(state)
         // Creating hashes may need a fresh VK token: its sign-in opens here, not after leaving the screen.
         captcha = MobileCaptchaController(this)
-        window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(MobilePalette.background))
+        window.setBackgroundDrawable(if (MobileStyle.pastel) MobileHomeBackdrop() else android.graphics.drawable.ColorDrawable(MobilePalette.background))
         val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(MobilePalette.screen) }
         val toolbar = Toolbar(this).apply {
             title = "Генерация хешей"

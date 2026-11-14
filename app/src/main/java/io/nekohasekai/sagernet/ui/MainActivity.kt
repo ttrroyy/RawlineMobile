@@ -76,6 +76,7 @@ class MainActivity : ThemedActivity(),
     companion object {
         /** Texts to import (the QR scanner): URLs and deep links one by one, the rest as one import. */
         const val EXTRA_IMPORT_TEXTS = "importTexts"
+        private const val STATE_CLASSIC = "classicStyle"
     }
 
     lateinit var binding: LayoutMainBinding
@@ -156,8 +157,15 @@ class MainActivity : ThemedActivity(),
         })
 
         val restored = supportFragmentManager.findFragmentById(R.id.fragment_holder)
-        // A style change recreates the screen: the other style's home gives way to this one's.
-        if (savedInstanceState == null || (restored is MobileHomeFragment || restored is ConfigurationFragment) && !isHome(restored)) {
+        // A style change recreates the screen: nothing of the other style stays, not even under the settings in the back
+        // stack. This style's home comes up with the appearance settings over it, where the change was made.
+        val styleChanged = savedInstanceState != null && savedInstanceState.getBoolean(STATE_CLASSIC, classic) != classic
+        if (styleChanged) {
+            supportFragmentManager.popBackStackImmediate(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
+            displayFragmentWithId(homeId)
+            supportFragmentManager.executePendingTransactions()
+            if (restored is SettingsFragment) openSettingsScreen(app.rawline.mobile.ui.settings.AppearanceSettingsFragment::class.java.name, getString(R.string.settings_appearance))
+        } else if (savedInstanceState == null || (restored is MobileHomeFragment || restored is ConfigurationFragment) && !isHome(restored)) {
             displayFragmentWithId(homeId)
         } else {
             currentMainFragment = restored as? ToolbarFragment
@@ -389,6 +397,11 @@ class MainActivity : ThemedActivity(),
 
 
     private val classic get() = !MobileStyle.modern
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(STATE_CLASSIC, classic)
+    }
     val homeId get() = if (classic) R.id.nav_configuration else R.id.nav_mobile_home
     private fun isHome(fragment: Any?) = if (classic) fragment is ConfigurationFragment else fragment is MobileHomeFragment
 
@@ -723,12 +736,7 @@ class MainActivity : ThemedActivity(),
     // may NOT called when app is in background
     // ONLY do UI update here, write DB in bg process
     override fun cbSpeedUpdate(stats: SpeedDisplayData) {
-        (currentMainFragment as? MobileHomeFragment)?.updateSpeed(
-            stats.rxRateProxy+stats.rxRateDirect,
-            stats.txRateProxy+stats.txRateDirect,
-            stats.rxTotal+stats.rxTotalDirect,
-            stats.txTotal+stats.txTotalDirect,
-        )
+        (currentMainFragment as? MobileHomeFragment)?.updateSpeed(stats.rxRateProxy+stats.rxRateDirect,stats.txRateProxy+stats.txRateDirect)
         binding.stats.updateSpeed(stats.txRateProxy, stats.rxRateProxy)
     }
 

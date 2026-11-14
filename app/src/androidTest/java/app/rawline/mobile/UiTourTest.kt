@@ -326,12 +326,8 @@ class UiTourTest {
         "home-tile-removed" to { layout(hiddenTiles = setOf("groups")); home("groups", tiles = "on") },
         "layout-editor-selected" to {
             layout(); editor()
-            val control = frameOf(R.string.qmobile_layout_control)
-            val at = android.os.SystemClock.uptimeMillis()
-            touch(android.view.MotionEvent.ACTION_DOWN, control.exactCenterX(), control.exactCenterY(), at)
-            touch(android.view.MotionEvent.ACTION_UP, control.exactCenterX(), control.exactCenterY(), at)
             Thread.sleep(1200)
-            // The selected part's buttons are shown and opaque: they were once laid out but never drawn.
+            // Every part's buttons are shown and opaque from the start, without a tap.
             instrumentation.runOnMainSync {
                 val views = java.util.ArrayList<android.view.View>()
                 resumed().window.decorView.findViewsWithText(views, context.getString(R.string.qmobile_layout_swap), android.view.View.FIND_VIEWS_WITH_CONTENT_DESCRIPTION)

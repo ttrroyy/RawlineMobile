@@ -53,8 +53,6 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     private val parts = mutableMapOf<Part, FrameLayout>()
     private val dashes = mutableMapOf<Part, GradientDrawable>()
     /** The part whose small buttons show: a tap on a part shows them and its outline grows to hold them. */
-    private var selected: Part? = null
-    private val strips = mutableMapOf<Part, View>()
     /** Whether each part's buttons were drawn joined, to redraw them when a move joins or frees it. */
     private val shownJoined = mutableMapOf<Part, Boolean>()
     /** Every small button in the miniature with what it does, by the part it sits on. */
@@ -75,7 +73,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
-        window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(MobilePalette.background))
+        window.setBackgroundDrawable(if (MobileStyle.pastel) MobileHomeBackdrop() else android.graphics.drawable.ColorDrawable(MobilePalette.background))
         landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         root = FrameLayout(this)
         val page = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
@@ -120,8 +118,12 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     private fun showTutorial() {
         if (tutorial != null) return
         backToEditor?.isEnabled = true
+        // The editor's own button behind the tutorial need not move: its frames redrew the whole miniature and the
+        // tutorial stuttered.
+        MobileOrbArtwork.frozen = true
         tutorial = MobileLayoutTutorial(this) {
             tutorial = null; backToEditor?.isEnabled = false
+            MobileOrbArtwork.frozen = false
             DataStore.configurationStore.putBoolean(TUTORIAL_SEEN, true)
         }.also { root.addView(it, FrameLayout.LayoutParams(-1, -1)) }
     }
@@ -195,7 +197,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     }
 
     private fun frameFor(part: Part) = FrameLayout(this).apply {
-        // Snug round the part; selected, the top grows to hold its buttons inside the outline (select).
+        // Snug round the part; the top grows to hold its buttons inside the outline (fill).
         padFrame(this, false)
         // The buttons sit in the grown top padding: clipped to the padding, they were laid out but never drawn.
         clipToPadding = false
@@ -215,20 +217,6 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     }
 
     private fun padFrame(frame: View, open: Boolean) = frame.setPadding(dp(8), dp(if (open) 40 else 8), dp(8), dp(8))
-
-    /** Shows [part]'s buttons, or hides them all for null, the outline growing or shrinking as on a real change. */
-    private fun select(part: Part?) {
-        if (selected == part) return
-        // Only the bounds animate: a fade left the buttons see-through or not drawn at all; they appear on their own.
-        TransitionManager.beginDelayedTransition(column, ChangeBounds().setDuration(180))
-        selected = part
-        // A part without buttons (the subscription row at the bottom) keeps its outline as it is.
-        parts.forEach { (each, frame) -> padFrame(frame, each == part && ((strips[each] as? ViewGroup)?.childCount ?: 0) > 0) }
-        // The buttons are always laid out and only fade: one gone until now was never laid out while the outline's
-        // transition held the layout, and stayed a strip of no size, there but never seen.
-        // No fade: the delayed fade never ran to its end on phones and left them unseen.
-        strips.forEach { (each, strip) -> strip.alpha = if (each == part) 1f else 0f; strip.invalidate() }
-    }
 
     /** A change of a part's look, animated as the tutorial plays it. */
     private fun changing() = TransitionManager.beginDelayedTransition(column, ChangeBounds().setDuration(180))
@@ -328,10 +316,9 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             Part.CHIP -> {}
             Part.CONTROL -> button(R.drawable.ic_layout_swap, R.string.qmobile_layout_swap) { setSwitches(!MobileHomeLayout.controlSwitches) }
         }
-        // In the grown top of a selected outline: 6 dp under the outline and clear of its corner, 8 dp above the part.
-        strip.alpha = if (selected == part) 1f else 0f
+        // Always on the part, in the grown top of its outline: 6 dp under the outline and clear of its corner, 8 dp above the part.
+        padFrame(box, strip.childCount > 0)
         box.addView(strip, FrameLayout.LayoutParams(-2, dp(26), Gravity.TOP or Gravity.END).apply { topMargin = -dp(34); marginEnd = dp(6) })
-        strips[part] = strip
         actions[part] = items
     }
 
@@ -429,8 +416,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         val size = dp(MobileHomeLayout.orbSize(true))
         val orb = View(this).apply {
             // As the home screen draws it: the disc, the caption and the subscription and server line under them.
-            background = if (MobileStyle.pastel) MobilePastelArtwork(context, getString(R.string.qmobile_orb_idle))
-            else MobileOrbArtwork(context, getString(R.string.qmobile_orb_idle)).apply {
+            background = MobileOrbArtwork(context, getString(R.string.qmobile_orb_idle)).apply {
                 discSize = size; groupText = getString(R.string.subscription); serverText = Locale("", "de").displayCountry
             }
         }
@@ -471,9 +457,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     private fun actionAt(x: Float, y: Float): (() -> Unit)? {
         val margin = dp(8)
         return actions.values.flatten().firstOrNull { (view, _) ->
-            // The buttons of a part not selected are there but unseen: not touchable.
-            val strip = view.parent as? View
-            view.isShown && (strip !in strips.values || strip?.alpha == 1f || strip === strips[selected]) &&
+            view.isShown &&
                 boundsOf(view).apply { inset(-margin, -margin) }.contains(x.toInt(), y.toInt())
         }?.second
     }
@@ -559,12 +543,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             override fun onDown(event: MotionEvent) = true
             override fun onSingleTapConfirmed(event: MotionEvent): Boolean {
                 val action = actionAt(event.x / scale, event.y / scale)
-                if (action == null) {
-                    // A part shows its buttons; a tap on the list or on it again hides them.
-                    val part = partAt(event.x / scale, event.y / scale)
-                    select(if (part == selected) null else part)
-                    return true
-                }
+                if (action == null) return true
                 performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                 action()
                 return true

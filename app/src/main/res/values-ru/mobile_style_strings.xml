@@ -5,14 +5,6 @@
     <string-array name="qmobile_surface_themes_new"><item>Как в системе</item><item>OLED</item><item>Белая</item></string-array>
     <string name="qmobile_quick_menu">Быстрые действия</string>
     <string name="qmobile_orb_idle">Нажмите для подключения</string>
-    <string name="qmobile_servers">Серверы</string>
-    <string name="qmobile_mode_on">Включено</string>
-    <string name="qmobile_mode_off">Выключено</string>
-    <string name="qmobile_upload">Отдача</string>
-    <string name="qmobile_download">Загрузка</string>
-    <string name="qmobile_traffic_total">Всего %1$s</string>
-    <string name="qmobile_test_ping">Проверить пинг</string>
-    <string name="qmobile_all_servers">Все серверы</string>
     <string name="qmobile_edit_layout">Редактировать интерфейс</string>
     <string name="qmobile_layout_hint_move">Зажмите элемент и перетащите его вверх или вниз.</string>
     <string name="qmobile_layout_hint_tiles">Дважды нажмите на плитки, чтобы переключить расширенный и стандартный вид.</string>
@@ -31,7 +23,7 @@
     <string name="qmobile_layout_tutorial_done">Готово</string>
     <string name="qmobile_layout_step_drag">Зажмите и тяните, чтобы переместить</string>
     <string name="qmobile_layout_step_double">Два касания меняют вид</string>
-    <string name="qmobile_layout_step_badges">Нажмите на блок, появятся кнопки: вид и объединение со списком</string>
+    <string name="qmobile_layout_step_badges">Кнопки на блоке: вид и объединение со списком</string>
     <string name="qmobile_layout_step_pinch">Сведите или разведите пальцы, чтобы уменьшить или увеличить блок</string>
     <string name="qmobile_layout_step_remove">Минус убирает, плюс возвращает</string>
     <string name="qmobile_layout_step_scroll">Стрелки объединяют блок со списком: одна обводка, листаются вместе</string>

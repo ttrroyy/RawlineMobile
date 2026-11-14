@@ -237,10 +237,12 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
             val left = side + frame; val right = w - side - frame
             val tile = dp(48f)
             val orbSize = dp(190f); val compactOrb = dp(148f)
-            val tilesTop = dp(12f) + gap + frame
-            val chipTop = tilesTop + tile + frame + gap + frame
+            val strip = dp(32f)   // every outline's top is 40 dp: the part's buttons are always on it
+            val tilesTop = dp(12f) + gap + frame + strip
+            val chipTop = tilesTop + tile + frame + gap + frame + strip
+            // The control's outline top, plus the frame; its content starts a strip lower (body).
             val controlTop = chipTop + tile + frame + gap + frame
-            val strip = dp(32f)   // the selected outline's top grows from 8 to 40 dp
+            val body = controlTop + strip
             val cx = w / 2
             fun outlineAround(top: Float, height: Float, grown: Float = 0f, held: Boolean = false) =
                 outline(side, top - frame - strip * grown, w - side, top + height + frame, held)
@@ -302,7 +304,7 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                 switchCells.forEachIndexed { index, cell -> place(cell, left + index * (half + gap), top, half, dp(52f)) }
                 place(checkLine, left, top + dp(52f), right - left, dp(40f))
             }
-            fun strip(top: Float, grown: Float, scrollLit: Boolean, scrollPressed: Float = 0f, swapPressed: Float = 0f) {
+            fun strip(top: Float, grown: Float, scrollLit: Boolean, scrollPressed: Float = 0f, swapPressed: Float = 0f, swap: Boolean = true) {
                 // The selected outline's buttons: 26 dp, 8 apart, 6 dp under the outline and 14 dp from its right edge:
                 // the arrows join the part to the list, the other changes its look. The size is a pinch only.
                 if (grown <= 0f) return
@@ -310,7 +312,7 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                 val last = w - side - dp(14f) - dp(13f)
                 c.saveLayerAlpha(last - dp(60f), y - dp(16f), last + dp(16f), y + dp(16f), (255 * grown).toInt())
                 badge(R.drawable.ic_layout_scroll, last - dp(34f), y, if (scrollLit) accent else MobilePalette.badge, dp(26f), dp(5f), scrollPressed)
-                badge(R.drawable.ic_layout_swap, last, y, MobilePalette.badge, dp(26f), dp(5f), swapPressed)
+                if (swap) badge(R.drawable.ic_layout_swap, last, y, MobilePalette.badge, dp(26f), dp(5f), swapPressed)
                 c.restore()
             }
             fun block(top: Float, height: Float, scale: Float = 1f, lift: Float = 0f, grown: Float = 0f, content: (Float) -> Unit) {
@@ -330,19 +332,23 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                 val k2 = ease(((t - t0) / (t1 - t0)).coerceIn(0f, 1f))
                 return lerp(x0, x1, k2) to lerp(y0, y1, k2)
             }
-            fun still() { outlineAround(tilesTop, tile); outlineAround(chipTop, tile) }
+            fun still() {
+                outlineAround(tilesTop, tile, 1f); strip(tilesTop, 1f, false)
+                outlineAround(chipTop, tile, 1f); strip(chipTop, 1f, false, swap = false)
+            }
             val orbHeight = orbSize + dp(16f)
             fun listTop(controlHeight: Float, grown: Float = 0f) = controlTop + strip * grown + controlHeight + frame + gap
             when (step) {
                 Step.DRAG -> {
                     // Held, the part lifts; past the list's middle the list takes its place; let go, it settles in.
                     val slot = h - side - frame - orbHeight
-                    val top = lerp(controlTop, slot, ease(span(.25f, .7f)))
+                    val top = lerp(body, slot, ease(span(.25f, .7f)))
                     val swapped = ease(span(.47f, .513f))
                     tiles(tilesTop); chip(chipTop); still()
-                    rows(lerp(listTop(orbHeight), controlTop - frame, swapped), lerp(h, slot - frame - gap, swapped))
+                    rows(lerp(listTop(orbHeight, 1f), controlTop - frame, swapped), lerp(h, slot - frame - strip - gap, swapped))
                     val lift = span(.14f, .18f) * (1 - span(.72f, .76f))
-                    block(top, orbHeight, lift = lift) { drawOrb(it, orbSize) }
+                    block(top, orbHeight, lift = lift, grown = 1f) { drawOrb(it, orbSize) }
+                    strip(top, 1f, false)
                     finger(cx, top + orbSize * .43f, span(.08f, .14f) * (1 - span(.72f, .76f)), span(.02f, .08f) * (1 - span(.78f, .86f)))
                 }
                 Step.DOUBLE -> {
@@ -350,10 +356,11 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                     val switchesOn = t >= .23f && t < .68f
                     val k2 = ease(span(.23f, .273f)) * (1 - ease(span(.68f, .723f)))
                     val height = lerp(orbHeight, switchesHeight, k2)
-                    tiles(tilesTop); chip(chipTop); still(); rows(listTop(height))
-                    block(controlTop, height) { top -> if (switchesOn) switches(top) else drawOrb(top, orbSize) }
+                    tiles(tilesTop); chip(chipTop); still(); rows(listTop(height, 1f))
+                    block(body, height, grown = 1f) { top -> if (switchesOn) switches(top) else drawOrb(top, orbSize) }
+                    strip(body, 1f, false)
                     val tap = pulse(.14f) + pulse(.2f) + pulse(.59f) + pulse(.65f)
-                    finger(cx, controlTop + height / 2, tap, span(.06f, .12f) * (1 - span(.76f, .84f)))
+                    finger(cx, body + height / 2, tap, span(.06f, .12f) * (1 - span(.76f, .84f)))
                 }
                 Step.PINCH -> {
                     // The part follows the fingers within 15 %; let go, it springs back and takes the new size.
@@ -366,16 +373,17 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                         t < .87f -> 1 + .15f * spread
                         else -> lerp(1.15f, 1f, ease(span(.87f, .905f)))
                     }
-                    tiles(tilesTop); chip(chipTop); still(); rows(listTop(size + dp(16f)))
-                    block(controlTop, size + dp(16f), scale) { drawOrb(it, size) }
+                    tiles(tilesTop); chip(chipTop); still(); rows(listTop(size + dp(16f), 1f))
+                    block(body, size + dp(16f), scale, grown = 1f) { drawOrb(it, size) }
+                    strip(body, 1f, false)
                     val apart = if (t < .52f) lerp(dp(90f), dp(36f), squeeze) else lerp(dp(36f), dp(90f), spread)
-                    val cy = controlTop + size * .43f
+                    val cy = body + size * .43f
                     val visible = span(.05f, .12f) * (1 - span(.46f, .5f)) + span(.54f, .6f) * (1 - span(.86f, .9f))
                     finger(cx - apart, cy - apart * .5f, .6f, visible); finger(cx + apart, cy + apart * .5f, .6f, visible)
                 }
                 Step.BADGES -> {
-                    // A tap shows the buttons, the outline growing to hold them; the look button swaps the part's look and back.
-                    val grown = ease(span(.13f, .173f)) * (1 - ease(span(.9f, .943f)))
+                    // The buttons are on the outline from the start; the look button swaps the part's look and back.
+                    val grown = 1f
                     val switchesOn = t >= .41f && t < .69f
                     val k2 = ease(span(.41f, .453f)) * (1 - ease(span(.69f, .733f)))
                     val height = lerp(orbHeight, switchesHeight, k2)
@@ -384,15 +392,16 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                     block(top, height, grown = grown) { if (switchesOn) switches(it) else drawOrb(it, orbSize) }
                     strip(top, grown, false, swapPressed = pulse(.39f) + pulse(.67f))
                     val swapX = w - side - dp(27f); val stripY = controlTop - frame + dp(19f)
-                    val (fx, fy) = path(listOf(Triple(.05f, cx, controlTop + orbSize * .43f), Triple(.2f, cx, controlTop + orbSize * .43f),
+                    val (fx, fy) = path(listOf(Triple(.05f, cx, body + orbSize * .43f), Triple(.2f, cx, body + orbSize * .43f),
                         Triple(.32f, swapX, stripY), Triple(.76f, swapX, stripY), Triple(.84f, cx, h - dp(60f))))
-                    finger(fx, fy, pulse(.11f) + pulse(.39f) + pulse(.67f) + pulse(.87f), span(.03f, .09f) * (1 - span(.92f, .97f)))
+                    finger(fx, fy, pulse(.39f) + pulse(.67f), span(.03f, .09f) * (1 - span(.92f, .97f)))
                 }
                 Step.REMOVE -> {
                     // The minus fades the tile under a dashed outline and turns into a plus; the plus brings it back.
                     val gone = ease(span(.27f, .308f)) * (1 - ease(span(.67f, .708f)))
-                    tiles(tilesTop, gone); chip(chipTop); still(); rows(listTop(orbHeight))
-                    block(controlTop, orbHeight) { drawOrb(it, orbSize) }
+                    tiles(tilesTop, gone); chip(chipTop); still(); rows(listTop(orbHeight, 1f))
+                    block(body, orbHeight, grown = 1f) { drawOrb(it, orbSize) }
+                    strip(body, 1f, false)
                     val each = (right - left - gap * 4) / 5
                     val bx = left + 3 * (each + gap) + each - dp(13f); val by = tilesTop + dp(13f)
                     finger(bx, by, pulse(.25f) + pulse(.65f), span(.12f, .2f) * (1 - span(.78f, .86f)))
@@ -400,11 +409,11 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                 Step.SCROLL -> {
                     // The arrows join the part to the list: its outline reaches down round the list, and a swipe scrolls the
                     // two together, up and back; the arrows again split them.
-                    val grown = ease(span(.06f, .103f)) * (1 - ease(span(.9f, .943f)))
+                    val grown = 1f
                     val lit = t >= .25f && t < .77f
                     val join = ease(span(.26f, .32f)) * (1 - ease(span(.77f, .83f)))
                     val scroll = -dp(150f) * ease(span(.38f, .5f)) * (1 - ease(span(.58f, .7f)))
-                    val outlineTop = controlTop - frame - strip * grown
+                    val outlineTop = controlTop - frame
                     val top = controlTop + strip * grown + scroll
                     tiles(tilesTop); chip(chipTop); still()
                     // The joined content scrolls under the outline's top edge.
@@ -413,15 +422,15 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                     drawOrb(top, orbSize)
                     c.restore()
                     outline(side, outlineTop, w - side, lerp(controlTop + strip * grown + orbHeight + frame, h - dp(10f), join))
-                    strip(controlTop, grown, lit, scrollPressed = pulse(.24f) + pulse(.76f))
+                    strip(body, grown, lit, scrollPressed = pulse(.24f) + pulse(.76f))
                     val scrollX = w - side - dp(27f) - dp(34f); val stripY = controlTop - frame + dp(19f)
                     val low = h * .8f; val high = low - dp(150f)
-                    val (fx, fy) = path(listOf(Triple(.02f, cx, controlTop + orbSize * .43f), Triple(.1f, cx, controlTop + orbSize * .43f),
+                    val (fx, fy) = path(listOf(Triple(.02f, cx, body + orbSize * .43f), Triple(.1f, cx, body + orbSize * .43f),
                         Triple(.19f, scrollX, stripY), Triple(.3f, scrollX, stripY), Triple(.36f, cx, low), Triple(.38f, cx, low),
                         Triple(.5f, cx, high), Triple(.58f, cx, high), Triple(.7f, cx, low), Triple(.72f, scrollX, stripY),
                         Triple(.8f, scrollX, stripY), Triple(.88f, cx, h - dp(60f))))
                     val drag = span(.37f, .38f) * (1 - span(.5f, .51f)) + span(.57f, .58f) * (1 - span(.7f, .71f))
-                    finger(fx, fy, pulse(.04f) + pulse(.24f) + drag + pulse(.76f), span(.01f, .05f) * (1 - span(.92f, .97f)))
+                    finger(fx, fy, pulse(.24f) + drag + pulse(.76f), span(.01f, .05f) * (1 - span(.92f, .97f)))
                 }
             }
             canvas.restore()
