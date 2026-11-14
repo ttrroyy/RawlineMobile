@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable
 class MobileHomeBackdrop : Drawable() {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     override fun draw(canvas: Canvas) {
+        if(MobileStyle.pastel) { drawPastel(canvas); return }
         if(MobileStyle.new) {
             // Soft light for the glass to lie on: true black or white stays the base.
             canvas.drawColor(MobilePalette.background)
@@ -34,6 +35,44 @@ class MobileHomeBackdrop : Drawable() {
         canvas.drawPath(sweep, paint)
         paint.shader = RadialGradient(w*.15f,h*.16f,w*.95f,Color.argb(8,175,183,192),Color.TRANSPARENT,Shader.TileMode.CLAMP)
         canvas.drawRect(bounds,paint)
+        paint.shader = null
+    }
+    /** The concept's wash by day, the same shapes in plum at night, and only a trace of colour on OLED black. */
+    private fun drawPastel(canvas: Canvas) {
+        val w = bounds.width().toFloat(); val h = bounds.height().toFloat()
+        if (MobilePalette.oled) {
+            canvas.drawColor(Color.BLACK)
+            paint.shader = RadialGradient(w * .88f, h * .08f, w * .7f, Color.argb(28, 124, 90, 180), Color.TRANSPARENT, Shader.TileMode.CLAMP)
+            canvas.drawRect(bounds, paint)
+            paint.shader = RadialGradient(w * .08f, h * .92f, w * .6f, Color.argb(22, 60, 90, 180), Color.TRANSPARENT, Shader.TileMode.CLAMP)
+            canvas.drawRect(bounds, paint)
+            paint.shader = null
+            return
+        }
+        if (MobilePalette.light) {
+            paint.shader = LinearGradient(0f, 0f, w, h,
+                intArrayOf(Color.rgb(255, 220, 208), Color.rgb(248, 228, 244), Color.rgb(226, 214, 248), Color.rgb(198, 216, 252)),
+                floatArrayOf(0f, .34f, .68f, 1f), Shader.TileMode.CLAMP)
+            canvas.drawRect(bounds, paint)
+            paint.shader = RadialGradient(w * .5f, h * .42f, w * .7f, Color.argb(90, 255, 255, 255), Color.TRANSPARENT, Shader.TileMode.CLAMP)
+            canvas.drawRect(bounds, paint)
+            paint.shader = RadialGradient(w * .08f, h * .02f, w * .55f, Color.argb(70, 255, 186, 160), Color.TRANSPARENT, Shader.TileMode.CLAMP)
+            canvas.drawRect(bounds, paint)
+            paint.shader = RadialGradient(w * .96f, h * .08f, w * .5f, Color.argb(50, 190, 170, 255), Color.TRANSPARENT, Shader.TileMode.CLAMP)
+            canvas.drawRect(bounds, paint)
+            paint.shader = null
+            return
+        }
+        paint.shader = LinearGradient(0f, 0f, w, h,
+            intArrayOf(Color.rgb(92, 58, 96), Color.rgb(46, 40, 78), Color.rgb(36, 62, 112)),
+            floatArrayOf(0f, .46f, 1f), Shader.TileMode.CLAMP)
+        canvas.drawRect(bounds, paint)
+        paint.shader = RadialGradient(w * .08f, h * .02f, w * .8f, Color.argb(120, 255, 150, 130), Color.TRANSPARENT, Shader.TileMode.CLAMP)
+        canvas.drawRect(bounds, paint)
+        paint.shader = RadialGradient(w * .96f, h * .12f, w * .85f, Color.argb(110, 170, 130, 255), Color.TRANSPARENT, Shader.TileMode.CLAMP)
+        canvas.drawRect(bounds, paint)
+        paint.shader = RadialGradient(w * .2f, h * .96f, w * .9f, Color.argb(100, 90, 150, 255), Color.TRANSPARENT, Shader.TileMode.CLAMP)
+        canvas.drawRect(bounds, paint)
         paint.shader = null
     }
     override fun setAlpha(alpha: Int) { }

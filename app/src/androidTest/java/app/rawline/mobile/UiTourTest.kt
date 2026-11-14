@@ -297,7 +297,7 @@ class UiTourTest {
             }
             Thread.sleep(700)
             check(MobileHomeLayout.controlSwitches) { "a double tap did not switch the connection control" }
-            if (MobileStyle.new) {
+            if (MobileStyle.modern) {
                 // The subscription goes from above the control to between it and the list.
                 val chip = frameOf(R.string.qmobile_layout_chip)
                 val under = frameOf(R.string.qmobile_layout_control).bottom.toFloat()
@@ -385,7 +385,7 @@ class UiTourTest {
         // The subscription between a joined control and the list scrolls with them, on the home screen as in the editor.
         "home-joined-chip-near" to {
             layout(compact = true); MobileHomeLayout.chipNearList = true; MobileHomeLayout.scrollParts = setOf("control")
-            check(!MobileStyle.new || "chip" in MobileHomeLayout.scrollParts) { "the subscription under a joined control is not joined" }
+            check(!MobileStyle.modern || "chip" in MobileHomeLayout.scrollParts) { "the subscription under a joined control is not joined" }
             orb(true)
         },
         "layout-editor-joined-chip-near" to {

@@ -388,7 +388,7 @@ class MainActivity : ThemedActivity(),
     }
 
 
-    private val classic get() = !MobileStyle.new
+    private val classic get() = !MobileStyle.modern
     val homeId get() = if (classic) R.id.nav_configuration else R.id.nav_mobile_home
     private fun isHome(fragment: Any?) = if (classic) fragment is ConfigurationFragment else fragment is MobileHomeFragment
 
@@ -723,7 +723,12 @@ class MainActivity : ThemedActivity(),
     // may NOT called when app is in background
     // ONLY do UI update here, write DB in bg process
     override fun cbSpeedUpdate(stats: SpeedDisplayData) {
-        (currentMainFragment as? MobileHomeFragment)?.updateSpeed(stats.rxRateProxy+stats.rxRateDirect,stats.txRateProxy+stats.txRateDirect)
+        (currentMainFragment as? MobileHomeFragment)?.updateSpeed(
+            stats.rxRateProxy+stats.rxRateDirect,
+            stats.txRateProxy+stats.txRateDirect,
+            stats.rxTotal+stats.rxTotalDirect,
+            stats.txTotal+stats.txTotalDirect,
+        )
         binding.stats.updateSpeed(stats.txRateProxy, stats.rxRateProxy)
     }
 

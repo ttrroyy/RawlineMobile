@@ -429,7 +429,8 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         val size = dp(MobileHomeLayout.orbSize(true))
         val orb = View(this).apply {
             // As the home screen draws it: the disc, the caption and the subscription and server line under them.
-            background = MobileOrbArtwork(context, getString(R.string.qmobile_orb_idle)).apply {
+            background = if (MobileStyle.pastel) MobilePastelArtwork(context, getString(R.string.qmobile_orb_idle))
+            else MobileOrbArtwork(context, getString(R.string.qmobile_orb_idle)).apply {
                 discSize = size; groupText = getString(R.string.subscription); serverText = Locale("", "de").displayCountry
             }
         }
