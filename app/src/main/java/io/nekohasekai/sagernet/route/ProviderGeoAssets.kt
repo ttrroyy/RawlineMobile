@@ -68,7 +68,8 @@ object ProviderGeoAssets {
      * (`ext:` / `ext-ip:` in the asset dir), so the standard geosite.dat and geoip.dat stay for every other profile.
      */
     @Synchronized
-    fun xrayConfig(document: JsonObject, config: String): String {
+    /** [forTest]: a geo file that cannot be had drops the rules that need it; a ping goes through the proxy anyway. */
+    fun xrayConfig(document: JsonObject, config: String, forTest: Boolean = false): String {
         val source = if (document.isNotEmpty()) document else JsonObject().apply {
             this["Geoipurl"] = XrayGeoAssets.urlOf("geoip.dat")
             this["Geositeurl"] = XrayGeoAssets.urlOf("geosite.dat")
@@ -76,7 +77,12 @@ object ProviderGeoAssets {
         var result = config
         for (kind in listOf("geosite", "geoip")) {
             if (!config.contains("$kind:")) continue
-            val file = download(0, source, kind, false)
+            val file = try { download(0, source, kind, false) } catch (error: Exception) {
+                if (!forTest) throw error
+                Logs.w("Provider $kind.dat is not available, the test goes without its rules: ${error.readableMessage}")
+                result = withoutGeoRules(result, kind)
+                continue
+            }
             // Xray finds a category only by its upper-case name in the entry's first field.
             Mobile.normalizeGeoFileForXray(file.absolutePath)
             val path = file.relativeTo(app.filesDir).invariantSeparatorsPath
@@ -85,6 +91,21 @@ object ProviderGeoAssets {
         }
         status(0, Status(complete = true))
         return result
+    }
+
+    /** [config] without the routing rules and DNS servers that name a [kind] ("geosite" / "geoip") category. */
+    internal fun withoutGeoRules(config: String, kind: String): String {
+        val root = app.rawline.mobile.outbound.json.JsonInput.parseObjectOrNull(config) ?: return config
+        val names = Regex("\"!?$kind:")
+        fun drop(owner: JsonObject, key: String) {
+            if (!owner.isArray(key)) return
+            val kept = app.rawline.mobile.outbound.json.JsonArray()
+            owner.array(key).forEach { if (!names.containsMatchIn(it.toString())) kept.add(it) }
+            owner[key] = kept
+        }
+        if (root.isObject("routing")) drop(root.obj("routing"), "rules")
+        if (root.isObject("dns")) drop(root.obj("dns"), "servers")
+        return root.toCompact()
     }
 
     /** Before 3.2.8 a provider's files replaced the standard ones; such a copy goes once, and the standard file downloads again. */

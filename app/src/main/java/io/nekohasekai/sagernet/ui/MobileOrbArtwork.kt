@@ -34,6 +34,9 @@ class MobileOrbArtwork(context: Context, private val idleText: String) : MobileP
         set(value) { if (field != value) { field = value; invalidateSelf() } }
     /** How wide the text under the disc may be, 0 for the view's width (the dock keeps its corners for the check and speed). */
     var textRoom = 0f
+    /** Told when the subscription and server take two lines or go back to one: the view grows by a line for them. */
+    var linesChanged: ((Int) -> Unit)? = null
+    private var serverLines = 1
     override var connected = false
         set(value) { if (field != value) { field = value; invalidateSelf() } }
     override var focused = false
@@ -213,6 +216,16 @@ class MobileOrbArtwork(context: Context, private val idleText: String) : MobileP
         var server = serverText
         if (text.measureText(group + separator + server) > wide && group.isNotEmpty())
             group = android.text.TextUtils.ellipsize(group, text, minOf(text.measureText(group), wide * .4f), android.text.TextUtils.TruncateAt.END).toString()
+        // Too long for one line: the subscription above the server, each centred, rather than both cut.
+        val lines = if (group.isNotEmpty() && server.isNotEmpty() && text.measureText(group + separator + server) > wide) 2 else 1
+        if (lines != serverLines) { serverLines = lines; linesChanged?.invoke(lines) }
+        if (lines == 2) {
+            val cut = { value: String -> android.text.TextUtils.ellipsize(value, text, wide, android.text.TextUtils.TruncateAt.END).toString() }
+            val first = cut(group); val second = cut(server)
+            text.color = MobilePalette.muted; canvas.drawText(first, cx - text.measureText(first) / 2, y, text)
+            text.color = ink; canvas.drawText(second, cx - text.measureText(second) / 2, y + size * 1.35f, text)
+            return
+        }
         val head = group + separator
         if (text.measureText(head + server) > wide)
             server = android.text.TextUtils.ellipsize(server, text, (wide - text.measureText(head)).coerceAtLeast(0f), android.text.TextUtils.TruncateAt.END).toString()

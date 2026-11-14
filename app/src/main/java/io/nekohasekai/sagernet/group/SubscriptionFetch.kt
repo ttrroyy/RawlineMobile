@@ -102,7 +102,8 @@ object SubscriptionFetch {
             url,
             HttpGetOptions(
                 userAgent = identity.userAgent,
-                headers = identity.headers(),
+                // turnplus.xyz and the like answer a request without Accept with their web page.
+                headers = listOf("Accept" to "*/*") + identity.headers(),
                 maxBytes = MAX_BYTES,
                 timeoutSeconds = identity.timeoutSeconds,
                 allowInsecure = identity.allowInsecureRequests,

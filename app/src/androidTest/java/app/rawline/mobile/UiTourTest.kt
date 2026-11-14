@@ -346,6 +346,30 @@ class UiTourTest {
                     }
                 }
             }
+            // Anywhere on the part shows them, not only its top: a tap away hides them, a tap low on the part shows them again.
+            for (fraction in listOf(.12f, .5f, .88f)) {
+                // The tiles take the selection first, then a tap on the control, measured where it stands now.
+                val tiles = frameOf(R.string.qmobile_layout_tiles)
+                fun tapAt(x: Float, y: Float) {
+                    val tap = android.os.SystemClock.uptimeMillis()
+                    touch(android.view.MotionEvent.ACTION_DOWN, x, y, tap)
+                    touch(android.view.MotionEvent.ACTION_UP, x, y, tap)
+                    Thread.sleep(900)
+                }
+                tapAt(tiles.exactCenterX(), tiles.exactCenterY())
+                val now = frameOf(R.string.qmobile_layout_control)
+                tapAt(now.exactCenterX(), now.top + now.height() * fraction)
+                instrumentation.runOnMainSync {
+                    val views = java.util.ArrayList<android.view.View>()
+                    resumed().window.decorView.findViewsWithText(views, context.getString(R.string.qmobile_layout_swap), android.view.View.FIND_VIEWS_WITH_CONTENT_DESCRIPTION)
+                    val controlLabel = context.getString(R.string.qmobile_layout_control)
+                    val own = views.filter { ((it.parent as android.view.View).parent as android.view.View).contentDescription == controlLabel }
+                    check(own.any { (it.parent as android.view.View).alpha > .99f && it.getGlobalVisibleRect(android.graphics.Rect()) }) {
+                        "a tap at ${(fraction * 100).toInt()}% of the control's height ($now) did not show its buttons: " +
+                            views.map { ((it.parent as android.view.View).parent as android.view.View).contentDescription.toString() + "=" + (it.parent as android.view.View).alpha }
+                    }
+                }
+            }
         },
     ) + (0..5).map { step ->
         // Each tutorial step half way through its loop.

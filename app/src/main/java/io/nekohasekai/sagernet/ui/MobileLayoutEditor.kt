@@ -178,7 +178,9 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         if (host !== column) host.removeAllViews()
         val order = (if (MobileHomeLayout.chipNearList) listOf(Part.TILES, Part.CONTROL, Part.CHIP) else listOf(Part.TILES, Part.CHIP, Part.CONTROL)).filter { it in parts }
         fun add(part: Part) = host.addView(parts.getValue(part), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
-        order.filterNot(::isBottom).forEach(::add)
+        // As the home screen stacks them: the parts that stay on the screen first, then those that scroll with the list.
+        val joined = joinedParts()
+        order.filterNot(::isBottom).sortedBy { it in joined }.forEach(::add)
         if (landscape) {
             // As the home screen lies: the parts in a side column, the list beside it.
             host.addView(View(this), LinearLayout.LayoutParams(-1, 0, 1f))
@@ -292,12 +294,10 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         // control it goes up, joined above a control that stays it goes down to the list.
         val chipMoves = part == Part.CHIP && !MobileHomeLayout.controlBottom && ("control" in scrolls) == (part.id in scrolls) &&
             MobileHomeLayout.chipNearList == (part.id in scrolls)
-        if (chipMoves) {
-            MobileHomeLayout.chipNearList = !MobileHomeLayout.chipNearList
-            rearrange()
-        }
+        if (chipMoves) MobileHomeLayout.chipNearList = !MobileHomeLayout.chipNearList
         fill(part)
-        updateJoins()
+        // Joining or freeing a part can change where it stands (arrange): the order and the outlines both follow.
+        rearrange()
         // The part rises a little with the list for a moment, to show that it scrolls now.
         if (part.id in MobileHomeLayout.scrollParts) parts.getValue(part).let { frame ->
             frame.animate().translationY(-dp(12).toFloat()).setDuration(200).withEndAction { frame.animate().translationY(0f).setDuration(200).start() }.start()

@@ -26,11 +26,12 @@ import app.rawline.mobile.route.RouteProfile
 object CoreConfigs {
 
     /** Stored profiles by id, each row parsed once per generation; group pairs resolved once per profile id too. */
-    private class DatabaseProfiles(private val geoFallback: app.rawline.mobile.outbound.json.JsonObject = app.rawline.mobile.outbound.json.JsonObject()) : ProfileProvider {
+    private class DatabaseProfiles(private val geoFallback: app.rawline.mobile.outbound.json.JsonObject = app.rawline.mobile.outbound.json.JsonObject(),
+                                   private val forTest: Boolean = false) : ProfileProvider {
         private val cache = HashMap<Long, Outbound?>()
         private val groupCache = HashMap<Long, Pair<Long, Long>>()
         override fun get(id: Long): Outbound? = cache.getOrPut(id) {
-            SagerDatabase.proxyDao.getById(id)?.let { prepareOutbound(it, geoFallback) }
+            SagerDatabase.proxyDao.getById(id)?.let { prepareOutbound(it, geoFallback, forTest) }
         }
         override fun groupProxies(profileId: Long): Pair<Long, Long> = groupCache.getOrPut(profileId) {
             val groupId = SagerDatabase.proxyDao.getById(profileId)?.groupId ?: -1L
@@ -39,7 +40,8 @@ object CoreConfigs {
     }
 
     /** Geo sources belong to the subscription even when its routing switch is off. */
-    fun prepareOutbound(profile: ProxyEntity, fallback: app.rawline.mobile.outbound.json.JsonObject = app.rawline.mobile.outbound.json.JsonObject()): Outbound {
+    fun prepareOutbound(profile: ProxyEntity, fallback: app.rawline.mobile.outbound.json.JsonObject = app.rawline.mobile.outbound.json.JsonObject(),
+                        forTest: Boolean = false): Outbound {
         val outbound = profile.outbound
         if (outbound !is app.rawline.mobile.outbound.types.Custom || !outbound.isXrayFullConfig()) return outbound
         val options = SagerDatabase.groupDao.getById(profile.groupId)?.subOptions
@@ -48,7 +50,7 @@ object CoreConfigs {
         }?.takeIf { it.isNotEmpty() } ?: fallback
         return app.rawline.mobile.outbound.types.Custom().apply {
             parseFromJson(outbound.exportToJson())
-            config = app.rawline.mobile.route.ProviderGeoAssets.xrayConfig(document, config)
+            config = app.rawline.mobile.route.ProviderGeoAssets.xrayConfig(document, config, forTest)
         }
     }
 
@@ -157,7 +159,7 @@ object CoreConfigs {
         val dns = RouteManager.customDns(DataStore.currentRouteId)
         val fallback = app.rawline.mobile.route.ProviderRouting.stored(RouteManager.current())?.second
             ?: app.rawline.mobile.outbound.json.JsonObject()
-        return ConfigGenerator(DatabaseProfiles(fallback), SettingsMapper.generatorSettings(dns), SettingsMapper.buildContext(dns)).buildTest(candidates, ports)
+        return ConfigGenerator(DatabaseProfiles(fallback, forTest = true), SettingsMapper.generatorSettings(dns), SettingsMapper.buildContext(dns)).buildTest(candidates, ports)
     }
 
     /** (landing_proxy_id, front_proxy_id, name) of a group, -1 when unset (any id <= 0 is "none"). */

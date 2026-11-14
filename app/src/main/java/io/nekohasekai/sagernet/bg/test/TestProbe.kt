@@ -142,7 +142,7 @@ internal suspend fun TestSession.screenXrayFullConfigs(profiles: List<ProxyEntit
             ?: app.rawline.mobile.outbound.json.JsonObject()
         originals.mapNotNull { (profile, _) ->
             try {
-                profile to (CoreConfigs.prepareOutbound(profile, fallback) as Custom)
+                profile to (CoreConfigs.prepareOutbound(profile, fallback, forTest = true) as Custom)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

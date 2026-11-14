@@ -159,10 +159,6 @@ object DesktopSchema {
             network_type_json TEXT,
             network_is_expensive INTEGER NOT NULL DEFAULT 0,
             package_name_regex_json TEXT,
-            tls_fragment INTEGER NOT NULL DEFAULT 0,
-            tls_fragment_fallback_delay TEXT,
-            tls_record_fragment INTEGER NOT NULL DEFAULT 0,
-            disabled INTEGER NOT NULL DEFAULT 0,
             PRIMARY KEY (route_profile_id, rule_order),
             FOREIGN KEY(route_profile_id) REFERENCES route_profiles(id) ON DELETE CASCADE
         )

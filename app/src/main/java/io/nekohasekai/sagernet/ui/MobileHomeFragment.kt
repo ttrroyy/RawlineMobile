@@ -455,6 +455,20 @@ class MobileHomeFragment : ToolbarFragment() {
     }
     /** The server's country flag, any flag at the start of its name, or a globe. */
     /** The server's country from the tests' IP lookup first, then a flag the name starts with. */
+    /** No word broken across lines in a narrow box: the text shrinks, to 9 sp at the least, until its longest word fits. */
+    private fun fitWords(view: TextView, size: Float) {
+        fun fit() {
+            val room=view.width-view.totalPaddingLeft-view.totalPaddingRight
+            if(room<=0) return
+            val paint=android.text.TextPaint(view.paint).apply { textSize=android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,size,resources.displayMetrics) }
+            val longest=view.text.split(' ','\n').maxOfOrNull { paint.measureText(it) } ?: 0f
+            val target=if(longest>room) (size*room/longest).coerceAtLeast(9f) else size
+            if(kotlin.math.abs(view.textSize-android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,target,resources.displayMetrics))>.5f)
+                view.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP,target)
+        }
+        view.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_ -> fit() }
+        view.addTextChangedListener(object : android.text.TextWatcher { override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}; override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}; override fun afterTextChanged(s: android.text.Editable?) = fit() })
+    }
     private fun flagBadge(displayName: String, geoCountry: String? = null): ImageView {
         val geo=geoCountry?.trim()?.lowercase(java.util.Locale.ROOT)?.takeIf { it.length==2 && it.all { c -> c in 'a'..'z' } }
             ?.let { code -> MobileCountryFlags.bitmap(requireContext(),code)?.let { code to it } }
@@ -566,7 +580,6 @@ class MobileHomeFragment : ToolbarFragment() {
     /** The card's routing line: every subscription, and a plain group only when it has a routing profile of its own. */
     private fun routeLabel(group: ProxyGroup, server: ProxyEntity?): String {
         val info=runCatching { app.rawline.mobile.route.RouteSource.of(group) }.getOrNull() ?: return ""
-        if(!group.isSubscription && info.kind!=app.rawline.mobile.route.RouteSource.Kind.GROUP) return ""
         return routeText(info,runCatching { server?.outbound?.isXrayFullConfig() == true }.getOrDefault(false))
     }
     /** The chip shows the routing the subscription in use really runs with. */
@@ -1065,6 +1078,12 @@ class MobileHomeFragment : ToolbarFragment() {
                         power?.addOnLayoutChangeListener { view,_,_,_,_,_,_,_,_ -> artwork?.textRoom=(view.width-2*dp(14+92+6)).toFloat() }
                     }
                     controlParent.addView(centre, LinearLayout.LayoutParams(-1, dp(if(dockBottom) orb+20 else orb+16)).apply { topMargin=dp(4) })
+                    // The subscription and the server on two lines when one is too narrow for them: the button grows by that line.
+                    artwork?.linesChanged={ lines -> centre.post {
+                        val extra=if(lines==2) dp(16) else 0
+                        power?.layoutParams=power?.layoutParams?.apply { height=dp(orb+16)+extra }
+                        centre.layoutParams=centre.layoutParams.apply { height=dp(if(dockBottom) orb+20 else orb+16)+extra }
+                    } }
                 } else {
                 val orb=MobileHomeLayout.orbSize(false)
                 centre.addView(power, FrameLayout.LayoutParams(dp(orb), dp(orb), Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply { topMargin=dp(8) })
@@ -1140,7 +1159,7 @@ class MobileHomeFragment : ToolbarFragment() {
                 geoBanner!!.addView(geoCheck,LinearLayout.LayoutParams(dp(24),dp(24)))
                 // Under the decoration, right above the subscriptions it is about.
                 // In the new style the check sits beside the speed, under the button.
-                subscriptionTop?.let { if(dockLeft!=null) { currentCheck?.maxLines=3; it.layoutParams=FrameLayout.LayoutParams(-1,-2); dockLeft?.addView(it) } else if(statusRow!=null) {
+                subscriptionTop?.let { if(dockLeft!=null) { currentCheck?.maxLines=3; currentCheck?.let { check -> fitWords(check,12f) }; it.layoutParams=FrameLayout.LayoutParams(-1,-2); dockLeft?.addView(it) } else if(statusRow!=null) {
                     // A narrow column (tablets, split screen) wraps the label onto a third line the row cuts off: it shrinks instead.
                     it.layoutParams=LinearLayout.LayoutParams(0,-1,1f); statusRow?.addView(it,0)
                     currentCheck?.let { check -> check.layoutParams=FrameLayout.LayoutParams(-1,-1); check.gravity=Gravity.START or Gravity.CENTER_VERTICAL; androidx.core.widget.TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(check,8,12,1,android.util.TypedValue.COMPLEX_UNIT_SP) }

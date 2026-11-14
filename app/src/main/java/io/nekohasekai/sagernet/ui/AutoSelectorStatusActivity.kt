@@ -159,6 +159,8 @@ class AutoSelectorStatusActivity : ThemedActivity(), SagerConnection.Callback {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.auto_selector_status_menu, menu)
         menu.findItem(R.id.action_only_problems)?.isChecked = onlyProblems
+        // The same colour as the title and the back arrow.
+        menu.findItem(R.id.action_edit_selector)?.icon?.mutate()?.setTint(MobilePalette.text)
         return true
     }
 
@@ -330,6 +332,8 @@ class AutoSelectorStatusActivity : ThemedActivity(), SagerConnection.Callback {
         binding.recheck.isEnabled = live && !measuring
         binding.automatic.isVisible = live && status.pinnedId >= 0
         binding.automatic.isEnabled = !measuring
+        // The theme's disabled text is black on the dark screen: an unavailable button only fades.
+        for (button in listOf(binding.recheck, binding.automatic)) { button.setTextColor(MobilePalette.text); button.alpha = if (button.isEnabled) 1f else .4f }
 
         val all = rows()
         val shown = if (onlyProblems) all.filter { it.hasProblem } else all
