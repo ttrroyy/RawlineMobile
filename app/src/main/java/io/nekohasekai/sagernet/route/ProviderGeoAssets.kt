@@ -4,6 +4,8 @@ import app.rawline.mobile.ktx.*
 import app.rawline.mobile.database.DataStore
 import app.rawline.mobile.bg.XrayGeoAssets
 import app.rawline.mobile.outbound.json.JsonObject
+import app.rawline.mobile.outbound.json.JsonArray
+import app.rawline.mobile.outbound.json.JsonInput
 import app.rawline.core.mobile.Mobile
 import java.io.File
 import java.security.MessageDigest
@@ -95,11 +97,11 @@ object ProviderGeoAssets {
 
     /** [config] without the routing rules and DNS servers that name a [kind] ("geosite" / "geoip") category. */
     internal fun withoutGeoRules(config: String, kind: String): String {
-        val root = app.rawline.mobile.outbound.json.JsonInput.parseObjectOrNull(config) ?: return config
+        val root = JsonInput.parseObjectOrNull(config) ?: return config
         val names = Regex("\"!?$kind:")
         fun drop(owner: JsonObject, key: String) {
             if (!owner.isArray(key)) return
-            val kept = app.rawline.mobile.outbound.json.JsonArray()
+            val kept = JsonArray()
             owner.array(key).forEach { if (!names.containsMatchIn(it.toString())) kept.add(it) }
             owner[key] = kept
         }

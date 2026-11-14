@@ -29,8 +29,8 @@ class SettingsFragment : ToolbarFragment(R.layout.layout_config_settings),
             // The home screen is still alive under this one: popping reveals it without building a new one (no flash).
             if (parentFragmentManager.backStackEntryCount > 0) {
                 parentFragmentManager.popBackStack()
-                main.navigation.menu.findItem(R.id.nav_mobile_home)?.isChecked = true
-            } else main.displayFragmentWithId(R.id.nav_mobile_home)
+                main.navigation.menu.findItem(main.homeId)?.isChecked = true
+            } else main.displayFragmentWithId(main.homeId)
         } else childFragmentManager.popBackStack()
     }
 
@@ -139,6 +139,7 @@ class SettingsFragment : ToolbarFragment(R.layout.layout_config_settings),
         if (MobilePalette.light) {
             toolbar.navigationIcon?.setTint(ContextCompat.getColor(requireContext(), R.color.black))
         }
+        if (!nested) useDrawerIcon(toolbar)
     }
 
 }

@@ -85,9 +85,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var amoledTheme by configurationStore.boolean(Key.AMOLED_THEME)
     var appLanguage by configurationStore.string(Key.APP_LANGUAGE) { "" }
     var mobileConnectedAt by configurationStore.long("mobile_connected_at")
-    var seasonalDecoration by configurationStore.string("seasonal_decoration") { "auto" }
-    var seasonalAuto151Migrated by configurationStore.boolean("seasonal_auto_151_migrated")
-    var seasonalAuto153Migrated by configurationStore.boolean("seasonal_auto_153_migrated")
     var testDefaults262Migrated by configurationStore.boolean("test_defaults_262_migrated")
     var mobilePinnedGroups by configurationStore.string("mobile_pinned_groups") { "" }
     var mobilePinnedProfiles by configurationStore.string("mobile_pinned_profiles") { "" }

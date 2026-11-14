@@ -22,7 +22,6 @@ import app.rawline.mobile.bg.CoreRuntime
 import app.rawline.mobile.bg.SagerConnection
 import app.rawline.mobile.bg.autoselector.AutoSelectorRuntime
 import app.rawline.mobile.database.DataStore
-import app.rawline.mobile.ui.SeasonalPolicy
 import app.rawline.mobile.database.SettingsMapper
 import app.rawline.mobile.group.RemoteRouteUpdater
 import app.rawline.mobile.group.SubscriptionScheduler
@@ -97,14 +96,6 @@ class SagerNet : Application(),
                 DataStore.useSystemTheme = false
                 DataStore.configurationStore.putBoolean("mobile_gray_300_color_migrated", true)
             }
-            if(!DataStore.seasonalAuto151Migrated) {
-                DataStore.seasonalDecoration=SeasonalPolicy.migratedChoice(DataStore.seasonalDecoration,false)
-                DataStore.seasonalAuto151Migrated=true
-            }
-            if(!DataStore.seasonalAuto153Migrated) {
-                DataStore.seasonalDecoration=SeasonalPolicy.migratedChoice(DataStore.seasonalDecoration,false)
-                DataStore.seasonalAuto153Migrated=true
-            }
             // 2.6.2 sets the test defaults once: 32 profiles at a time, 5 s for a ping and for a speed test.
             if(!DataStore.testDefaults262Migrated) {
                 DataStore.testConcurrent=32
@@ -112,8 +103,6 @@ class SagerNet : Application(),
                 DataStore.speedTestTimeoutMs=5000
                 DataStore.testDefaults262Migrated=true
             }
-            val retainedDecoration=SeasonalPolicy.retainedChoice(DataStore.seasonalDecoration)
-            if(retainedDecoration!=DataStore.seasonalDecoration) DataStore.seasonalDecoration=retainedDecoration
             Theme.apply(this)
             Theme.applyNightTheme()
             AppLocale.apply()

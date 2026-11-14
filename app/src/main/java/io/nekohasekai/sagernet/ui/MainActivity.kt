@@ -121,8 +121,10 @@ class MainActivity : ThemedActivity(),
         }
         navigation.setNavigationItemSelectedListener(this)
         binding.drawerLayout.closeDrawers()
-        binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
-        navigation.visibility = View.GONE
+        // The classic style is the side menu, the group tabs and the connect button; the new style has its own home screen.
+        binding.drawerLayout.setDrawerLockMode(if (classic) DrawerLayout.LOCK_MODE_UNLOCKED else DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+        navigation.visibility = if (classic) View.VISIBLE else View.GONE
+        navigation.menu.findItem(R.id.nav_faq)?.isVisible = false
         supportFragmentManager.addOnBackStackChangedListener {
             currentMainFragment = supportFragmentManager.findFragmentById(R.id.fragment_holder) as? ToolbarFragment
         }
@@ -144,11 +146,12 @@ class MainActivity : ThemedActivity(),
             }
         })
 
-        if (savedInstanceState == null) {
-            displayFragmentWithId(R.id.nav_mobile_home)
+        val restored = supportFragmentManager.findFragmentById(R.id.fragment_holder)
+        // A style change recreates the screen: the other style's home gives way to this one's.
+        if (savedInstanceState == null || (restored is MobileHomeFragment || restored is ConfigurationFragment) && !isHome(restored)) {
+            displayFragmentWithId(homeId)
         } else {
-            currentMainFragment =
-                supportFragmentManager.findFragmentById(R.id.fragment_holder) as? ToolbarFragment
+            currentMainFragment = restored as? ToolbarFragment
         }
         onBackPressedDispatcher.addCallback {
             val settings = supportFragmentManager.findFragmentById(R.id.fragment_holder) as? SettingsFragment
@@ -156,10 +159,12 @@ class MainActivity : ThemedActivity(),
                 settings.childFragmentManager.popBackStack()
             } else if(supportFragmentManager.backStackEntryCount>0) {
                 supportFragmentManager.popBackStack()
-            } else if (supportFragmentManager.findFragmentById(R.id.fragment_holder) is MobileHomeFragment) {
+            } else if (binding.drawerLayout.isDrawerOpen(androidx.core.view.GravityCompat.START)) {
+                binding.drawerLayout.closeDrawers()
+            } else if (isHome(supportFragmentManager.findFragmentById(R.id.fragment_holder))) {
                 moveTaskToBack(true)
             } else {
-                displayFragmentWithId(R.id.nav_mobile_home)
+                displayFragmentWithId(homeId)
             }
         }
 
@@ -294,7 +299,7 @@ class MainActivity : ThemedActivity(),
         val scheme = uri.scheme?.lowercase()
         if (scheme == "content" || scheme == "file") return openFile(uri)
         val link = uri.toString()
-        if (SubscribeFlows.subscribeLink(link) != null) displayFragmentWithId(R.id.nav_mobile_home)
+        if (SubscribeFlows.subscribeLink(link) != null) displayFragmentWithId(homeId)
         if (scheme == "happ" || scheme == "incy" || scheme == "http" || scheme == "https" || scheme == "clash" || (scheme == "rawline" || scheme == "throne") && !uri.host.equals("add", ignoreCase = true)) {
             SubscribeFlows.importText(this, link)
         } else {
@@ -358,7 +363,7 @@ class MainActivity : ThemedActivity(),
             MobileAlertDialogBuilder(this@MainActivity).setTitle(R.string.profile_import)
                 .setMessage(getString(R.string.profile_import_message, profile.displayName()))
                 .setPositiveButton(R.string.yes) { _, _ ->
-                    displayFragmentWithId(R.id.nav_mobile_home)
+                    displayFragmentWithId(homeId)
                     SubscribeFlows.importText(this@MainActivity, link)
                 }
                 .setNegativeButton(android.R.string.cancel, null)
@@ -374,8 +379,30 @@ class MainActivity : ThemedActivity(),
     }
 
 
+    private val classic get() = !MobileStyle.new
+    val homeId get() = if (classic) R.id.nav_configuration else R.id.nav_mobile_home
+    private fun isHome(fragment: Any?) = if (classic) fragment is ConfigurationFragment else fragment is MobileHomeFragment
+
+    /** The screens of the side menu (classic style): each replaces the last, and back from them leads to the groups. */
+    fun isDrawerScreen(fragment: Any?) = classic && (fragment is ConfigurationFragment || fragment is GroupFragment || fragment is RouteFragment ||
+        fragment is SettingsFragment || fragment is DashboardFragment || fragment is ToolsFragment || fragment is LogcatFragment ||
+        fragment is LiveGraphsFragment || fragment is AboutFragment)
+
     @SuppressLint("CommitTransaction")
     fun displayFragment(fragment: ToolbarFragment) {
+        if (classic) {
+            val top = isDrawerScreen(fragment)
+            if (top) supportFragmentManager.popBackStackImmediate(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
+            currentMainFragment = fragment
+            val transaction = supportFragmentManager.beginTransaction().setReorderingAllowed(true)
+                .setCustomAnimations(R.anim.settings_enter, R.anim.settings_exit, R.anim.settings_pop_enter, R.anim.settings_pop_exit)
+                .replace(R.id.fragment_holder, fragment)
+            if (!top) transaction.addToBackStack(null)
+            transaction.commitAllowingStateLoss()
+            binding.drawerLayout.closeDrawers()
+            syncMainControls(fragment, showWhenConnected = false, animate = true)
+            return
+        }
         if (fragment is MobileHomeFragment) {
             supportFragmentManager.popBackStackImmediate(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
         }
