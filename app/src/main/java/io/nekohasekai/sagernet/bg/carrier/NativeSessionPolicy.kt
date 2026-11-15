@@ -80,6 +80,7 @@ internal object NativeSessionPolicy {
             a.string("peer")==b.string("peer") && a.string("device_id")==b.string("device_id")
     }
     fun startupFailure(line:String):String? = when {
+        line.startsWith("Soar:") -> "Ошибка Soar: " + line.substringAfter("Soar:").trim()
         line.contains("[MRTT] FATAL_AUTH:") -> line.substringAfter("[MRTT] FATAL_AUTH:").trim()
         line.contains("[MRTT] FATAL_PROTOCOL:") -> line.substringAfter("[MRTT] FATAL_PROTOCOL:").trim()
         line.contains("FATAL_FREETURN:") -> "Ошибка FreeTurn: " + line.substringAfter("FATAL_FREETURN:").trim()

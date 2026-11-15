@@ -88,5 +88,6 @@ class NativeSessionPolicyTest {
         assertTrue(message.contains("привязку"))
         assertNotNull(NativeSessionPolicy.startupFailure("FATAL_PROTOCOL: other version"))
         assertNull(NativeSessionPolicy.startupFailure("[READY] worker is up"))
+        assertEquals("Ошибка Soar: soar: no usable resolvers", NativeSessionPolicy.startupFailure("Soar: soar: no usable resolvers"))
     }
 }

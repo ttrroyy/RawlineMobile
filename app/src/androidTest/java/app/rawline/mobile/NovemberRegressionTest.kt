@@ -2,27 +2,53 @@ package app.rawline.mobile
 
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
+import android.os.Build
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import app.rawline.mobile.bg.proto.CoreConfigs
+import app.rawline.mobile.bg.carrier.CarrierKind
+import app.rawline.mobile.bg.carrier.CarrierProcess
+import app.rawline.mobile.bg.carrier.CarrierBridgeCredentials
 import app.rawline.mobile.database.ProxyEntity
 import app.rawline.mobile.database.ProxyGroup
 import app.rawline.mobile.database.SagerDatabase
 import app.rawline.mobile.outbound.config.ProfileProvider
 import app.rawline.mobile.outbound.json.JsonObject
+import app.rawline.mobile.outbound.json.JsonInput
+import app.rawline.mobile.outbound.types.DnsTunnel
 import app.rawline.mobile.outbound.types.WireGuard
 import app.rawline.mobile.ui.MobileFeedback
 import app.rawline.mobile.ui.MobileReorder
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
+import kotlinx.coroutines.runBlocking
+import java.io.File
+import java.net.InetAddress
+import java.net.ServerSocket
 
 @RunWith(AndroidJUnit4::class)
 class NovemberRegressionTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
+
+    @Test fun soarStartsItsAuthenticatedBridgeWithoutContactingTheServer() = runBlocking {
+        val context = instrumentation.targetContext
+        val profile = DnsTunnel("soar")
+        assertTrue(profile.parseFromJson(JsonInput.parseObject("""{"type":"soar","domain":"v.test.invalid","pubkey":"JFHtVsmq5DauWWsc/PbXYS3xd5jCnstAPYEIEVKUC08=","resolvers":["127.0.0.1:9"],"soar":{"transport":"auto","discovery":false,"country":"","discoveryWant":2,"discoveryConcurrency":2,"discoveryPaceMs":1000,"safeQName":101,"maxQName":253,"maxAnswer":1232,"holdMs":500,"maxInflight":128,"maxPathWindow":32,"maxStreams":128,"streamWindowKiB":256,"sendBufferKiB":64,"sessionIdleSeconds":90,"dialTimeoutSeconds":90}}""")))
+        val port = ServerSocket(0, 1, InetAddress.getByName("127.0.0.1")).use { it.localPort }
+        val credentials = CarrierBridgeCredentials("bridge-test", "bridge-test-password")
+        val carrier = CarrierProcess.start(CarrierKind.SOAR, File(context.applicationInfo.nativeLibraryDir),
+            File(context.cacheDir, "soar-regression"), Build.VERSION.SDK_INT,
+            profile.privateConfig(port, port, credentials).toCompact(), port, credentials, allowInteractions = false)
+        try {
+            assertNull(carrier.recoveryFailure())
+        } finally {
+            carrier.close()
+        }
+    }
 
     @Test fun uniformAndIndividualCornersAcceptFeedbackWithoutCrashing() {
         instrumentation.runOnMainSync {
