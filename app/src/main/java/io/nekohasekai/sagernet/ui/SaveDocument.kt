@@ -49,7 +49,7 @@ class SaveDocument(private val mime: String) : ActivityResultContract<String, Ur
     }
 
     private fun fallback(context: Context, name: String): Pair<Uri, String>? {
-        if (Build.VERSION.SDK_INT >= 29) {
+        if (Build.VERSION.SDK_INT >= 29) runCatching {
             val folder = "${Environment.DIRECTORY_DOWNLOADS}/Rawline"
             val values = ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, name)
@@ -57,12 +57,12 @@ class SaveDocument(private val mime: String) : ActivityResultContract<String, Ur
                 put(MediaStore.MediaColumns.RELATIVE_PATH, folder)
             }
             val resolver = context.contentResolver
-            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values) ?: return null
+            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values) ?: return@runCatching null
             val stored = resolver.query(uri, arrayOf(MediaStore.MediaColumns.DISPLAY_NAME), null, null, null)
                 ?.use { if (it.moveToFirst()) it.getString(0) else null } ?: name
-            return uri to "$folder/$stored"
-        }
-        val dir = context.getExternalFilesDir(null) ?: return null
+            uri to "$folder/$stored"
+        }.onFailure { Logs.w(it) }.getOrNull()?.let { return it }
+        val dir = context.getExternalFilesDir(null) ?: context.filesDir
         val dot = name.lastIndexOf('.').takeIf { it > 0 } ?: name.length
         var file = File(dir, name)
         var index = 1

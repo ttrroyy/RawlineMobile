@@ -212,14 +212,12 @@ class MobileOrbArtwork(context: Context, private val idleText: String) : MobileP
         }
     }
 
-    /** "Subscription · server": the subscription muted and cut first, to at most 40 % of the line, then the server. */
+    /** One line when both names fit; otherwise each name gets the full width of its own line. */
     private fun serverLine(canvas: Canvas, cx: Float, y: Float, size: Float, wide: Float, ink: Int) {
         val text = android.text.TextPaint(paint).apply { textSize = size; textAlign = Paint.Align.LEFT; isFakeBoldText = false }
         val separator = if (groupText.isNotEmpty() && serverText.isNotEmpty()) "  ·  " else ""
         var group = groupText
         var server = serverText
-        if (text.measureText(group + separator + server) > wide && group.isNotEmpty())
-            group = android.text.TextUtils.ellipsize(group, text, minOf(text.measureText(group), wide * .4f), android.text.TextUtils.TruncateAt.END).toString()
         // Too long for one line: the subscription above the server, each centred, rather than both cut.
         val lines = if (group.isNotEmpty() && server.isNotEmpty() && text.measureText(group + separator + server) > wide) 2 else 1
         if (lines != serverLines) { serverLines = lines; linesChanged?.invoke(lines) }

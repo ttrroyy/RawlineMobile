@@ -11,6 +11,15 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class DnsRulesTest {
+    @Test fun pickerReplacesOnlyRuleSetsAndKeepsSitesAndUrls() {
+        val selected = listOf("geosite-category-ai-chat-!cn", "https://example.org/custom.srs", "geosite-category-ai-chat-!cn")
+        val sites = DnsRules.withRuleSets(listOf("full:example.com", "geosite:old", "rule-set:previous"), selected)
+        assertEquals(listOf("full:example.com", "rule-set:geosite-category-ai-chat-!cn", "rule-set:https://example.org/custom.srs"), sites)
+        assertEquals(selected.distinct(), DnsRules.parse(sites).ruleSets)
+        assertEquals("", DnsRule(sites = sites, server = "1.1.1.1").problem())
+        assertEquals(listOf("full:example.com"), DnsRules.withRuleSets(sites, emptyList()))
+    }
+
     private val twitch = DnsRule(sites = listOf("geosite:category-ai-chat-!cn", "domain:usher.ttvnw.net", "full:gql.twitch.tv",
         "keyword:openai", "regexp:^chat[0-9]+\\.example\\.org$", "example.com"), server = "https://dns.zapret.moe/dns-query")
 

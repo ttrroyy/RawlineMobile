@@ -126,6 +126,11 @@ class AppManagerActivity : ThemedActivity() {
         Filterable,
         FastScrollRecyclerView.SectionedAdapter {
         var filteredApps = apps
+        private val rowIds = HashMap<Pair<String, Boolean>, Long>()
+        init { setHasStableIds(true) }
+        override fun getItemId(position: Int): Long = filteredApps[position].let { app ->
+            rowIds.getOrPut(app.packageName to app.byName) { rowIds.size.toLong() }
+        }
 
         suspend fun reload() {
             // The listing package broadcasts keep current; a fresh query of every package only delayed the list.
@@ -349,6 +354,7 @@ class AppManagerActivity : ThemedActivity() {
         binding.showSystemApps.isChecked = sysApps
         binding.showSystemApps.setOnCheckedChangeListener { _, isChecked ->
             sysApps = isChecked
+            DataStore.configurationStore.putBoolean("apps_show_system", isChecked)
             refilter()
         }
 
@@ -356,7 +362,7 @@ class AppManagerActivity : ThemedActivity() {
         loadApps()
     }
 
-    private var sysApps = true
+    private var sysApps = DataStore.configurationStore.getBoolean("apps_show_system", true)
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.per_app_proxy_menu, menu)

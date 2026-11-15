@@ -35,7 +35,7 @@ object CoreConfigs {
         }
         override fun groupProxies(profileId: Long): Pair<Long, Long> = groupCache.getOrPut(profileId) {
             val groupId = SagerDatabase.proxyDao.getById(profileId)?.groupId ?: -1L
-            if (groupId > 0) groupProxies(groupId).let { it.first to it.second } else -1L to -1L
+            if (groupId > 0) CoreConfigs.groupProxies(groupId).let { it.first to it.second } else -1L to -1L
         }
     }
 
