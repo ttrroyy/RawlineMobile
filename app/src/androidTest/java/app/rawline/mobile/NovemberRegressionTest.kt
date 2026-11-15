@@ -37,7 +37,7 @@ class NovemberRegressionTest {
     @Test fun soarStartsItsAuthenticatedBridgeWithoutContactingTheServer() = runBlocking {
         val context = instrumentation.targetContext
         val profile = DnsTunnel("soar")
-        assertTrue(profile.parseFromJson(JsonInput.parseObject("""{"type":"soar","domain":"v.test.invalid","pubkey":"JFHtVsmq5DauWWsc/PbXYS3xd5jCnstAPYEIEVKUC08=","resolvers":["127.0.0.1:9"],"soar":{"transport":"auto","discovery":false,"country":"","discoveryWant":2,"discoveryConcurrency":2,"discoveryPaceMs":1000,"safeQName":101,"maxQName":253,"maxAnswer":1232,"holdMs":500,"maxInflight":128,"maxPathWindow":32,"maxStreams":128,"streamWindowKiB":256,"sendBufferKiB":64,"sessionIdleSeconds":90,"dialTimeoutSeconds":90}}""")))
+        assertTrue(profile.parseFromJson(JsonInput.parseObject("""{"type":"soar","domain":"v.test.invalid","pubkey":"JFHtVsmq5DauWWsc/PbXYS3xd5jCnstAPYEIEVKUC08","resolvers":["127.0.0.1:9"],"soar":{"transport":"auto","discovery":false,"country":"","discoveryWant":2,"discoveryConcurrency":2,"discoveryPaceMs":1000,"safeQName":101,"maxQName":253,"maxAnswer":1232,"holdMs":500,"maxInflight":128,"maxPathWindow":32,"maxStreams":128,"streamWindowKiB":256,"sendBufferKiB":64,"sessionIdleSeconds":90,"dialTimeoutSeconds":90}}""")))
         val port = ServerSocket(0, 1, InetAddress.getByName("127.0.0.1")).use { it.localPort }
         val credentials = CarrierBridgeCredentials("bridge-test", "bridge-test-password")
         val carrier = CarrierProcess.start(CarrierKind.SOAR, File(context.applicationInfo.nativeLibraryDir),

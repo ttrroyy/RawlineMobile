@@ -1,6 +1,5 @@
 package app.rawline.mobile
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Handler
@@ -25,7 +24,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
-/** Reproduces the 2,200-server collapsed subscription from the reported ANR without network traffic. */
+/** Keeps a 2,200-server subscription bounded and responsive without network traffic. */
 @RunWith(AndroidJUnit4::class)
 class LargeSubscriptionUiRegressionTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
@@ -54,8 +53,6 @@ class LargeSubscriptionUiRegressionTest {
     @Test fun focusedLargeSubscriptionKeepsTheUiBoundedAndResponsive() {
         val previousMode=DataStore.mobileListMode
         DataStore.mobileListMode="list"
-        val dashboard = context.getSharedPreferences("dashboard", Context.MODE_PRIVATE)
-        val previousCollapsed = dashboard.getStringSet("collapsedGroups", emptySet()).orEmpty().toSet()
         val group = ProxyGroup(name = "Large subscription regression", url = "https://example.invalid/subscription")
         group.id = SagerDatabase.groupDao.insert(group)
         val profiles = (1..2200).map { index ->
@@ -93,7 +90,6 @@ class LargeSubscriptionUiRegressionTest {
             DataStore.mobileListMode=previousMode
             GroupRepo.setCurrent(previousGroup)
             SagerDatabase.groupDao.deleteById(group.id)
-            dashboard.edit().putStringSet("collapsedGroups", previousCollapsed).commit()
         }
     }
 }

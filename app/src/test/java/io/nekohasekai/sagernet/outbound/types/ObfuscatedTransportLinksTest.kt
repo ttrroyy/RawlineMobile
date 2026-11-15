@@ -47,6 +47,8 @@ class ObfuscatedTransportLinksTest {
         val config = soar.privateConfig(1080, 1081, CarrierBridgeCredentials("user", "pass"))
         assertEquals("JFHtVsmq5DauWWsc/PbXYS3xd5jCnstAPYEIEVKUC08=", config.string("server_public_key"))
         assertEquals("IR", config.obj("soar").string("country"))
+        val unpadded = read("soar://" + b64(json.replace("VKUC08=", "VKUC08"))) as DnsTunnel
+        assertEquals(config.string("server_public_key"), unpadded.privateConfig(1080, 1081, CarrierBridgeCredentials("user", "pass")).string("server_public_key"))
         assertNull(read("soar://" + b64(json.replace("JFHtVsmq5DauWWsc/PbXYS3xd5jCnstAPYEIEVKUC08=", "short"))))
     }
 

@@ -410,7 +410,8 @@ class DnsTunnel(type:String="dnstt"):Outbound(type),NativeCarrier {
     override fun privateConfig(port:Int,udpPort:Int,credentials:CarrierBridgeCredentials)=data.copy().also {
         require(valid())
         it["type"]=type
-        if(type=="soar") it["server_public_key"]=data.string("pubkey")
+        // Import accepts unpadded base64, while Go's StdEncoding requires padding.
+        if(type=="soar") it["server_public_key"]=Base64Strict.encode(requireNotNull(Base64Strict.decode(data.string("pubkey").trim())))
         if(type=="cottendns") { it.remove("cotten");it["options"]=cottenOptions(data.obj("cotten")).merge(data.obj("options")) }
         // Links of these two rarely name resolvers and one network's DNS may refuse the tunnel: the scan keeps what answers.
         val public=if(type=="masterdns" || type=="cottendns") PUBLIC_RESOLVERS else emptyList()
