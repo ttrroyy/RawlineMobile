@@ -37,7 +37,8 @@ object MobileFeedback {
             when {
                 circle || (own is GradientDrawable && own.shape==GradientDrawable.OVAL) -> shape=GradientDrawable.OVAL
                 own is MobileGlass -> cornerRadius=own.radius
-                own is GradientDrawable && android.os.Build.VERSION.SDK_INT>=24 -> own.cornerRadii?.let { cornerRadii=it } ?: run { cornerRadius=own.cornerRadius }
+                // Android 7–10 can throw instead of returning null for a uniform corner radius.
+                own is GradientDrawable && android.os.Build.VERSION.SDK_INT>=24 -> runCatching { own.cornerRadii }.getOrNull()?.let { cornerRadii=it } ?: run { cornerRadius=own.cornerRadius }
                 else -> cornerRadius=radius*view.resources.displayMetrics.density
             }
         }

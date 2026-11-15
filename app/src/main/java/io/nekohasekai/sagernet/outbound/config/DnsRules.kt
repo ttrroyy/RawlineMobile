@@ -59,6 +59,10 @@ object DnsRules {
     fun lines(text: String): List<String> =
         text.split('\n', ',').map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }
 
+    fun withRuleSets(sites: List<String>, selected: List<String>): List<String> =
+        sites.filterNot { it.substringBefore(':').lowercase() in setOf("geosite", "rule-set") } +
+            selected.distinct().map { "rule-set:$it" }
+
     class Match {
         val domains = ArrayList<String>()
         val suffixes = ArrayList<String>()
@@ -83,6 +87,7 @@ object DnsRules {
                 "keyword" -> match.keywords += value
                 "regexp", "regex" -> match.regexes += value
                 "geosite" -> match.ruleSets += "geosite-" + value.lowercase()
+                "rule-set" -> match.ruleSets += value
                 // `domain:` and a bare name both take the subdomains, as v2ray reads them.
                 else -> match.suffixes += value.removePrefix(".").lowercase()
             }
@@ -105,5 +110,5 @@ object DnsRules {
         return null
     }
 
-    private val KINDS = setOf("", "domain", "full", "keyword", "regexp", "regex", "geosite")
+    private val KINDS = setOf("", "domain", "full", "keyword", "regexp", "regex", "geosite", "rule-set")
 }

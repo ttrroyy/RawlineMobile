@@ -21,7 +21,7 @@ internal object DnsRulesEditor {
         else context.getString(R.string.dns_rules_summary, rules.size, rules.count { it.enabled })
     }
 
-    fun show(context: Context, changed: () -> Unit) {
+    fun show(context: Context, pickRuleSets: (List<String>, (List<String>) -> Unit) -> Unit, changed: () -> Unit) {
         val ui = ServerUi(context)
         val dialog = MobileSheetDialog(context)
         val body = ui.column(16)
@@ -35,10 +35,10 @@ internal object DnsRulesEditor {
                 val title = if (rule.sites.size > 2) context.getString(R.string.dns_rules_more, shown, rule.sites.size - 2) else shown
                 val subtitle = listOfNotNull(rule.server, context.getString(if (rule.direct) R.string.dns_rules_direct else R.string.dns_rules_via_proxy),
                     context.getString(R.string.dns_rules_off).takeIf { !rule.enabled }).joinToString(" · ")
-                body.addView(ui.tile(title, subtitle, R.drawable.ic_action_dns) { edit(context, index) { render(); changed() } },
+                body.addView(ui.tile(title, subtitle, R.drawable.ic_action_dns) { edit(context, index, pickRuleSets) { render(); changed() } },
                     LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(8) })
             }
-            body.addView(ui.tile(context.getString(R.string.dns_rules_add), null, R.drawable.ic_mobile_add) { edit(context, null) { render(); changed() } },
+            body.addView(ui.tile(context.getString(R.string.dns_rules_add), null, R.drawable.ic_mobile_add) { edit(context, null, pickRuleSets) { render(); changed() } },
                 LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(8) })
         }
         render()
@@ -46,7 +46,7 @@ internal object DnsRulesEditor {
         dialog.show()
     }
 
-    private fun edit(context: Context, index: Int?, saved: () -> Unit) {
+    private fun edit(context: Context, index: Int?, pickRuleSets: (List<String>, (List<String>) -> Unit) -> Unit, saved: () -> Unit) {
         val ui = ServerUi(context)
         val rules = DnsRules.decode(DataStore.dnsRules).toMutableList()
         val rule = index?.let(rules::getOrNull) ?: DnsRule()
@@ -55,6 +55,12 @@ internal object DnsRulesEditor {
         body.addView(ui.text(context.getString(if (index == null) R.string.dns_rules_new else R.string.dns_rules_rule), 19f, bold = true))
         val sites = ui.field(body, context.getString(R.string.dns_rules_sites), rule.sites.joinToString("\n"), multiline = true)
         body.addView(ui.text(context.getString(R.string.dns_rules_sites_help), 13f, MobilePalette.muted).apply { setPadding(ui.dp(4), ui.dp(4), 0, 0) })
+        body.addView(ui.tile(context.getString(R.string.rule_set_picker_title), null, R.drawable.ic_action_dns) {
+            pickRuleSets(DnsRules.parse(DnsRules.lines(sites.text.toString())).ruleSets) { selected ->
+                val original = DnsRules.lines(sites.text.toString())
+                sites.setText(DnsRules.withRuleSets(original, selected).joinToString("\n"))
+            }
+        }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(8) })
         val server = ui.field(body, context.getString(R.string.dns_rules_server), rule.server)
         val direct = ui.switchRow(body, context.getString(R.string.dns_rules_direct_switch), rule.direct)
         val enabled = ui.switchRow(body, context.getString(R.string.dns_rules_enabled), rule.enabled)

@@ -152,6 +152,12 @@ object MobileFocusRing {
     private fun enterList(list: android.view.ViewGroup) {
         fun enter(): Boolean {
             if (!list.isFocused) return true
+            if (list is androidx.recyclerview.widget.RecyclerView) {
+                val layout = list.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager
+                val position = layout?.findFirstCompletelyVisibleItemPosition()?.takeIf { it >= 0 }
+                    ?: layout?.findFirstVisibleItemPosition() ?: -1
+                if (position >= 0 && layout?.findViewByPosition(position)?.requestFocus() == true) return true
+            }
             val found = ArrayList<android.view.View>()
             list.addFocusables(found, android.view.View.FOCUS_DOWN)
             return found.firstOrNull { it !== list }?.requestFocus() == true

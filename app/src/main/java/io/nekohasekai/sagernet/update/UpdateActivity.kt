@@ -20,6 +20,7 @@ import app.rawline.mobile.database.DataStore
 import app.rawline.mobile.databinding.LayoutUpdateBinding
 import app.rawline.mobile.ktx.launchCustomTab
 import app.rawline.mobile.ui.ThemedActivity
+import app.rawline.mobile.ui.MobilePalette
 import app.rawline.mobile.update.UpdateManager.State
 import kotlinx.coroutines.launch
 
@@ -53,6 +54,10 @@ class UpdateActivity : ThemedActivity() {
         theme.applyStyle(R.style.ThemeOverlay_SagerNet_Dialog_WrapHeight, true)
         binding = LayoutUpdateBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.root.background = MobilePalette.rowShape(this)
+        listOf(binding.title, binding.message, binding.progressText).forEach { it.setTextColor(MobilePalette.text) }
+        binding.currentVersion.setTextColor(MobilePalette.muted)
+        listOf(binding.neutral, binding.negative, binding.positive).forEach { it.setTextColor(MobilePalette.accent(this)) }
         setFinishOnTouchOutside(false)
         if (savedInstanceState == null) {
             val state = UpdateManager.state.value
@@ -247,12 +252,6 @@ class UpdateActivity : ThemedActivity() {
         progressBar(progress)
         binding.title.text = title
         binding.message.text = message.orEmpty()
-        val width=(resources.displayMetrics.widthPixels*.8f - 48*resources.displayMetrics.density).toInt()
-        binding.message.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED))
-        binding.messageScroll.layoutParams=binding.messageScroll.layoutParams.apply {
-            height=binding.message.measuredHeight.coerceAtMost((resources.displayMetrics.heightPixels*.45f).toInt())
-            (this as? android.widget.LinearLayout.LayoutParams)?.weight=0f
-        }
         binding.messageScroll.visibility = if (message.isNullOrEmpty()) View.GONE else View.VISIBLE
     }
 
@@ -283,5 +282,21 @@ class UpdateActivity : ThemedActivity() {
         binding.neutral.bind(neutral)
         binding.negative.bind(negative)
         binding.positive.bind(positive)
+        binding.root.post {
+            if (isFinishing || isDestroyed || binding.messageScroll.visibility != View.VISIBLE) return@post
+            val width = binding.root.width.takeIf { it > 0 } ?: (resources.displayMetrics.widthPixels * .85f).toInt()
+            binding.messageScroll.layoutParams = binding.messageScroll.layoutParams.apply {
+                height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                (this as? android.widget.LinearLayout.LayoutParams)?.weight = 0f
+            }
+            binding.root.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+            val fixed = binding.root.measuredHeight - binding.messageScroll.measuredHeight
+            val visible = android.graphics.Rect().also { window.decorView.getWindowVisibleDisplayFrame(it) }.height()
+            val room = ((visible * .9f).toInt() - fixed).coerceAtLeast(0)
+            binding.messageScroll.layoutParams = binding.messageScroll.layoutParams.apply {
+                height = binding.message.measuredHeight.coerceAtMost(room)
+            }
+        }
     }
 }

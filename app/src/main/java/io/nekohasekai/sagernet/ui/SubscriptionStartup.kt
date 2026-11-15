@@ -27,8 +27,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 
 /** Retain in-flight startup actions across rotation; connect through the currently resumed activity. */
 internal object SubscriptionStartup {
@@ -63,7 +65,14 @@ class SubscriptionStartupViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val groups = withContext(Dispatchers.IO) { GroupRepo.all().filter { it.isSubscription && !it.archive } }
-                if (DataStore.subUpdateOnOpen) refreshAndWait(groups.filterNot { it.skipAutoUpdate })
+                if (DataStore.subUpdateOnOpen) {
+                    delay(5_000)
+                    val ready = withTimeoutOrNull(60_000) {
+                        while (DataStore.serviceState == app.rawline.mobile.bg.BaseService.State.Connecting) delay(250)
+                        true
+                    } ?: false
+                    if (ready) refreshAndWait(groups.filterNot { it.skipAutoUpdate })
+                }
                 if (DataStore.subPingOnOpen && !TestSessionClient.state.value.running) {
                     val ids = withContext(Dispatchers.IO) { groups.flatMap { ProfileManager.memberIds(it.id) } }
                     if (ids.isNotEmpty() && TestSessionClient.start(TestSpec(TestSpec.KIND_URL, ids.toLongArray()))) {

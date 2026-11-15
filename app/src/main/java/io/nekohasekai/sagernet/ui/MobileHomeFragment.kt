@@ -487,7 +487,7 @@ class MobileHomeFragment : ToolbarFragment() {
             val row=LinearLayout(requireContext()).apply {
                 orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER_VERTICAL;minimumHeight=dp(60);setPadding(dp(16),dp(8),dp(12),dp(8))
                 background=tile(group.id==current);isFocusable=true
-                addView(text(group.displayName(),15f).apply { setTypeface(typeface,Typeface.BOLD);setPadding(0,0,0,dp(2));maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END })
+                addView(text(group.displayName(),15f).apply { setTypeface(typeface,Typeface.BOLD);setPadding(0,0,0,dp(2));maxLines=3;ellipsize=android.text.TextUtils.TruncateAt.END })
                 addView(text(getString(if(group.isSubscription) R.string.subscription else R.string.group_basic),12f,muted).apply { setPadding(0,0,0,0) })
                 setOnClickListener { sheet.dismiss();selectGroup(group.id) }
                 MobileFeedback.apply(this)
@@ -705,7 +705,8 @@ class MobileHomeFragment : ToolbarFragment() {
         outState.putIntArray("groupScrollPositions",groupScrollPositions.values.toIntArray())
         super.onSaveInstanceState(outState)
     }
-    override fun onResume() { super.onResume(); refresh(); readNativeStatus() }
+    private var focusConnectOnRender = true
+    override fun onResume() { super.onResume(); focusConnectOnRender = true; refresh(); readNativeStatus() }
     override fun onPause() {
         activeProfileDrag?.cancel()
         groupReorder?.cancel();profileReorders.values.forEach { it.cancel() }
@@ -1281,7 +1282,7 @@ class MobileHomeFragment : ToolbarFragment() {
                 val heading = LinearLayout(requireContext()).apply { gravity=Gravity.CENTER_VERTICAL; setPadding(dp(12),0,0,0); isFocusable=true }
                 heading.addView(arrow,LinearLayout.LayoutParams(dp(20),dp(20)))
                 val names=LinearLayout(requireContext()).apply { orientation=LinearLayout.VERTICAL; setPadding(dp(10),dp(8),dp(4),dp(8)) }
-                names.addView(text(group.displayName(),17f).apply { setPadding(0,0,0,0); maxLines=1; ellipsize=android.text.TextUtils.TruncateAt.END })
+                names.addView(text(group.displayName(),17f).apply { setPadding(0,0,0,0); maxLines=3; ellipsize=android.text.TextUtils.TruncateAt.END })
                 if(group.isSubscription && group.subLastUpdate>0) names.addView(text(java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT,java.text.DateFormat.SHORT).format(java.util.Date(group.subLastUpdate*1000)),10f,muted).apply { setPadding(0,dp(3),0,0) })
                 heading.addView(names,LinearLayout.LayoutParams(0,-2,1f))
                 run {
@@ -1379,7 +1380,7 @@ class MobileHomeFragment : ToolbarFragment() {
                     val badge=flagBadge(displayName)
                     row.addView(badge,LinearLayout.LayoutParams(dp(28),dp(28)).apply { marginStart=dp(10) })
                     val labels = LinearLayout(requireContext()).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(10), dp(6), dp(6), dp(6)) }
-                    labels.addView(text(shownFlag?.let { displayName.removeRange(it.range).replace("  "," ").trim() } ?: displayName, 15f).apply { setTypeface(typeface,Typeface.BOLD); includeFontPadding=false; setPadding(0,0,0,dp(3)); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
+                    labels.addView(text(shownFlag?.let { displayName.removeRange(it.range).replace("  "," ").trim() } ?: displayName, 15f).apply { setTypeface(typeface,Typeface.BOLD); includeFontPadding=false; setPadding(0,0,0,dp(3)); maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END })
                     labels.addView(text(profile.displayProtocol(), 12f, muted).apply { includeFontPadding=false; setPadding(0,0,0,0); maxLines=1 })
                     row.addView(labels, LinearLayout.LayoutParams(0, -2, 1f))
                     val pinnedServer=profile.id in pinnedProfileIds
@@ -1478,6 +1479,10 @@ class MobileHomeFragment : ToolbarFragment() {
             updateState()
             // Commit only a completed render: a cancelled page build must be retried.
             renderedStructure=structure
+            if (focusConnectOnRender && resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_TYPE_MASK == android.content.res.Configuration.UI_MODE_TYPE_TELEVISION) {
+                focusConnectOnRender=false
+                power?.takeIf { it.isClickable }?.post { power?.requestFocus() }
+            }
             completed=true
             } finally {
                 if(!completed) { renderedStructure=null;if(!reordering) chromeKey=null }
@@ -1613,6 +1618,10 @@ class MobileHomeFragment : ToolbarFragment() {
             val previous=holder.contentDescription?.toString()
             if(previous==marker) return@forEach
             holder.contentDescription=marker
+            holder.layoutParams=holder.layoutParams.apply {
+                width=if(busy) dp(28) else if(label.isEmpty()) 0 else
+                    (android.text.TextPaint().apply { textSize=12f*resources.displayMetrics.scaledDensity }.measureText(label)+dp(8)).toInt().coerceAtMost(dp(90))
+            }
             holder.removeAllViews()
             if(busy) holder.addView(ProgressBar(requireContext()).apply {
                 indeterminateTintList=android.content.res.ColorStateList.valueOf(blue)

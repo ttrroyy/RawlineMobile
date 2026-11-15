@@ -25,13 +25,22 @@ import moe.matsuri.nb4a.ui.EditConfigPreference
 
 /** Routing Settings › DNS: the simple settings, predefined answers and the custom DNS object. */
 class DnsSettingsFragment : SettingsScreenFragment(R.xml.settings_dns) {
+    private var pickedRuleSets: ((List<String>) -> Unit)? = null
+    private val ruleSetPicker = registerForActivityResult(app.rawline.mobile.ui.route.RuleSetPickerActivity.Contract()) { entries ->
+        val callback = pickedRuleSets
+        pickedRuleSets = null
+        if (entries != null) callback?.invoke(entries)
+    }
 
     override fun bind() {
         pref<Preference>("dnsRules").apply {
             title = getString(R.string.dns_rules_title)
             summary = DnsRulesEditor.summary(requireContext())
             setOnPreferenceClickListener {
-                DnsRulesEditor.show(requireContext()) { summary = DnsRulesEditor.summary(requireContext()); needReload() }
+                DnsRulesEditor.show(requireContext(), { selected, result ->
+                    pickedRuleSets = result
+                    ruleSetPicker.launch(selected)
+                }) { summary = DnsRulesEditor.summary(requireContext()); needReload() }
                 true
             }
         }
