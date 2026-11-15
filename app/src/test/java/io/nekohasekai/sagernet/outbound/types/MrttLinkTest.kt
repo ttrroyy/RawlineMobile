@@ -45,6 +45,11 @@ class MrttLinkTest {
         assertEquals(162.coerceAtMost(126)/9*9,Mrtt.normalizeWorkers(200,6,true))
         assertEquals(9,Mrtt.normalizeWorkers(1,1,false))
         assertEquals(18,Mrtt.normalizeWorkers(20,6,false))
+        for (hashes in 0..8) for (automatic in listOf(false,true)) {
+            assertTrue(Mrtt.maxWorkers(hashes,automatic) <= Mrtt.MAX_WORKERS)
+            assertTrue(Mrtt.normalizeWorkers(999,hashes,automatic) <= Mrtt.MAX_WORKERS)
+        }
+        assertEquals(126,Mrtt.normalizeWorkers(162,6,false))
     }
     @Test fun subscriptionTakesOnlyValidLinks() {
         val sub = Mrtt.SUBSCRIPTION_SCHEME+Mrtt.encrypt(jsonObjectOf("v" to 1,"name" to "S","links" to app.rawline.mobile.outbound.json.JsonArray.of(
