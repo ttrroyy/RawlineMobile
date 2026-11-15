@@ -112,7 +112,8 @@ package=packages[0]; activity=package+'/app.rawline.mobile.ui.MainActivity'
 (out/'tested-package.txt').write_text(shell('dumpsys','package',package))
 # Only this disposable CI emulator's application data is reset.
 shell('pm','clear',package)
-shell('pm','grant',package,'android.permission.POST_NOTIFICATIONS')
+if int(shell('getprop','ro.build.version.sdk').strip()) >= 33:
+    shell('pm','grant',package,'android.permission.POST_NOTIFICATIONS')
 # Match the full UI fixture preparation when this block runs independently.
 shell('dumpsys','deviceidle','whitelist','+'+package)
 # The power button continuously pulses while connected. UIAutomator's idle

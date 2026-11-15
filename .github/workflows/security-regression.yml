@@ -10,6 +10,10 @@ permissions:
   actions: read
 jobs:
   regression:
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [29, 35]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -34,8 +38,8 @@ jobs:
           export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
           mkdir -p "$ANDROID_AVD_HOME"
           SDK="$ANDROID_HOME/cmdline-tools/latest/bin"
-          "$SDK/sdkmanager" 'system-images;android-35;google_apis;x86_64' 'emulator' 'platform-tools' >/dev/null
-          "$SDK/avdmanager" create avd -n security-test -k 'system-images;android-35;google_apis;x86_64' --device pixel_6 --force
+          "$SDK/sdkmanager" 'system-images;android-${{ matrix.api }};google_apis;x86_64' 'emulator' 'platform-tools' >/dev/null
+          "$SDK/avdmanager" create avd -n security-test -k 'system-images;android-${{ matrix.api }};google_apis;x86_64' --device pixel_6 --force
           sudo chmod a+rw /dev/kvm
           "$ANDROID_HOME/emulator/emulator" -avd security-test -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
           ADB="$ANDROID_HOME/platform-tools/adb"
@@ -49,7 +53,7 @@ jobs:
           "$ADB" install -r "$(find tested-apk -name '*x86_64*.apk' -print -quit)"
           "$ADB" install -r "$(find test-apk -name '*.apk' -print -quit)"
           PACKAGE=$("$ADB" shell pm list packages | sed -n 's/^package:\(app.rawline.mobile[^[:space:]]*\)/\1/p' | grep -v '\.test$' | tr -d '\r')
-          "$ADB" shell pm grant "$PACKAGE" android.permission.POST_NOTIFICATIONS
+          if test '${{ matrix.api }}' -ge 33; then "$ADB" shell pm grant "$PACKAGE" android.permission.POST_NOTIFICATIONS; fi
           "$ADB" shell dumpsys deviceidle whitelist +"$PACKAGE"
           "$ADB" shell settings put global window_animation_scale 0
           "$ADB" shell settings put global transition_animation_scale 0
@@ -79,5 +83,5 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: Android-security-results
+          name: Android-security-results-api${{ matrix.api }}
           path: security-results/
