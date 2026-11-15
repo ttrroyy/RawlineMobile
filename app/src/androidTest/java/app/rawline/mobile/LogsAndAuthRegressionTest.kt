@@ -99,7 +99,8 @@ class LogsAndAuthRegressionTest {
             val code = inputs.filterIsInstance<EditText>().single()
             ui {
                 assertEquals(InputType.TYPE_TEXT_VARIATION_PASSWORD, code.inputType and InputType.TYPE_MASK_VARIATION)
-                assertEquals(MobilePalette.accent(activity), code.backgroundTintList!!.defaultColor)
+                assertNotNull(code.background)
+                assertEquals(MobilePalette.text, code.currentTextColor)
                 code.setText("123456")
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
             }

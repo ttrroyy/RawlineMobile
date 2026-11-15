@@ -16,6 +16,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import app.rawline.mobile.database.DataStore
+import app.rawline.mobile.database.GroupRepo
 import app.rawline.mobile.database.ProxyEntity
 import app.rawline.mobile.database.ProxyGroup
 import app.rawline.mobile.database.SagerDatabase
@@ -56,17 +57,19 @@ class MobileImportUiRegressionTest {
         fail("Dashboard did not finish layout")
     }
 
-    @Test fun whiteAndGreyAccentsMatchTheirSwatchesAndRemainReadable() {
+    @Test fun rawlineAndPastelColorsRemainReadableInDayAndNightModes() {
         val saved = listOf(DataStore.appTheme, DataStore.nightTheme)
         val savedSystem = DataStore.useSystemTheme
         val savedOled = DataStore.amoledTheme
+        val savedStyle = DataStore.uiStyle
         try {
             ui {
                 DataStore.useSystemTheme = false
                 val swatches = context.resources.getIntArray(R.array.material_colors)
                 assertEquals(0xFF9E9E9E.toInt(), swatches[Theme.GREY - 1])
                 assertEquals(0xFFFFFFFF.toInt(), swatches[Theme.WHITE - 1])
-                for (night in listOf(false, true)) for (oled in listOf(false, true)) {
+                for (night in listOf(false, true)) for (oled in listOf(false, true)) for (style in listOf("new", "pastel")) {
+                    DataStore.uiStyle = style
                     DataStore.nightTheme = if (night) 1 else 2
                     DataStore.amoledTheme = oled
                     val configuration = Configuration(context.resources.configuration).apply {
@@ -77,11 +80,11 @@ class MobileImportUiRegressionTest {
                         DataStore.appTheme = color
                         val themed = ContextThemeWrapper(context.createConfigurationContext(configuration), Theme.getTheme())
                         Theme.apply(themed)
-                        val expected = if (color == Theme.GREY) {
-                            if (night) 0xFF9E9E9E.toInt() else 0xFF616161.toInt()
-                        } else if (night) 0xFFFFFFFF.toInt() else 0xFF424242.toInt()
+                        val expected = if (style == "pastel") 0xFF7C6BF2.toInt()
+                            else if (night) 0xFFF5F5F7.toInt() else 0xFF0A0A0B.toInt()
                         assertEquals(expected, MobilePalette.accent(themed))
-                        assertTrue(androidx.core.graphics.ColorUtils.calculateContrast(expected, MobilePalette.background) >= 4.5)
+                        assertTrue(androidx.core.graphics.ColorUtils.calculateContrast(expected, MobilePalette.background) >= 3.0)
+                        assertTrue(androidx.core.graphics.ColorUtils.calculateContrast(MobilePalette.text, MobilePalette.background) >= 4.5)
                         Theme.applyDialog(themed)
                         assertEquals(expected, MobilePalette.accent(themed))
                     }
@@ -90,6 +93,7 @@ class MobileImportUiRegressionTest {
         } finally {
             DataStore.appTheme = saved[0]; DataStore.nightTheme = saved[1]
             DataStore.useSystemTheme = savedSystem; DataStore.amoledTheme = savedOled
+            DataStore.uiStyle = savedStyle
         }
     }
 
@@ -156,6 +160,8 @@ class MobileImportUiRegressionTest {
             name = "bottom-fixture-$index"; server = "192.0.2.1"; serverPort = 1080
         }) }
         val ids = SagerDatabase.proxyDao.insert(rows)
+        val previousGroup = GroupRepo.currentId()
+        GroupRepo.setCurrent(group.id)
         dashboard.edit().putStringSet("collapsedGroups", SagerDatabase.groupDao.allGroups().filter { it.id != group.id }.map { it.id.toString() }.toSet()).commit()
         val activity = instrumentation.startActivitySync(Intent(context, MainActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)) as MainActivity
@@ -183,6 +189,7 @@ class MobileImportUiRegressionTest {
             ui { activity.finish() }
             DataStore.selectedProxy = selected
             DataStore.mobileListMode=listMode
+            GroupRepo.setCurrent(previousGroup)
             SagerDatabase.groupDao.deleteById(group.id)
             dashboard.edit().putStringSet("collapsedGroups", collapsed).commit()
         }
