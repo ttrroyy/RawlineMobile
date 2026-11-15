@@ -2,7 +2,7 @@
 
 <img src="docs/screenshots/icon.png" width="128" alt="Rawline">
 
-# RawlineMobile (бывший qThroneMobile)
+# RawlineMobile
 
 **Android-клиент на ядрах sing-box и Xray**
 
