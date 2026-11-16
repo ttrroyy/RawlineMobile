@@ -222,6 +222,18 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var enableTunRouting by SettingsRegistry.ENABLE_TUN_ROUTING
     var blockUnownedTun by SettingsRegistry.BLOCK_UNOWNED_TUN
     var blockUnownedTunStrict by SettingsRegistry.BLOCK_UNOWNED_TUN_STRICT
+
+    internal const val TUN_PROTECTION_MODES_MIGRATED = "tun_protection_modes_v1_migrated"
+    fun migrateTunProtectionModes() {
+        if (configurationStore.getBoolean(TUN_PROTECTION_MODES_MIGRATED, false)) return
+        // Commit the defaults and marker together, so a later launch never resets the user's choice.
+        configurationStore.putAll(mapOf(
+            SettingsRegistry.BLOCK_UNOWNED_TUN.key to SettingsRegistry.BLOCK_UNOWNED_TUN.encode(true),
+            SettingsRegistry.BLOCK_UNOWNED_TUN_STRICT.key to SettingsRegistry.BLOCK_UNOWNED_TUN_STRICT.encode(false),
+            TUN_PROTECTION_MODES_MIGRATED to "true",
+        ))
+    }
+
     var blockQuic by SettingsRegistry.BLOCK_QUIC
     var sniffRouteOnly by SettingsRegistry.SNIFF_ROUTE_ONLY
     var httpProxyAuth by SettingsRegistry.HTTP_PROXY_AUTH

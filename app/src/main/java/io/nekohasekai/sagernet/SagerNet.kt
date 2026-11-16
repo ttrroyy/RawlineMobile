@@ -86,6 +86,7 @@ class SagerNet : Application(),
         }
 
         if (isMainProcess) {
+            DataStore.migrateTunProtectionModes()
             if (!DataStore.configurationStore.getBoolean("mobile_gray_300_color_migrated", false)) {
                 DataStore.appTheme = app.rawline.mobile.utils.Theme.GREY
                 DataStore.useSystemTheme = false

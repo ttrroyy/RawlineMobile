@@ -49,6 +49,35 @@ import java.net.ServerSocket
 class NovemberRegressionTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
 
+    @Test fun tunProtectionUpgradeRunsOnceAndThenPreservesUserChoices() {
+        val store = DataStore.configurationStore
+        val mainKey = "block_unowned_tun"
+        val strictKey = "block_unowned_tun_strict"
+        val marker = DataStore.TUN_PROTECTION_MODES_MIGRATED
+        val original = listOf(mainKey, strictKey, marker).associateWith(store::getRaw)
+        try {
+            store.remove(marker)
+            store.putBoolean(mainKey, false)
+            store.putBoolean(strictKey, true)
+            DataStore.migrateTunProtectionModes()
+            assertTrue(DataStore.blockUnownedTun)
+            assertFalse(DataStore.blockUnownedTunStrict)
+            assertTrue(store.getBoolean(marker, false))
+            // A fresh store reads the persisted upgrade, then saves a choice made after it.
+            val reopened = app.rawline.mobile.database.preference.SettingsStore({ SagerDatabase.instance },
+                app.rawline.mobile.database.SettingsRegistry::defaultOf)
+            assertTrue(reopened.getBoolean(mainKey, false))
+            assertFalse(reopened.getBoolean(strictKey, true))
+            reopened.putBoolean(mainKey, false)
+            reopened.putBoolean(strictKey, true)
+            DataStore.migrateTunProtectionModes()
+            assertFalse("A later startup overwrote the chosen main mode", DataStore.blockUnownedTun)
+            assertTrue("A later startup overwrote the chosen strict mode", DataStore.blockUnownedTunStrict)
+        } finally {
+            original.forEach { (key, value) -> if (value == null) store.remove(key) else store.putAll(mapOf(key to value)) }
+        }
+    }
+
     @Test fun strictTunSwitchTracksTheParentAcrossRawlinePalettes() {
         val context = instrumentation.targetContext
         val store = DataStore.configurationStore
