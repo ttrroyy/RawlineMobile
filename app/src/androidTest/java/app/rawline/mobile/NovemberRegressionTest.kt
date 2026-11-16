@@ -49,6 +49,32 @@ import java.net.ServerSocket
 class NovemberRegressionTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
 
+    @Test fun wdttLinksImportThroughTheBackgroundServiceWithVpnStopped() = runBlocking {
+        val previousSelected = DataStore.selectedProxy
+        val previousGroup = GroupRepo.currentId()
+        val group = ProxyGroup(name = "WDTT import regression")
+        group.id = SagerDatabase.groupDao.insert(group)
+        val hash = "abcDEF123_-xyz789"
+        try {
+            assertFalse("Fixture requires stopped VPN", DataStore.serviceState.canStop)
+            for (link in listOf(
+                "wdtt://192.0.2.5:56000:56001:0:fixture:$hash#Legacy",
+                "wdtt://connect?v=1&host=192.0.2.6&dtls=56000&wg=56001&password=fixture&hashes=$hash&name=Connect",
+                "qwdtt://config?peer=192.0.2.7%3A56000&pass=fixture&hashes=$hash&name=Qwdtt",
+            )) {
+                val imported = app.rawline.mobile.group.SubscriptionClient.importText(link, group.id)
+                assertEquals("Background import did not store the WDTT profile", 1, imported.count)
+                assertFalse("Import started the VPN", DataStore.serviceState.canStop)
+            }
+            assertEquals(3, SagerDatabase.proxyDao.getByGroup(group.id).size)
+        } finally {
+            SagerDatabase.proxyDao.getByGroup(group.id).forEach { SagerDatabase.proxyDao.deleteById(it.id) }
+            SagerDatabase.groupDao.deleteById(group.id)
+            GroupRepo.setCurrent(previousGroup)
+            DataStore.selectedProxy = previousSelected
+        }
+    }
+
     @Test fun tunProtectionUpgradeRunsOnceAndThenPreservesUserChoices() {
         val store = DataStore.configurationStore
         val mainKey = "block_unowned_tun"
@@ -238,6 +264,8 @@ class NovemberRegressionTest {
                         if(hidden) assertTrue("Relocated add button hidden in $style / $night",
                             descendants(activity.window.decorView).any { it.contentDescription == context.getString(R.string.qmobile_add) && it.isShown && it.getGlobalVisibleRect(Rect()) })
                     }
+                    instrumentation.waitForIdleSync()
+                    SystemClock.sleep(500)
                     val screenshot = requireNotNull(instrumentation.uiAutomation.takeScreenshot())
                     try { File(context.filesDir, "home-$style-$night${if(hidden) "-hidden" else ""}.png").outputStream().use { screenshot.compress(Bitmap.CompressFormat.PNG, 100, it) } }
                     finally { screenshot.recycle() }
