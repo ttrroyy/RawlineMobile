@@ -80,7 +80,9 @@ jobs:
             case "$file" in home-*.png) "$ADB" exec-out run-as "$PACKAGE" cat "files/$file" > "security-results/$file";; esac
           done
       - name: Short VPN and unauthorized command check
-        run: python3 scripts/smoke_vpn_short.py
+        run: |
+          python3 scripts/test_smoke_vpn_network.py
+          python3 scripts/smoke_vpn_short.py
       - name: Collect diagnostics
         if: always()
         run: |

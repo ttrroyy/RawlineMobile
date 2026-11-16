@@ -12,6 +12,10 @@ probe_gate = threading.Event()
 probe_gate.set()
 def shell(*args):
     return subprocess.check_output([adb, 'shell', *args], text=True)
+def has_vpn_network(state):
+    # Android 10 includes the underlying link (WIFI|VPN), newer dumps may say only VPN.
+    return bool(re.search(r'\bTRANSPORT_VPN\b|\bTransports:\s*(?:[A-Z0-9_]+[| ]+)*VPN\b', state))
+
 def normalize_labels(value):
     tree=ET.fromstring(value)
     for node in tree.iter('node'):
@@ -168,7 +172,7 @@ for cycle in range(2):
     wait_for('Connect or disconnect VPN, Connected')
     assert 'Check current connection' in xml(), 'Current connection ping did not reset after reconnect'
     state=shell('dumpsys','connectivity')
-    assert 'TRANSPORT_VPN' in state or 'Transports: VPN' in state, 'No Android VPN network'
+    assert has_vpn_network(state), 'No Android VPN network'
     # A different Android UID must not obtain an unauthenticated local SOCKS path.
     subprocess.check_call([adb,'forward','tcp:18880','tcp:2080'])
     reply=b''

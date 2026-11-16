@@ -17,7 +17,7 @@ for _ in range(30):
     time.sleep(1)
 wait_for('Connect or disconnect VPN, Connected')
 state = shell('dumpsys', 'connectivity')
-assert 'TRANSPORT_VPN' in state or 'Transports: VPN' in state
+assert has_vpn_network(state)
 previous = len(hits)
 tap('Check current connection')
 for _ in range(20):
@@ -30,7 +30,7 @@ else:
 shell('am', 'start', '-n', package + '/app.rawline.mobile.ui.QuickDisableShortcut')
 time.sleep(2)
 state = shell('dumpsys', 'connectivity')
-assert 'TRANSPORT_VPN' in state or 'Transports: VPN' in state
+assert has_vpn_network(state)
 assert 'VPN control' in xml(), 'Unsigned command did not require confirmation'
 tap('Cancel')
 wait_for('Connect or disconnect VPN, Connected')
