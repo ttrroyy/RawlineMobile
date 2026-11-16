@@ -140,7 +140,13 @@ tap('VPN-smoke')
 for cycle in range(2):
     tap('Connect or disconnect VPN, Not connected')
     time.sleep(2)
-    if 'Connection request' in xml(): tap('OK')
+    for _ in range(30):
+        screen = xml()
+        if 'Connection request' in screen:
+            tap('OK')
+        elif 'Connect or disconnect VPN, Connected' in screen:
+            break
+        time.sleep(1)
     wait_for('Connect or disconnect VPN, Connected')
     assert 'Check current connection' in xml(), 'Current connection ping did not reset after reconnect'
     state=shell('dumpsys','connectivity')
