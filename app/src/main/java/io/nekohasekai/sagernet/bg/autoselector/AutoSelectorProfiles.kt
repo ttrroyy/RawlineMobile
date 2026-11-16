@@ -77,7 +77,7 @@ object AutoSelectorProfiles {
     /** profile_start (mainwindow_profile_lifecycle.cpp:206-221): the plan succeeds and wants measurements first. */
     fun needsRanking(id: Long): Boolean {
         val selector = load(id) ?: return false
-        if (!selector.prioritized() && !selector.balance && !selector.passive) return false
+        if (!selector.prioritized() && !selector.balance) return false
         val plan = AutoSelectorPlanner(SettingsMapper.selectorStore()).plan(id, selector)
         return plan.ok && plan.needsRanking
     }
