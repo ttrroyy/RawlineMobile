@@ -125,6 +125,12 @@ def prepare(folder):
 
 prepare(root)
 
+# This shared bridge also contains desktop MRTT entry points; Android keeps its existing private-FD adapter.
+adapter = (Path(__file__).resolve().parents[1] / "carriers/mrtt/mrtt_io_mobile.go").read_text(encoding="utf-8")
+adapter = replace_once(adapter, 'csqttTunnelDial(network.DialContext, dns), c.SOCKSUser, c.SOCKSPass)',
+                       'csqttTunnelDial(network.DialContext, dns), nil, c.SOCKSUser, c.SOCKSPass)')
+(root / "mrtt_io_android.go").write_text('//go:build android\n\n' + adapter, encoding="utf-8", newline="\n")
+
 # The current desktop bridge already understands auto_js, unified obfuscation and negotiated workers.
 p = root / "csqtt_bridge.go"
 s = p.read_text(encoding="utf-8")

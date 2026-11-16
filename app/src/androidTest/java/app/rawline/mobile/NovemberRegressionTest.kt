@@ -32,6 +32,7 @@ import app.rawline.mobile.utils.Theme
 import app.rawline.mobile.ui.MobileFeedback
 import app.rawline.mobile.ui.MobileReorder
 import app.rawline.mobile.ui.MobileSubscriptionSwipe
+import app.rawline.mobile.ui.MobileHomeLayout
 import app.rawline.mobile.bg.carrier.CarrierUiRequests
 import android.view.MotionEvent
 import android.os.SystemClock
@@ -47,6 +48,17 @@ import java.net.ServerSocket
 @RunWith(AndroidJUnit4::class)
 class NovemberRegressionTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
+
+    @Test fun bundledQwdttClientSupports145DiagnosticsWithoutConnecting() {
+        val path = File(instrumentation.targetContext.applicationInfo.nativeLibraryDir,"libqwdtt.so")
+        val child = ProcessBuilder(path.absolutePath,"-h").redirectErrorStream(true).start()
+        try {
+            val output = child.inputStream.bufferedReader().readText()
+            assertTrue(child.waitFor(5,java.util.concurrent.TimeUnit.SECONDS))
+            assertEquals(0,child.exitValue())
+            for (flag in listOf("-diag-key","-diag-ports","-dns-fallback","-turn-transport")) assertTrue("Missing qWDTT 1.4.5 flag $flag",output.contains(flag))
+        } finally { child.destroy() }
+    }
 
     @Test fun subscriptionDragWorksSlowlyInBothDirectionsAndIgnoresCancel() {
         instrumentation.runOnMainSync {
@@ -94,6 +106,7 @@ class NovemberRegressionTest {
         val context = instrumentation.targetContext
         val previousStyle = DataStore.uiStyle
         val previousNight = DataStore.nightTheme
+        val previousHiddenChip = MobileHomeLayout.chipHidden
         val previousGroup = GroupRepo.currentId()
         val group = ProxyGroup(name = "Theme regression")
         group.id = SagerDatabase.groupDao.insert(group)
@@ -104,7 +117,8 @@ class NovemberRegressionTest {
         fun descendants(view: View): List<View> = listOf(view) + if (view is ViewGroup)
             (0 until view.childCount).flatMap { descendants(view.getChildAt(it)) } else emptyList()
         try {
-            for (style in listOf("new", "pastel")) for (night in listOf(1, 2)) {
+            for (style in listOf("new", "pastel")) for (night in listOf(1, 2)) for (hidden in listOf(false,true)) {
+                MobileHomeLayout.chipHidden = hidden
                 DataStore.uiStyle = style
                 DataStore.nightTheme = night
                 GroupRepo.setCurrent(group.id)
@@ -124,9 +138,11 @@ class NovemberRegressionTest {
                     instrumentation.runOnMainSync {
                         val settings = descendants(activity.window.decorView).first { it.contentDescription == context.getString(R.string.qmobile_settings) }
                         assertTrue("Settings hidden in $style / $night", settings.getGlobalVisibleRect(Rect()))
+                        if(hidden) assertTrue("Relocated add button hidden in $style / $night",
+                            descendants(activity.window.decorView).any { it.contentDescription == context.getString(R.string.qmobile_add) && it.isShown && it.getGlobalVisibleRect(Rect()) })
                     }
                     val screenshot = requireNotNull(instrumentation.uiAutomation.takeScreenshot())
-                    try { File(context.filesDir, "home-$style-$night.png").outputStream().use { screenshot.compress(Bitmap.CompressFormat.PNG, 100, it) } }
+                    try { File(context.filesDir, "home-$style-$night${if(hidden) "-hidden" else ""}.png").outputStream().use { screenshot.compress(Bitmap.CompressFormat.PNG, 100, it) } }
                     finally { screenshot.recycle() }
                 } finally {
                     instrumentation.runOnMainSync { activity.finish() }
@@ -135,6 +151,7 @@ class NovemberRegressionTest {
         } finally {
             DataStore.uiStyle = previousStyle
             DataStore.nightTheme = previousNight
+            MobileHomeLayout.chipHidden = previousHiddenChip
             GroupRepo.setCurrent(previousGroup)
             instrumentation.runOnMainSync { Theme.applyNightTheme() }
             SagerDatabase.proxyDao.deleteById(profile.id)

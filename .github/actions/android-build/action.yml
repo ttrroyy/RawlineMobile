@@ -42,7 +42,7 @@ runs:
       uses: actions/cache@v6
       with:
         path: deployment/qwdtt145
-        key: qwdtt145-${{ hashFiles('nb4a.properties', 'scripts/build_qwdtt145.sh', 'scripts/prepare_qwdtt145.py', 'scripts/prepare_csqtt_compat_bridge.py', 'core-patches/carrier-socks/qwdtt/*.go') }}
+        key: qwdtt145-${{ hashFiles('nb4a.properties', 'scripts/build_qwdtt145.sh', 'scripts/prepare_qwdtt145.py', 'scripts/prepare_csqtt_compat_bridge.py', 'core-patches/carrier-socks/qwdtt/*.go', 'carriers/mrtt/mrtt_io_mobile.go') }}
     - name: Build qWDTT 1.4.5 clients from pinned source
       if: steps.qwdtt-cache.outputs.cache-hit != 'true'
       shell: bash
