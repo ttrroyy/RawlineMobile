@@ -122,6 +122,7 @@ object SettingsMapper {
             enableTunRouting = DataStore.enableTunRouting,
             // The owner of a tunnel connection can only be asked from Android 10.
             blockUnownedTun = DataStore.blockUnownedTun && android.os.Build.VERSION.SDK_INT >= 29,
+            blockUnownedTunStrict = DataStore.blockUnownedTunStrict,
             blockQuic = DataStore.blockQuic,
             sniffRouteOnly = DataStore.sniffRouteOnly,
             httpProxyAuth = DataStore.httpProxyAuth,

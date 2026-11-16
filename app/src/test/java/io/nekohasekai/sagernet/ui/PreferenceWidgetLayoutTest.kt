@@ -24,6 +24,22 @@ class PreferenceWidgetLayoutTest {
             .any { it.getAttribute("name") == "android:windowIsTranslucent" && it.textContent == "true" })
     }
 
+    @Test fun strictTunProtectionFollowsItsParentOnBothSettingsLayouts() {
+        val app = "http://schemas.android.com/apk/res-auto"
+        for (layout in listOf("settings_tun.xml", "settings_tun_combined.xml")) {
+            val document = DocumentBuilderFactory.newInstance().apply { isNamespaceAware = true }
+                .newDocumentBuilder().parse(File("src/main/res/xml/$layout"))
+            val elements = document.getElementsByTagName("*")
+            val switches = (0 until elements.length).map { elements.item(it) as Element }
+            val parent = switches.single { it.getAttributeNS(app, "key") == "block_unowned_tun" }
+            val strict = switches.single { it.getAttributeNS(app, "key") == "block_unowned_tun_strict" }
+            org.junit.Assert.assertEquals("true", parent.getAttributeNS(app, "defaultValue"))
+            org.junit.Assert.assertEquals("false", strict.getAttributeNS(app, "defaultValue"))
+            org.junit.Assert.assertEquals("block_unowned_tun", strict.getAttributeNS(app, "dependency"))
+            assertTrue("Strict switch must be immediately below its parent", switches.indexOf(strict) == switches.indexOf(parent) + 1)
+        }
+    }
+
     @Test fun widgetContainerIsVisibleWhenAndroidXInflatesASwitch() {
         val android = "http://schemas.android.com/apk/res/android"
         val document = DocumentBuilderFactory.newInstance().apply { isNamespaceAware = true }

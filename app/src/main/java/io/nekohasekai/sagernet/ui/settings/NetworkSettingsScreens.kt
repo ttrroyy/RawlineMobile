@@ -182,7 +182,7 @@ open class TunSettingsFragment : InboundSettingsFragment(R.xml.settings_tun_comb
         LanSharingSettings.bind(this)
         reloadOn(
             SettingsRegistry.VPN_MTU.key, SettingsRegistry.VPN_IPV6.key,
-            SettingsRegistry.ENABLE_TUN_ROUTING.key, SettingsRegistry.BLOCK_UNOWNED_TUN.key, SettingsRegistry.BLOCK_QUIC.key,
+            SettingsRegistry.ENABLE_TUN_ROUTING.key, SettingsRegistry.BLOCK_UNOWNED_TUN.key, SettingsRegistry.BLOCK_UNOWNED_TUN_STRICT.key, SettingsRegistry.BLOCK_QUIC.key,
             SettingsRegistry.SNIFF_ROUTE_ONLY.key, SettingsRegistry.HTTP_PROXY_AUTH.key,
         )
         val mtu = pref<MTUPreference>(SettingsRegistry.VPN_MTU.key)

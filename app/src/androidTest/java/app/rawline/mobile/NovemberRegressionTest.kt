@@ -49,6 +49,65 @@ import java.net.ServerSocket
 class NovemberRegressionTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
 
+    @Test fun strictTunSwitchTracksTheParentAcrossRawlinePalettes() {
+        val context = instrumentation.targetContext
+        val store = DataStore.configurationStore
+        val mainKey = "block_unowned_tun"
+        val strictKey = "block_unowned_tun_strict"
+        val original = mapOf(mainKey to store.getRaw(mainKey), strictKey to store.getRaw(strictKey))
+        val previousStyle = DataStore.uiStyle
+        val previousNight = DataStore.nightTheme
+        fun screens(fragments: List<androidx.fragment.app.Fragment>): List<androidx.preference.PreferenceFragmentCompat> =
+            fragments.flatMap { listOfNotNull(it as? androidx.preference.PreferenceFragmentCompat) + screens(it.childFragmentManager.fragments) }
+        try {
+            for (style in listOf("new", "pastel")) for (night in listOf(1, 2)) {
+                store.remove(mainKey); store.remove(strictKey)
+                assertTrue("Fresh settings must enable base protection", DataStore.blockUnownedTun)
+                assertFalse("Fresh settings must leave strict protection off", DataStore.blockUnownedTunStrict)
+                DataStore.uiStyle = style; DataStore.nightTheme = night
+                instrumentation.runOnMainSync { Theme.applyNightTheme() }
+                val activity = instrumentation.startActivitySync(Intent(context, MainActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)) as MainActivity
+                try {
+                    instrumentation.runOnMainSync {
+                        activity.openSettingsScreen(app.rawline.mobile.ui.settings.TunSettingsFragment::class.java.name, "TUN")
+                    }
+                    var screen: androidx.preference.PreferenceFragmentCompat? = null
+                    val deadline = System.currentTimeMillis() + 15_000
+                    while (screen == null && System.currentTimeMillis() < deadline) {
+                        instrumentation.runOnMainSync {
+                            screen = screens(activity.supportFragmentManager.fragments).firstOrNull {
+                                it.isResumed && it.findPreference<androidx.preference.SwitchPreference>(strictKey) != null
+                            }
+                        }
+                        if (screen == null) Thread.sleep(50)
+                    }
+                    assertNotNull("TUN settings did not open", screen)
+                    instrumentation.runOnMainSync {
+                        val parent = requireNotNull(screen!!.findPreference<androidx.preference.SwitchPreference>(mainKey))
+                        val strict = requireNotNull(screen!!.findPreference<androidx.preference.SwitchPreference>(strictKey))
+                        assertTrue(parent.isChecked)
+                        assertFalse(strict.isChecked)
+                        assertTrue(strict.isEnabled)
+                        strict.isChecked = true
+                        parent.isChecked = false
+                        assertFalse("Strict option remained enabled without its parent", strict.isEnabled)
+                        assertTrue("Disabling the parent must retain the strict choice", strict.isChecked)
+                        assertFalse(DataStore.blockUnownedTun)
+                        parent.isChecked = true
+                        assertTrue(strict.isEnabled)
+                        assertTrue(strict.isChecked)
+                        assertTrue(DataStore.blockUnownedTunStrict)
+                    }
+                } finally { instrumentation.runOnMainSync { activity.finish() } }
+            }
+        } finally {
+            original.forEach { (key, value) -> if (value == null) store.remove(key) else store.putAll(mapOf(key to value)) }
+            DataStore.uiStyle = previousStyle; DataStore.nightTheme = previousNight
+            instrumentation.runOnMainSync { Theme.applyNightTheme() }
+        }
+    }
+
     @Test fun bundledQwdttClientSupports145DiagnosticsWithoutConnecting() {
         val path = File(instrumentation.targetContext.applicationInfo.nativeLibraryDir,"libqwdtt.so")
         val child = ProcessBuilder(path.absolutePath,"-h").redirectErrorStream(true).start()

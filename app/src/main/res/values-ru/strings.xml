@@ -685,7 +685,9 @@
     <string name="enable_tls">Включить TLS</string>
     <string name="enable_tun_routing">Маршрутизация TUN</string>
     <string name="block_unowned_tun">Скрывать туннель от приложений вне VPN</string>
-    <string name="block_unowned_tun_sum">Приложения вне VPN не смогут слать трафик через tun0 и узнать адрес сервера. Раздача через VPN Hotspot работает в режиме маскарадинга «Нет». Если на телефоне пропал интернет, выключите.</string>
+    <string name="block_unowned_tun_sum">Блокировать TCP-трафик без владельца с адреса туннеля. UDP/QUIC, ICMP и пересылаемый трафик клиентов исключены. Для VPN Hotspot используйте маскарадинг «Нет». Если TCP перестал работать, выключите защиту.</string>
+    <string name="block_unowned_tun_strict">Также защищать UDP/QUIC, ICMP и раздачу VPN</string>
+    <string name="block_unowned_tun_strict_sum">Проверять владельца также для UDP/QUIC, ICMP и пересылаемого VPN-трафика. Может нарушить работу ping, UDP-соединений и VPN Hotspot. Не действует при выключенной основной защите.</string>
     <string name="enable_tun_routing_sum">Оставлять прямые IP-правила маршрутизирующего профиля вне tun</string>
     <string name="block_quic">Блокировать QUIC</string>
     <string name="block_quic_sum">Отклонять QUIC (UDP 443), идущий через прокси: браузер сразу переходит на TCP. Прямой трафик не затрагивается</string>

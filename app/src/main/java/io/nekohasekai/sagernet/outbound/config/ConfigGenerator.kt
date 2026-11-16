@@ -1268,19 +1268,24 @@ class ConfigGenerator @JvmOverloads constructor(
         for (i in state.xrayToSingBridges.indices) {
             rules.add(jsonObjectOf("inbound" to bridgeTagFor(state.singIngressTags[i]), "action" to "route", "outbound" to state.singIngressTags[i]))
         }
-        // SO_BINDTODEVICE lets an app outside the VPN send through tun0 and read the server's address; Android reports
-        // no owner for its socket. System services have a UID but no package, hence the second condition.
-        // Such a socket can only send from tun0's own address, so forwarded traffic (VPN Hotspot without masquerade)
-        // keeps its clients' addresses and passes. UDP owners are remembered per flow (UdpOwnerCache); ICMP never has one.
-        if (settings.blockUnownedTun && settings.vpnMode && !state.forTest) rules.add(jsonObjectOf(
-            "type" to "logical", "mode" to "and", "action" to "reject",
-            "rules" to JsonArray.of(
-                jsonObjectOf("inbound" to JsonArray.of(Tags.TUN_IN), "source_ip_cidr" to JsonArray.of(
-                    settings.tunIPv4Cidr.substringBefore('/') + "/32", settings.tunIPv6Cidr.substringBefore('/') + "/128")),
-                jsonObjectOf("package_name_regex" to JsonArray.of(".*"), "invert" to true),
-                jsonObjectOf("user_id" to JsonArray.of(0, 1000, 1001, 1002, 1010, 1016, 1020, 1021, 1036, 1051, 1052, 1073, 1076, 2000, 9999), "invert" to true),
-            ),
-        ))
+        // SO_BINDTODEVICE can inject ownerless traffic from the tunnel's own address. Basic protection leaves
+        // UDP/ICMP and forwarded client addresses alone; strict protection also checks these ownerless flows.
+        if (settings.blockUnownedTun && settings.vpnMode && !state.forTest) {
+            val traffic = jsonObjectOf("inbound" to JsonArray.of(Tags.TUN_IN))
+            if (!settings.blockUnownedTunStrict) {
+                traffic["network"] = "tcp"
+                traffic["source_ip_cidr"] = JsonArray.of(
+                    settings.tunIPv4Cidr.substringBefore('/') + "/32", settings.tunIPv6Cidr.substringBefore('/') + "/128")
+            }
+            rules.add(jsonObjectOf(
+                "type" to "logical", "mode" to "and", "action" to "reject",
+                "rules" to JsonArray.of(
+                    traffic,
+                    jsonObjectOf("package_name_regex" to JsonArray.of(".*"), "invert" to true),
+                    jsonObjectOf("user_id" to JsonArray.of(0, 1000, 1001, 1002, 1010, 1016, 1020, 1021, 1036, 1051, 1052, 1073, 1076, 2000, 9999), "invert" to true),
+                ),
+            ))
+        }
         rules.add(jsonObjectOf("action" to "sniff").also { if (!settings.sniffRouteOnly) it["override_destination"] = true })
         if (settings.resolveDomainStrategy.isNotEmpty()) {
             rules.add(jsonObjectOf("inbound" to JsonArray.of(Tags.MIXED_IN, "http-in", Tags.TUN_IN), "action" to "resolve", "strategy" to settings.resolveDomainStrategy))

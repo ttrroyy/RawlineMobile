@@ -584,7 +584,9 @@
     <string name="vpn_ipv6_sum">Give the tun an IPv6 address and route IPv6 through it</string>
     <string name="enable_tun_routing">Tun routing</string>
     <string name="block_unowned_tun">Hide the tunnel from apps outside the VPN</string>
-    <string name="block_unowned_tun_sum">Apps outside the VPN cannot send traffic through tun0 to learn the server address. Hotspot sharing works with masquerading set to None. If the internet stops on your phone, turn it off.</string>
+    <string name="block_unowned_tun_sum">Block ownerless TCP traffic sent from the tunnel address. UDP/QUIC, ICMP and forwarded client traffic are excluded. Use VPN Hotspot with masquerading set to None. If TCP stops working, turn this off.</string>
+    <string name="block_unowned_tun_strict">Also protect UDP/QUIC, ICMP and VPN sharing</string>
+    <string name="block_unowned_tun_strict_sum">Extend owner checks to UDP/QUIC, ICMP and forwarded VPN traffic. This can interrupt ping, UDP connections and VPN Hotspot. Has no effect while the main protection is off.</string>
     <string name="enable_tun_routing_sum">Keep the direct IP rules of the route profile outside the tun</string>
     <string name="block_quic">Block QUIC</string>
     <string name="block_quic_sum">Refuse QUIC (UDP 443) sent through a proxy so browsers switch to TCP at once. Direct traffic is not affected</string>

@@ -187,8 +187,8 @@ object SettingsRegistry {
         ranges.all { SettingValidators.isPrivateRange(it) }
     }
     @JvmField val ENABLE_TUN_ROUTING = bool("enable_tun_routing", false)
-    // Off by default, as the original has no such guard: VPN Hotspot and other forwarding have no owner and broke.
-    @JvmField val BLOCK_UNOWNED_TUN = bool("block_unowned_tun", false)
+    @JvmField val BLOCK_UNOWNED_TUN = bool("block_unowned_tun", true)
+    @JvmField val BLOCK_UNOWNED_TUN_STRICT = bool("block_unowned_tun_strict", false)
     @JvmField val BLOCK_QUIC = bool("block_quic", true)
     /** The sniffed domain only picks the route (on), or also replaces the IP the server is asked for (off), as Xray's routeOnly. */
     @JvmField val SNIFF_ROUTE_ONLY = bool("sniff_route_only", true)

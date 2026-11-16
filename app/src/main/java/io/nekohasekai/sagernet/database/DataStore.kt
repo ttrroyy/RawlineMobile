@@ -221,6 +221,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var vpnPrivateRanges by SettingsRegistry.VPN_PRIVATE_RANGES
     var enableTunRouting by SettingsRegistry.ENABLE_TUN_ROUTING
     var blockUnownedTun by SettingsRegistry.BLOCK_UNOWNED_TUN
+    var blockUnownedTunStrict by SettingsRegistry.BLOCK_UNOWNED_TUN_STRICT
     var blockQuic by SettingsRegistry.BLOCK_QUIC
     var sniffRouteOnly by SettingsRegistry.SNIFF_ROUTE_ONLY
     var httpProxyAuth by SettingsRegistry.HTTP_PROXY_AUTH
