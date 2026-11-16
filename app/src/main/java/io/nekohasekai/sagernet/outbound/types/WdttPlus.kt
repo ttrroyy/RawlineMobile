@@ -120,7 +120,7 @@ class WdttPlus : Qwdtt() {
 
     /** The link WDTT Plus shares: wdtt://connect?v=1, as its TransferCodec builds it. */
     override fun exportToLink(): String {
-        if (legacy) return "wdtt://$server:$serverPort:$wgPort:$localPort:$password:" + hashes.joinToString(",") +
+        if (legacy) return "wdtt://$server:$serverPort:$wgPort:$localPort:" + LinkCodec.percentEncodeAll(password) + ":" + hashes.joinToString(",") +
             if (name.isNotBlank()) "#" + LinkCodec.percentEncodeAll(name) else ""
         val url = LinkBuilder("wdtt"); url.host = "connect"; url.plusAsEscape = true
         url.addQueryItem("v", "1"); url.addQueryItem("host", server); url.addQueryItem("dtls", serverPort.toString())

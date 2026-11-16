@@ -7,6 +7,16 @@ import org.junit.Test
 class WdttPlusLinkTest {
     private val hash = "abcDEF123_-xyz789"
 
+    @Test fun legacyLinkEscapesPasswordDelimitersWithoutChangingThePassword() {
+        val profile = WdttPlus().apply {
+            assertTrue(parseFromLink("wdtt://192.0.2.5:56000:56001:9000:fixture:$hash"))
+            password = "пароль:#%2B +"
+        }
+        val restored = WdttPlus().apply { assertTrue(parseFromLink(profile.exportToLink())) }
+        assertEquals(profile.password, restored.password)
+        assertEquals(profile.hashes, restored.hashes)
+    }
+
     @Test fun connectLinksBecomeWdttPlusProfiles() {
         val result = ProfileImport.parse("wdtt://connect?v=1&host=192.0.2.5&dtls=56000&wg=56001&local=9000&password=p%40ss&hashes=$hash&name=Home&max_workers=36")
         val profile = result.outbounds.single() as WdttPlus
