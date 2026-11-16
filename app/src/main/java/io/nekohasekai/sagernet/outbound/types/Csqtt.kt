@@ -12,7 +12,6 @@ class Csqtt:Qwdtt() {
     var srtpMode = "auto"
     var fingerprint = "firefox"
     var clientIds = "8202606,6287487"
-    var customTurnIps = ""
     /** The client the server speaks: "2.5.0" (2.5.0 and newer) or "2.1.9", the original device-bound protocol. */
     var version = "2.5.0"
     init { type="csqtt";serverPort=46000;workers=10;turnTcp=false;obfs="unified" }

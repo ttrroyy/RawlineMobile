@@ -1293,7 +1293,7 @@ class MobileHomeFragment : ToolbarFragment() {
                     }
                 }
                 title.addView(heading,LinearLayout.LayoutParams(0,-2,1f))
-                if (MobileHomeLayout.chipHidden) title.addView(headerIcon(R.drawable.ic_mobile_add,getString(R.string.qmobile_add)) { addMenu(it) },LinearLayout.LayoutParams(dp(40),dp(48)))
+                if (MobileHomeLayout.chipHidden) title.addView(iconAction(R.drawable.ic_mobile_add,getString(R.string.qmobile_add)) { addMenu(title) },LinearLayout.LayoutParams(dp(40),dp(48)))
                 if (group.isSubscription) title.addView(iconAction(R.drawable.ic_mobile_refresh,getString(R.string.qmobile_refresh)) { SubscriptionClient.refreshGroup(group.id,false) }.apply { isEnabled=!SubscriptionClient.states.value.containsKey(group.id); alpha=1f;nextRefreshButtons[group.id]=this },LinearLayout.LayoutParams(dp(40),dp(48)))
                 title.addView(iconAction(R.drawable.ic_mobile_test,getString(R.string.qmobile_tests)) { testMenu(profiles.map { it.id }.toLongArray(),group.displayName(),group.id,true) },LinearLayout.LayoutParams(dp(40),dp(48)))
                 lateinit var more: ImageButton

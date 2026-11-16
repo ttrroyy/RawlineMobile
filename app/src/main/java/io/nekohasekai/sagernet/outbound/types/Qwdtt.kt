@@ -72,7 +72,7 @@ open class Qwdtt : Outbound("qwdtt"), app.rawline.mobile.bg.carrier.NativeCarrie
         workers=if(obj.contains("workers")) obj.int("workers") else if(obj.contains("workersPerHash")) obj.int("workersPerHash") else 9
         workers=workers.coerceIn(9,(if(hashSource == "auto") MAX_HASHES else hashes.size.coerceIn(1,MAX_HASHES))*27)/9*9
         turnTcp=if(obj.contains("turn_tcp")) obj.bool("turn_tcp") else true
-        if(obj.contains("turn_transport")) {
+        if(carrierKind==CarrierKind.QWDTT && obj.contains("turn_transport")) {
             turnTcp=when(obj.string("turn_transport").trim().lowercase()) { "tcp","tls" -> true;"udp" -> false;else -> return false }
         }
         obfs=obj.string("obfs").ifEmpty { "audio" }

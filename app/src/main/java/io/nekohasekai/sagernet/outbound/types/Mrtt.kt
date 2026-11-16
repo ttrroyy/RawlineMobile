@@ -28,7 +28,6 @@ class Mrtt:Qwdtt() {
     var srtpMode="auto"
     var fingerprint="firefox"
     var clientIds="8202606,6287487"
-    var customTurnIps=""
     var mtu=1280
     init { type="mrtt";serverPort=46000;workers=18;turnTcp=false;obfs="unified" }
     override fun displayType()="MRTT ("+when(transport) { "max" -> "MAX";"jitsi" -> "Jitsi";else -> "VK" }+")"
