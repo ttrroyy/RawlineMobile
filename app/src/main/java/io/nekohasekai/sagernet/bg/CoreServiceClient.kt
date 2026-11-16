@@ -8,21 +8,26 @@ import android.os.IBinder
 import app.rawline.mobile.aidl.ICoreService
 import app.rawline.mobile.ktx.app
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeout
 
 // Main-process client of the :bg CoreService; each call binds for its own duration.
 object CoreServiceClient {
 
-    private class Connection : ServiceConnection, IBinder.DeathRecipient {
+    private class Connection : ServiceConnection {
         val service = CompletableDeferred<ICoreService>()
 
         override fun onServiceConnected(name: ComponentName?, binder: IBinder) {
-            runCatching { binder.linkToDeath(this, 0) }
             service.complete(ICoreService.Stub.asInterface(binder))
         }
 
         override fun onServiceDisconnected(name: ComponentName?) = died()
 
-        override fun binderDied() = died()
+        override fun onBindingDied(name: ComponentName?) = died()
+
+        override fun onNullBinding(name: ComponentName?) {
+            service.completeExceptionally(IllegalStateException("core service returned no binder"))
+        }
 
         private fun died() {
             service.completeExceptionally(IllegalStateException("core service died"))
@@ -30,19 +35,21 @@ object CoreServiceClient {
     }
 
     private suspend fun <T> withService(block: suspend (ICoreService) -> T): T {
-        val connection = Connection()
-        val bound = app.bindService(
-            Intent(app, CoreService::class.java), connection, Context.BIND_AUTO_CREATE
-        )
-        if (!bound) {
-            runCatching { app.unbindService(connection) }
-            error("cannot bind core service")
+        repeat(3) { attempt ->
+            val connection = Connection()
+            try {
+                if (app.bindService(Intent(app, CoreService::class.java), connection, Context.BIND_AUTO_CREATE)) {
+                    val service = withTimeout(15_000) { connection.service.await() }
+                    // Retry only a rejected binding, never an RPC that may already have imported data.
+                    return block(service)
+                }
+                if (attempt == 2) error("cannot bind core service")
+            } finally {
+                runCatching { app.unbindService(connection) }
+            }
+            delay(250L * (attempt + 1))
         }
-        try {
-            return block(connection.service.await())
-        } finally {
-            runCatching { app.unbindService(connection) }
-        }
+        error("cannot bind core service")
     }
 
     /** Binds for the duration of [block]; for one-shot calls such as `groupAction` or `warpRegister`. */
@@ -58,9 +65,16 @@ object CoreServiceClient {
                 onConnected(ICoreService.Stub.asInterface(binder))
 
             override fun onServiceDisconnected(name: ComponentName?) = onDisconnected()
+            override fun onBindingDied(name: ComponentName?) = onDisconnected()
+            override fun onNullBinding(name: ComponentName?) = onDisconnected()
         }
-        val bound = app.bindService(Intent(app, CoreService::class.java), connection, Context.BIND_AUTO_CREATE)
-        return { if (bound) runCatching { app.unbindService(connection) } }
+        try {
+            check(app.bindService(Intent(app, CoreService::class.java), connection, Context.BIND_AUTO_CREATE)) { "cannot bind core service" }
+        } catch (e: Exception) {
+            runCatching { app.unbindService(connection) }
+            throw e
+        }
+        return { runCatching { app.unbindService(connection) }; Unit }
     }
 
 }

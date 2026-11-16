@@ -12,7 +12,10 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -196,6 +199,23 @@ object SubscriptionClient {
     }
 
     private suspend fun listen() {
+        var retryDelay = 1_000L
+        while (currentCoroutineContext().isActive) {
+            try {
+                listenOnce()
+                retryDelay = 1_000L
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Logs.w(e)
+            }
+            delay(retryDelay)
+            retryDelay = (retryDelay * 2).coerceAtMost(30_000)
+        }
+    }
+
+    private suspend fun listenOnce() {
+        val disconnected = CompletableDeferred<Unit>()
         // A registration that lands after the listener stopped unregisters itself and is ignored meanwhile.
         val active = AtomicBoolean(true)
         val callback = object : ISubscriptionCallback.Stub() {
@@ -236,10 +256,11 @@ object SubscriptionClient {
             onDisconnected = {
                 service.set(null)
                 mutableStates.value = emptyMap()
+                disconnected.complete(Unit)
             },
         )
         try {
-            awaitCancellation()
+            disconnected.await()
         } finally {
             active.set(false)
             service.getAndSet(null)?.let { runCatching { it.unregisterSubscriptionCallback(callback) } }

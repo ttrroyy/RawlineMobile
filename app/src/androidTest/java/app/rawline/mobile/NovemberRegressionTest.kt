@@ -49,6 +49,44 @@ import java.net.ServerSocket
 class NovemberRegressionTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
 
+    @Test fun rejectedCoreBindingFailsAndCanRecoverWithoutStartingVpn() = runBlocking {
+        val context = instrumentation.targetContext
+        val manager = context.packageManager
+        val component = android.content.ComponentName(context, app.rawline.mobile.bg.CoreService::class.java)
+        val original = manager.getComponentEnabledSetting(component)
+        try {
+            manager.setComponentEnabledSetting(component, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                android.content.pm.PackageManager.DONT_KILL_APP)
+            var rejected = false
+            var release: (() -> Unit)? = null
+            try {
+                release = app.rawline.mobile.bg.CoreServiceClient.bindPersistent({ fail("Disabled service connected") })
+            } catch (e: IllegalStateException) {
+                rejected = true
+            } finally {
+                release?.invoke()
+            }
+            assertTrue("Rejected listener binding was silently retained", rejected)
+            var called = false
+            rejected = false
+            kotlinx.coroutines.withTimeout(5_000) {
+                try {
+                    app.rawline.mobile.bg.CoreServiceClient.call { called = true }
+                } catch (e: IllegalStateException) {
+                    rejected = true
+                }
+            }
+            assertTrue("Rejected import binding did not fail", rejected)
+            assertFalse("Rejected binding executed the command", called)
+        } finally {
+            manager.setComponentEnabledSetting(component, original, android.content.pm.PackageManager.DONT_KILL_APP)
+        }
+        kotlinx.coroutines.withTimeout(20_000) {
+            app.rawline.mobile.bg.CoreServiceClient.call { it.runningTestSession() }
+        }
+        assertFalse("Restoring the import service started VPN", DataStore.serviceState.canStop)
+    }
+
     @Test fun wdttLinksImportThroughTheBackgroundServiceWithVpnStopped() = runBlocking {
         val previousSelected = DataStore.selectedProxy
         val previousGroup = GroupRepo.currentId()
