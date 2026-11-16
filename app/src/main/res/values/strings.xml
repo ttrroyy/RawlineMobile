@@ -584,7 +584,7 @@
     <string name="vpn_ipv6_sum">Give the tun an IPv6 address and route IPv6 through it</string>
     <string name="enable_tun_routing">Tun routing</string>
     <string name="block_unowned_tun">tun0 protection</string>
-    <string name="block_unowned_tun_sum">Basic mode prioritizes compatibility and blocks TCP connections from the tunnel address when the owning app cannot be identified. UDP/QUIC, ICMP/ping and VPN sharing without masquerading are not checked. This favors compatibility over strict isolation. Use VPN Hotspot with masquerading set to None.</string>
+    <string name="block_unowned_tun_sum">Blocks TCP connections from the tunnel address when the owning app cannot be identified. UDP/QUIC, ICMP/ping and VPN sharing without masquerading are not checked. Use VPN Hotspot with masquerading set to None. Does not provide strict app isolation.</string>
     <string name="block_unowned_tun_strict">Extended tun0 protection</string>
     <string name="block_unowned_tun_strict_sum">Strictly checks traffic whose owning app cannot be identified: UDP, including QUIC and DNS over UDP, ICMP/ping and VPN sharing, including forwarded TCP. This can interrupt those connections. UDP owners are cached for 10 seconds. Available only while tun0 protection is on. Restart the VPN to apply changes.</string>
     <string name="enable_tun_routing_sum">Keep the direct IP rules of the route profile outside the tun</string>
