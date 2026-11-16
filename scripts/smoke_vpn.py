@@ -19,8 +19,22 @@ def normalize_labels(value):
             if key in node.attrib: node.set(key,' '.join(node.get(key).split()))
     return ET.tostring(tree,encoding='unicode')
 
+# API 29's platform dumper requires a full idle second, which a live connected timer cannot guarantee.
+ui_dump_command = ['uiautomator', 'dump', '/sdcard/vpn-smoke.xml']
+if int(shell('getprop', 'ro.build.version.sdk').strip()) == 29:
+    sdk = Path(os.environ['ANDROID_HOME'])
+    platform = sorted((sdk/'platforms').glob('android-*/android.jar'))[-1]
+    compiler = sorted((sdk/'build-tools').glob('*/d8'))[-1]
+    classes = out/'dump-classes'; classes.mkdir(exist_ok=True)
+    subprocess.check_call(['javac', '--release', '8', '-cp', str(platform), '-d', str(classes), str(Path(__file__).with_name('SmokeUiDump.java'))])
+    archive = out/'ui-dump.zip'
+    subprocess.check_call([str(compiler), '--min-api', '29', '--lib', str(platform), '--output', str(archive), str(classes/'SmokeUiDump.class')])
+    subprocess.check_call([adb, 'push', str(archive), '/data/local/tmp/rawline-ui-dump.zip'])
+    width, height = re.findall(r'(\d+)x(\d+)', shell('wm', 'size'))[-1]
+    ui_dump_command = ['CLASSPATH=/data/local/tmp/rawline-ui-dump.zip:/system/framework/uiautomator.jar', 'app_process', '/system/bin', 'SmokeUiDump', '/sdcard/vpn-smoke.xml', width, height]
+
 def xml():
-    dumped = shell('uiautomator', 'dump', '/sdcard/vpn-smoke.xml')
+    dumped = shell(*ui_dump_command)
     if 'dumped to' not in dumped:
         (out/'idle-failed.png').write_bytes(subprocess.check_output([adb,'exec-out','screencap','-p']))
         (out/'idle-failed-window.txt').write_text(shell('dumpsys','window'))
@@ -33,7 +47,7 @@ def xml():
             if node.get('resource-id')=='android:id/aerr_close':
                 a,b,c,d=map(int,re.findall(r'\d+',node.attrib['bounds']))
                 shell('input','tap',str((a+c)//2),str((b+d)//2));time.sleep(3)
-                shell('uiautomator','dump','/sdcard/vpn-smoke.xml')
+                shell(*ui_dump_command)
                 return normalize_labels(shell('cat','/sdcard/vpn-smoke.xml'))
     return normalize_labels(value)
 def tap(label):
