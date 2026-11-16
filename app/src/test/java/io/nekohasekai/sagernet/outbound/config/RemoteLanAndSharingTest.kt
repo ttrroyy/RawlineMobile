@@ -179,6 +179,11 @@ class RemoteLanAndSharingTest {
         assertEquals(4,guardQuic(rules,1,finalIsProxy=false).size)
         val proxy=Socks().apply { server="192.0.2.1";serverPort=1080 }
         val open=JsonInput.parseObject(ConfigGenerator(ProfileProvider { proxy },GeneratorSettings(vpnMode=true,blockQuic=false)).build(1).coreConfig)
-        assertTrue(open.obj("route").array("rules").filterIsInstance<JsonObject>().none { it.int("port")==443 || it.string("type")=="logical" })
+        // The TCP owner guard is logical too; only an actual UDP/443 condition denotes the QUIC block.
+        assertTrue(open.obj("route").array("rules").filterIsInstance<JsonObject>().none {
+            it.int("port")==443 || it.array("rules").filterIsInstance<JsonObject>().any { condition ->
+                condition.string("network")=="udp" && condition.int("port")==443
+            }
+        })
     }
 }
