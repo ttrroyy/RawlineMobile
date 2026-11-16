@@ -16,7 +16,7 @@ class QwdttIntegrationTest {
         val restored=Qwdtt().apply { assertTrue(parseFromLink(profile.exportToLink())) }
         assertEquals(key,restored.diagKey);assertEquals(46003,restored.rawPort);assertEquals(46002,restored.directPort)
         assertEquals("dtls=46000,raw=46003,direct=46002",restored.privateConfig(19001,19002,CarrierBridgeCredentials("user","secret")).string("diag_ports"))
-        assertFalse(Qwdtt().parseFromLink(profile.exportToLink()+"&direct=-1"))
+        assertFalse(Qwdtt().parseFromLink(profile.exportToLink().replace("direct=46002","direct=-1")))
         assertFalse(Qwdtt().parseFromLink(profile.exportToLink().replace(key,"bad-key")))
     }
     @Test fun wgDoesNotInferDirectTransportFromPortOrLegacyFlag() {

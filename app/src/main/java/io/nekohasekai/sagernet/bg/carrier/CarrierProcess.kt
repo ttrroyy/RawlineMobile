@@ -252,11 +252,12 @@ class CarrierProcess private constructor(private val process: Process, private v
                             }
                         }
                         if (kind == CarrierKind.QWDTT) {
-                            running.wdttLifecycle = WdttPlusLifecycle(app.rawline.mobile.ktx.app) { command ->
+                            val context = runCatching { app.rawline.mobile.ktx.app }.getOrNull()
+                            running.wdttLifecycle = context?.let { WdttPlusLifecycle(it) { command ->
                                 synchronized(child) { runCatching {
                                     child.outputStream.write((command+'\n').toByteArray(Charsets.UTF_8)); child.outputStream.flush()
                                 } }
-                            }
+                            } }
                         }
                         if (kind == CarrierKind.FREETURN || kind == CarrierKind.FREETURN_TCP) {
                             val send = { command: String -> synchronized(child) { runCatching { child.outputStream.write((command+'\n').toByteArray(Charsets.UTF_8)); child.outputStream.flush() } }; Unit }
