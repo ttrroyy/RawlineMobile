@@ -159,6 +159,27 @@ class NovemberRegressionTest {
         }
     }
 
+    @Test fun disablingSubscriptionRoutingRemovesTheAppBypassCaption() {
+        val context = instrumentation.targetContext
+        val group = ProxyGroup(name = "Subscription caption regression")
+        val apps = app.rawline.mobile.group.ProviderApps(app.rawline.mobile.group.ProviderApps.BYPASS,
+            (1..16).map { "com.example.app$it" })
+        group.subOptions.routingProvider = "Happ"
+        group.subOptions.providerRouting = """{"Name":"Provider regression"}"""
+        group.subOptions.providerApps = apps.toJson()
+        group.subOptions.providerRoutingEnabled = true
+        val suffix = context.getString(R.string.qmobile_route_apps_bypass, 16)
+        val active = app.rawline.mobile.ui.RouteLabel.of(context, group, null)
+        assertTrue("Enabled subscription must show its app count", active.contains(suffix))
+        group.subOptions.providerRoutingEnabled = false
+        val disabled = app.rawline.mobile.ui.RouteLabel.of(context, group, null)
+        assertFalse("Disabled subscription still advertises app bypass", disabled.contains(suffix))
+        assertNull(app.rawline.mobile.route.RouteSource.of(group).apps)
+        group.subOptions.providerRoutingEnabled = true
+        assertEquals("Re-enabling restores the caption without losing the imported app list", active,
+            app.rawline.mobile.ui.RouteLabel.of(context, group, null))
+    }
+
     @Test fun soarStartsItsAuthenticatedBridgeWithoutContactingTheServer() = runBlocking {
         val context = instrumentation.targetContext
         val profile = DnsTunnel("soar")

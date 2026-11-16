@@ -25,7 +25,7 @@ object RouteSource {
             ?: RouteManager.current().let { RouteManager.header(it.id) } ?: return Info(Kind.CLIENT, "", null)
         if (group == null) return Info(Kind.CLIENT, global.name, null)
         val options = group.subOptions
-        val apps = options.takeUnless { it.providerIgnoreImport }?.providerApps?.let { ProviderApps.fromJson(it) }
+        val apps = options.takeUnless { it.providerIgnoreImport || !it.providerRoutingEnabled }?.providerApps?.let { ProviderApps.fromJson(it) }
         // A raw group profile is skipped by buildMainWith (RouteManager.routeFor), so it does not decide the routing either.
         val own = RouteManager.groupRouteId(group).takeIf { it > 0L && it != global.id }?.let { RouteManager.header(it) }?.takeUnless { it.isRaw }
         if (own != null) return Info(Kind.GROUP, own.name, apps)
