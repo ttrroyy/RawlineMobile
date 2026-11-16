@@ -50,37 +50,30 @@ class NovemberRegressionTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
 
     @Test fun rejectedCoreBindingFailsAndCanRecoverWithoutStartingVpn() = runBlocking {
-        val context = instrumentation.targetContext
-        val manager = context.packageManager
-        val component = android.content.ComponentName(context, app.rawline.mobile.bg.CoreService::class.java)
-        val original = manager.getComponentEnabledSetting(component)
-        try {
-            manager.setComponentEnabledSetting(component, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                android.content.pm.PackageManager.DONT_KILL_APP)
-            var rejected = false
-            var release: (() -> Unit)? = null
-            try {
-                release = app.rawline.mobile.bg.CoreServiceClient.bindPersistent({ fail("Disabled service connected") })
-            } catch (e: IllegalStateException) {
-                rejected = true
-            } finally {
-                release?.invoke()
+        var unbound = 0
+        var throwOnBind = false
+        val context = object : android.content.ContextWrapper(instrumentation.targetContext) {
+            override fun bindService(intent: Intent, connection: android.content.ServiceConnection, flags: Int): Boolean {
+                if (throwOnBind) throw SecurityException("fixture binding denied")
+                return false
             }
-            assertTrue("Rejected listener binding was silently retained", rejected)
-            var called = false
-            rejected = false
-            kotlinx.coroutines.withTimeout(5_000) {
-                try {
-                    app.rawline.mobile.bg.CoreServiceClient.call { called = true }
-                } catch (e: IllegalStateException) {
-                    rejected = true
-                }
-            }
-            assertTrue("Rejected import binding did not fail", rejected)
-            assertFalse("Rejected binding executed the command", called)
-        } finally {
-            manager.setComponentEnabledSetting(component, original, android.content.pm.PackageManager.DONT_KILL_APP)
+            override fun unbindService(connection: android.content.ServiceConnection) { unbound++ }
         }
+        val connection = object : android.content.ServiceConnection {
+            override fun onServiceConnected(name: android.content.ComponentName?, binder: android.os.IBinder?) = Unit
+            override fun onServiceDisconnected(name: android.content.ComponentName?) = Unit
+        }
+        assertNull(app.rawline.mobile.bg.CoreServiceClient.bind(context, connection))
+        assertEquals("Rejected binding was not released", 1, unbound)
+        throwOnBind = true
+        var rejected = false
+        try {
+            app.rawline.mobile.bg.CoreServiceClient.bind(context, connection)
+        } catch (e: SecurityException) {
+            rejected = true
+        }
+        assertTrue("Binding permission failure was hidden", rejected)
+        assertEquals("Throwing binding was not released", 2, unbound)
         kotlinx.coroutines.withTimeout(20_000) {
             app.rawline.mobile.bg.CoreServiceClient.call { it.runningTestSession() }
         }
@@ -97,7 +90,7 @@ class NovemberRegressionTest {
             assertFalse("Fixture requires stopped VPN", DataStore.serviceState.canStop)
             for (link in listOf(
                 "wdtt://192.0.2.5:56000:56001:0:fixture:$hash#Legacy",
-                "wdtt://connect?v=1&host=192.0.2.6&dtls=56000&wg=56001&password=fixture&hashes=$hash&name=Connect",
+                "wdtt://connect?v=1&host=192.0.2.6&dtls=56000&wg=56001&local=9000&password=fixture&hashes=$hash&name=Connect",
                 "qwdtt://config?peer=192.0.2.7%3A56000&pass=fixture&hashes=$hash&name=Qwdtt",
             )) {
                 val imported = app.rawline.mobile.group.SubscriptionClient.importText(link, group.id)

@@ -34,19 +34,31 @@ object CoreServiceClient {
         }
     }
 
+    internal fun bind(context: Context, connection: ServiceConnection): (() -> Unit)? {
+        val release = { runCatching { context.unbindService(connection) }; Unit }
+        try {
+            return if (context.bindService(Intent(context, CoreService::class.java), connection, Context.BIND_AUTO_CREATE)) release
+                else { release(); null }
+        } catch (e: Exception) {
+            release()
+            throw e
+        }
+    }
+
     private suspend fun <T> withService(block: suspend (ICoreService) -> T): T {
         repeat(3) { attempt ->
             val connection = Connection()
-            try {
-                if (app.bindService(Intent(app, CoreService::class.java), connection, Context.BIND_AUTO_CREATE)) {
+            val release = bind(app, connection)
+            if (release != null) {
+                try {
                     val service = withTimeout(15_000) { connection.service.await() }
                     // Retry only a rejected binding, never an RPC that may already have imported data.
                     return block(service)
+                } finally {
+                    release()
                 }
-                if (attempt == 2) error("cannot bind core service")
-            } finally {
-                runCatching { app.unbindService(connection) }
             }
+            if (attempt == 2) error("cannot bind core service")
             delay(250L * (attempt + 1))
         }
         error("cannot bind core service")
@@ -68,13 +80,7 @@ object CoreServiceClient {
             override fun onBindingDied(name: ComponentName?) = onDisconnected()
             override fun onNullBinding(name: ComponentName?) = onDisconnected()
         }
-        try {
-            check(app.bindService(Intent(app, CoreService::class.java), connection, Context.BIND_AUTO_CREATE)) { "cannot bind core service" }
-        } catch (e: Exception) {
-            runCatching { app.unbindService(connection) }
-            throw e
-        }
-        return { runCatching { app.unbindService(connection) }; Unit }
+        return bind(app, connection) ?: error("cannot bind core service")
     }
 
 }
