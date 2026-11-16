@@ -20,7 +20,11 @@ def normalize_labels(value):
     return ET.tostring(tree,encoding='unicode')
 
 def xml():
-    shell('uiautomator', 'dump', '/sdcard/vpn-smoke.xml')
+    dumped = shell('uiautomator', 'dump', '/sdcard/vpn-smoke.xml')
+    if 'dumped to' not in dumped:
+        (out/'idle-failed.png').write_bytes(subprocess.check_output([adb,'exec-out','screencap','-p']))
+        (out/'idle-failed-window.txt').write_text(shell('dumpsys','window'))
+        raise AssertionError('UIAutomator could not obtain a fresh tree: '+dumped.strip())
     value=shell('cat', '/sdcard/vpn-smoke.xml')
     # Dismiss only the known Google launcher boot ANR, never an application ANR.
     if "Pixel Launcher isn't responding" in value:
