@@ -119,6 +119,15 @@ time.sleep(5); tap('Yes'); confirm_import_group('VPN-smoke')
 # A clean installation also asks about background battery restrictions.
 if 'Keep Rawline running' in xml(): tap('Not now')
 wait_for('VPN-smoke')
+# The isolated SOCKS fixture speaks plain HTTP; production keeps its HTTPS default.
+tap('Settings'); tap('Core settings'); tap('Latency test URL')
+edit=next(n for n in ET.fromstring(xml()).iter('node') if n.get('class')=='android.widget.EditText')
+a,b,c,d=map(int,re.findall(r'\d+',edit.attrib['bounds']))
+shell('input','tap',str((a+c)//2),str((b+d)//2))
+shell('input','keyevent','123'); shell('input','keyevent',*(['67']*256))
+shell('input','text','http://example.test/generate_204'); tap('OK')
+shell('input','keyevent','4'); shell('input','keyevent','4')
+wait_for('VPN-smoke')
 shell('am','start','-n',activity,'-a','android.intent.action.VIEW','-d','socks5://127.0.0.1:8868#VPN-queued')
 time.sleep(3);tap('Yes');confirm_import_group('VPN-queued');wait_for('VPN-queued')
 # Keep the fixture stalled long enough to inspect two independently requested scopes.

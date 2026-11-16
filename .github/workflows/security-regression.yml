@@ -71,6 +71,14 @@ jobs:
           "$ADB" shell am instrument -w -r "$COMPONENT" | tee security-results/instrumentation.txt
           grep -E 'OK \([0-9]+ tests\)' security-results/instrumentation.txt
           ! grep -E 'FAILURES|INSTRUMENTATION_FAILED|Process crashed' security-results/instrumentation.txt
+      - name: Preserve palette screenshots before the isolated VPN test clears app data
+        run: |
+          mkdir -p security-results
+          ADB="$ANDROID_HOME/platform-tools/adb"
+          PACKAGE=$("$ADB" shell pm list packages | sed -n 's/^package:\(app.rawline.mobile[^[:space:]]*\)/\1/p' | grep -v '\.test$' | tr -d '\r')
+          "$ADB" shell run-as "$PACKAGE" ls files | tr -d '\r' | while read -r file; do
+            case "$file" in home-*.png) "$ADB" exec-out run-as "$PACKAGE" cat "files/$file" > "security-results/$file";; esac
+          done
       - name: Short VPN and unauthorized command check
         run: python3 scripts/smoke_vpn_short.py
       - name: Collect diagnostics
