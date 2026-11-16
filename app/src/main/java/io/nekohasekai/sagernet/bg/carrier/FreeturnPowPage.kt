@@ -8,6 +8,7 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import app.rawline.mobile.ktx.app
+import app.rawline.mobile.ui.CaptchaAddressPolicy
 
 /**
  * FreeTurn's automatic check as its own app runs it (OnCaptcha with manual=false): the client's local page is loaded
@@ -16,9 +17,7 @@ import app.rawline.mobile.ktx.app
 internal object FreeturnPowPage {
     private val main = Handler(Looper.getMainLooper())
     private var web: WebView? = null
-    private val local = Regex("http://127\\.0\\.0\\.1:[0-9]{1,5}(/.*)?")
-
-    fun allowed(url: String) = local.matches(url)
+    fun allowed(url: String) = CaptchaAddressPolicy.allowedFreeTurn(url)
 
     @SuppressLint("SetJavaScriptEnabled")
     fun open(url: String) = main.post {

@@ -121,7 +121,7 @@ class CarrierProcess private constructor(private val process: Process, private v
             launch: (ProcessBuilder) -> Process = { it.start() },
         ): CarrierProcess {
             val hashes=app.rawline.mobile.outbound.json.JsonInput.parseObject(privateJson).array("hashes").size
-            val attempts=if(kind==CarrierKind.QWDTT) hashes.coerceIn(1,4) else 1
+            val attempts=if(kind==CarrierKind.QWDTT) hashes.coerceIn(1,app.rawline.mobile.outbound.types.Qwdtt.MAX_HASHES) else 1
             val deadline=System.nanoTime()+NativeSessionPolicy.startupTimeoutMs(kind,timeoutMs)*1_000_000
             var attempt=0
             var retries=0
@@ -245,6 +245,13 @@ class CarrierProcess private constructor(private val process: Process, private v
                                 android.util.Base64.URL_SAFE or android.util.Base64.NO_PADDING or android.util.Base64.NO_WRAP)
                             val line = "START_CONFIG|" + start + '\n'
                             synchronized(child) { child.outputStream.write(line.toByteArray(Charsets.UTF_8)); child.outputStream.flush() }
+                            running.wdttLifecycle = WdttPlusLifecycle(app.rawline.mobile.ktx.app) { command ->
+                                synchronized(child) { runCatching {
+                                    child.outputStream.write((command+'\n').toByteArray(Charsets.UTF_8)); child.outputStream.flush()
+                                } }
+                            }
+                        }
+                        if (kind == CarrierKind.QWDTT) {
                             running.wdttLifecycle = WdttPlusLifecycle(app.rawline.mobile.ktx.app) { command ->
                                 synchronized(child) { runCatching {
                                     child.outputStream.write((command+'\n').toByteArray(Charsets.UTF_8)); child.outputStream.flush()

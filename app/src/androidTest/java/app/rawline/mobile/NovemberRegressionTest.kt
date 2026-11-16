@@ -31,6 +31,11 @@ import app.rawline.mobile.ui.MainActivity
 import app.rawline.mobile.utils.Theme
 import app.rawline.mobile.ui.MobileFeedback
 import app.rawline.mobile.ui.MobileReorder
+import app.rawline.mobile.ui.MobileSubscriptionSwipe
+import app.rawline.mobile.bg.carrier.CarrierUiRequests
+import android.view.MotionEvent
+import android.os.SystemClock
+import java.util.UUID
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -42,6 +47,48 @@ import java.net.ServerSocket
 @RunWith(AndroidJUnit4::class)
 class NovemberRegressionTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
+
+    @Test fun subscriptionDragWorksSlowlyInBothDirectionsAndIgnoresCancel() {
+        instrumentation.runOnMainSync {
+            val view = View(instrumentation.targetContext)
+            val changes = mutableListOf<Int>()
+            var taps = 0
+            MobileSubscriptionSwipe.bind(view, { taps++ }, {}, {}) { changes.add(it) }
+            val start = SystemClock.uptimeMillis()
+            val width = 200f * view.resources.displayMetrics.density
+            fun send(action: Int, x: Float, elapsed: Long) {
+                val event = MotionEvent.obtain(start,start+elapsed,action,x,10f,0)
+                try { view.dispatchTouchEvent(event) } finally { event.recycle() }
+            }
+            send(MotionEvent.ACTION_DOWN,width,0);send(MotionEvent.ACTION_MOVE,width/2,150);send(MotionEvent.ACTION_UP,0f,400)
+            send(MotionEvent.ACTION_DOWN,0f,500);send(MotionEvent.ACTION_MOVE,width/2,650);send(MotionEvent.ACTION_UP,width,900)
+            send(MotionEvent.ACTION_DOWN,width,1000);send(MotionEvent.ACTION_MOVE,0f,1100);send(MotionEvent.ACTION_CANCEL,0f,1200)
+            assertEquals(listOf(1,-1),changes)
+            assertEquals(0,taps)
+        }
+    }
+
+    @Test fun freeTurnLocalhostCaptchaOpensAVisibleSheet() {
+        val context = instrumentation.targetContext
+        val activity = instrumentation.startActivitySync(Intent(context,MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) as MainActivity
+        val id = UUID.randomUUID().toString()
+        try {
+            instrumentation.waitForIdleSync()
+            assertTrue(CarrierUiRequests.post(id,"http://localhost:9/",client="freeturn"))
+            val deadline = SystemClock.uptimeMillis()+10_000
+            var shown = false
+            while (!shown && SystemClock.uptimeMillis()<deadline) {
+                val root = instrumentation.uiAutomation.rootInActiveWindow
+                shown = root?.findAccessibilityNodeInfosByText("VK · Captcha")?.isNotEmpty() == true
+                if (!shown) Thread.sleep(50)
+            }
+            assertTrue("FreeTurn localhost captcha sheet was discarded",shown)
+        } finally {
+            CarrierUiRequests.clear(id)
+            context.sendBroadcast(Intent(context.packageName+".CAPTCHA_CLOSE").setPackage(context.packageName).putExtra("id",id),context.packageName+".SERVICE")
+            instrumentation.runOnMainSync { activity.finish() }
+        }
+    }
 
     @Test fun homeControlsAndServerRemainVisibleInEveryRawlinePalette() {
         val context = instrumentation.targetContext

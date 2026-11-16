@@ -166,7 +166,7 @@ class NativeTransportSettingsActivity : ProfileSettingsActivity<Outbound>() {
             DataStore.profileCacheStore.putString(cache("options"),rest.toCompact())
         }
         val order = when(type) {
-            "qwdtt" -> listOf("name","server","server_port","mode","password","hash_source") + (1..4).map { "hash_$it" } + listOf("raw_port","workers","turn_tcp","vk_anon_path","captcha_mode","obfs","go_dns","device_id")
+            "qwdtt" -> listOf("name","server","server_port","mode","password","hash_source") + (1..app.rawline.mobile.outbound.types.Qwdtt.MAX_HASHES).map { "hash_$it" } + listOf("raw_port","direct_port","diag_key","workers","turn_tcp","custom_turn_ips","vk_anon_path","captcha_mode","obfs","go_dns","device_id")
             "mrtt" -> listOf("name","server","server_port","password","transport","max_group","jitsi_room","jitsi_workers","hash_source","vk_access_token") + (1..6).map { "hash_$it" } + listOf("workers","turn_transport","srtp_mode","vk_anon_path","captcha_mode","mtu","fingerprint","client_ids","custom_turn_ips")
             "csqtt" -> listOf("name","server","server_port","csqtt_version","password","hash_source","vk_access_token") + (1..6).map { "hash_$it" } + listOf("workers","turn_transport","srtp_mode","vk_anon_path","captcha_mode","obfs","fingerprint","client_ids","custom_turn_ips","device_id")
             "wdttplus" -> listOf("name","server","server_port","engine","mode","raw_port","wg_port","local_port","password","hash_source") + (1..4).map { "hash_$it" } + listOf("workers","captcha_mode","tcp_only","turn_sni","rt_masque","rt_masque_server_bootstrap","device_id")
@@ -195,7 +195,7 @@ class NativeTransportSettingsActivity : ProfileSettingsActivity<Outbound>() {
         }
         if(type in listOf("qwdtt","csqtt","mrtt","wdttplus")) {
             val hashes=document.array("hashes").strings()
-            for(i in 1..if(type=="csqtt" || type=="mrtt") 6 else 4) {
+            for(i in 1..if(type=="wdttplus") 4 else 6) {
                 fields["hash_$i"]=hashes.getOrElse(i-1) { "" }
                 DataStore.profileCacheStore.putString(cache("hash_$i"),hashes.getOrElse(i-1) { "" })
             }
@@ -322,7 +322,7 @@ class NativeTransportSettingsActivity : ProfileSettingsActivity<Outbound>() {
             "hash_source" to "Источник хешей", "workers" to "Воркеры", "turn_tcp" to "Транспорт TURN", "mode" to "Режим",
             "turn_transport" to "Транспорт TURN", "srtp_mode" to "Режим SRTP", "fingerprint" to "TLS-профиль VK",
             "client_ids" to "Client ID VK", "custom_turn_ips" to "Серверы TURN", "vk_access_token" to "VK access token",
-            "raw_port" to "Порт RAW", "engine" to "Движок", "csqtt_version" to "Версия CSQTT", "wg_port" to "Порт WG", "local_port" to "Локальный порт", "obfs" to "Маскировка", "go_dns" to "DNS VK",
+            "direct_port" to "Порт Direct", "diag_key" to "Ключ диагностики", "raw_port" to "Порт RAW", "engine" to "Движок", "csqtt_version" to "Версия CSQTT", "wg_port" to "Порт WG", "local_port" to "Локальный порт", "obfs" to "Маскировка", "go_dns" to "DNS VK",
             "device_id" to "Идентификатор устройства", "vk_anon_path" to "Авторизация VK", "captcha_mode" to "Режим капчи",
             "tcp_only" to "TCP/TLS", "turn_sni" to "Внешний SNI", "rt_masque" to "Резерв MASQUE",
             "secret" to "Секрет", "context" to "Контекст", "codec" to "Кодек",
@@ -483,7 +483,7 @@ class NativeTransportSettingsActivity : ProfileSettingsActivity<Outbound>() {
                 val count=editors.keys.filter { it.startsWith("hash_") && it != "hash_source" }.map { DataStore.profileCacheStore.getString(cache(it))?.trim().orEmpty() }.filter { it.isNotEmpty() }.distinct().size.coerceAtLeast(1)
                 val csqtt=editingOutbound.type=="csqtt"
                 val max=if(csqtt) 100 else if(editingOutbound is app.rawline.mobile.outbound.types.WdttPlus) app.rawline.mobile.bg.carrier.NativeHashPolicy.workerLimit(editingOutbound as app.rawline.mobile.outbound.types.WdttPlus)
-                    else if(automatic) 108 else (count*27).coerceAtMost(108)
+                    else if(automatic) app.rawline.mobile.outbound.types.Qwdtt.MAX_WORKERS else (count*27).coerceAtMost(app.rawline.mobile.outbound.types.Qwdtt.MAX_WORKERS)
                 (editors["workers"] as? ListPreference)?.apply {
                     entries=(if(csqtt) listOf(5)+(10..100 step 10) else (9..max step 9).toList()).map(Int::toString).toTypedArray();entryValues=entries
                     val raw=DataStore.profileCacheStore.getString(cache("workers"))?.toIntOrNull() ?: 9
@@ -612,7 +612,7 @@ class NativeTransportSettingsActivity : ProfileSettingsActivity<Outbound>() {
                 if(text!=next.toString()) { (preference as EditTextPreference).text=text;false } else true
             }
             if(path in listOf("go_dns","dns")) (preference as AnchoredTextPreference).onSelect = { anchor ->
-                val values=(if(path=="go_dns") listOf("yandex","cloudflare","google","doh-yandex","doh-cloudflare","doh-google")
+                val values=(if(path=="go_dns") listOf("yandex","cloudflare","google","doh-yandex","doh-cloudflare","doh-google","operator")
                     else listOf("8.8.8.8:53","1.1.1.1:53","77.88.8.8:53")).toMutableList()
                 val current=DataStore.profileCacheStore.getString(cache(path)).orEmpty()
                 if(current.isNotEmpty() && current !in values) values.add(current)
@@ -626,7 +626,7 @@ class NativeTransportSettingsActivity : ProfileSettingsActivity<Outbound>() {
             editors[path]=preference
             preferenceScreen.addPreference(preference)
             if(path=="hash_source") preferenceScreen.addPreference(hashPick)
-            if(editingOutbound.type!="freeturn" && path=="hash_"+(if(editingOutbound.type in listOf("csqtt","mrtt")) 6 else 4)) {
+            if(editingOutbound.type!="freeturn" && path=="hash_"+(if(editingOutbound.type=="wdttplus") 4 else 6)) {
                 preferenceScreen.addPreference(checkButton)
             }
         }
@@ -635,7 +635,7 @@ class NativeTransportSettingsActivity : ProfileSettingsActivity<Outbound>() {
             val created=account.cachedHashes()
             val generator={ startActivity(android.content.Intent(requireContext(),app.rawline.mobile.ui.VkHashesActivity::class.java)) }
             if(created.isEmpty()) { generator();return@setOnPreferenceClickListener true }
-            val slots=if(editingOutbound.type in listOf("csqtt","mrtt")) 6 else 4
+            val slots=if(editingOutbound.type=="wdttplus") 4 else 6
             val key=hashSelectionKey()
             val current=account.selectedHashes(key)
             val density=resources.displayMetrics.density

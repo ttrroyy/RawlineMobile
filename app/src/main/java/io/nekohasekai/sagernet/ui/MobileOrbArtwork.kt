@@ -207,8 +207,8 @@ class MobileOrbArtwork(context: Context, private val idleText: String) : MobileP
             unscheduleSelf(waitForFocus)
             val view = callback as? android.view.View
             val free = !frozen && view?.hasWindowFocus() != false
-            val frame = (1000f / (view?.display?.refreshRate?.takeIf { it > 0f } ?: 60f)).toLong().coerceIn(4L, 16L)
-            scheduleSelf(waitForFocus, now + if (free) frame else 150L)
+            if (free && view != null) view.postInvalidateOnAnimation()
+            else scheduleSelf(waitForFocus, now + 150L)
         }
     }
 

@@ -793,7 +793,7 @@ class MobileHomeFragment : ToolbarFragment() {
             groups.forEach { (group, _) -> knownGroups.add(group.id) }
             val tilesBottom=tilesAtBottom()
             val tilesKey="${extendedTiles()}:$tilesBottom:${homeSwitchesOn()}:${controlAtBottom()}:${chipAtBottom()}:${chipNearList()}:"+
-                "${MobileHomeLayout.scrollParts}:${MobileHomeLayout.compactControl}:${MobileHomeLayout.compactTiles}:${MobileHomeLayout.hiddenSwitch}:${MobileHomeLayout.hiddenTiles}"
+                "${MobileHomeLayout.scrollParts}:${MobileHomeLayout.compactControl}:${MobileHomeLayout.compactTiles}:${MobileHomeLayout.hiddenSwitch}:${MobileHomeLayout.hiddenTiles}:${MobileHomeLayout.chipHidden}"
             // A moved tile bar rebuilds the screen even when the server list is the same.
             val unchanged=withContext(Dispatchers.Default) { previousStructure == structure } && renderedGroupId==focusedGroup && chromeKey?.endsWith(":$tilesKey")!=false
             if (unchanged) {
@@ -885,7 +885,8 @@ class MobileHomeFragment : ToolbarFragment() {
                 if(!tilesBottom) side.addView(header, LinearLayout.LayoutParams(-1, -2))
                 // The subscription in use, as one card with a list behind it, and adding beside it.
                 val chipBottom=chipAtBottom() && !landscape
-                val chipRow=LinearLayout(requireContext()).apply {
+                if(MobileHomeLayout.chipHidden) groupChip=null
+                val chipRow=if(MobileHomeLayout.chipHidden) null else LinearLayout(requireContext()).apply {
                     gravity=Gravity.CENTER_VERTICAL;setTag(R.id.home_part,"chip")
                     groupChip=text("",16f).apply {
                         setTypeface(typeface,Typeface.BOLD);maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END;gravity=Gravity.CENTER_VERTICAL
@@ -1286,22 +1287,13 @@ class MobileHomeFragment : ToolbarFragment() {
                 if(group.isSubscription && group.subLastUpdate>0) names.addView(text(java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT,java.text.DateFormat.SHORT).format(java.util.Date(group.subLastUpdate*1000)),10f,muted).apply { setPadding(0,dp(3),0,0) })
                 heading.addView(names,LinearLayout.LayoutParams(0,-2,1f))
                 run {
-                    val gestures=GestureDetector(requireContext(),object:GestureDetector.SimpleOnGestureListener() {
-                        override fun onDown(event:MotionEvent)=true
-                        override fun onSingleTapUp(event:MotionEvent):Boolean { heading.performClick();return true }
-                        override fun onLongPress(event:MotionEvent) { editGroup(group,true) }
-                        override fun onDoubleTap(event:MotionEvent):Boolean { host().displayFragmentWithId(R.id.nav_group);return true }
-                        override fun onFling(start:MotionEvent?,end:MotionEvent,velocityX:Float,velocityY:Float):Boolean {
-                            val first=start ?: return false
-                            val dx=end.x-first.x
-                            if(kotlin.math.abs(dx)<dp(40) || kotlin.math.abs(dx)<kotlin.math.abs(end.y-first.y)) return false
-                            groups.getOrNull(groupIndex+if(dx<0) 1 else -1)?.first?.let { selectGroup(it.id) }
-                            return true
-                        }
-                    })
-                    heading.setOnTouchListener { _,event -> gestures.onTouchEvent(event) }
+                    MobileSubscriptionSwipe.bind(heading, { groupPicker() }, { editGroup(group,true) },
+                        { host().displayFragmentWithId(R.id.nav_group) }) { direction ->
+                        groups.getOrNull(groupIndex+direction)?.first?.let { selectGroup(it.id) }
+                    }
                 }
                 title.addView(heading,LinearLayout.LayoutParams(0,-2,1f))
+                if (MobileHomeLayout.chipHidden) title.addView(headerIcon(R.drawable.ic_mobile_add,getString(R.string.qmobile_add)) { addMenu(it) },LinearLayout.LayoutParams(dp(40),dp(48)))
                 if (group.isSubscription) title.addView(iconAction(R.drawable.ic_mobile_refresh,getString(R.string.qmobile_refresh)) { SubscriptionClient.refreshGroup(group.id,false) }.apply { isEnabled=!SubscriptionClient.states.value.containsKey(group.id); alpha=1f;nextRefreshButtons[group.id]=this },LinearLayout.LayoutParams(dp(40),dp(48)))
                 title.addView(iconAction(R.drawable.ic_mobile_test,getString(R.string.qmobile_tests)) { testMenu(profiles.map { it.id }.toLongArray(),group.displayName(),group.id,true) },LinearLayout.LayoutParams(dp(40),dp(48)))
                 lateinit var more: ImageButton

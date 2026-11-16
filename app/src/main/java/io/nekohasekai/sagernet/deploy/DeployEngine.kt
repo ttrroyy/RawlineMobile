@@ -133,7 +133,7 @@ object DeployEngine {
         val machine = exec(ssh,server,"uname -m",30_000).second.trim()
         if(server.kind == "wdttplus") { runWdttPlus(ssh,server,uninstall,removeData,machine);return }
         if(server.kind == "freeturn") { runFreeturn(ssh,server,uninstall);return }
-        val source = if(server.kind == "qwdtt") Pair("https://github.com/makriq-org/qwdtt/releases/download/v1.4.4/qWDTT_v1.4.4.apk","ff5b2d1f265b0c4253cdf54ebf1f8a5d64afd1424086aa8b8be754b5c14df6a7")
+        val source = if(server.kind == "qwdtt") Pair("https://github.com/SpaceNeuroX/proxy-turn-vk-android/releases/download/v1.4.5/qwdtt-1.4.5-universal.apk","794a91308aadd0d7739f289a93ec10704baba8d313b60100438f0268d3dd112e")
             else Pair("https://github.com/ttrroyy/MRTT/releases/download/v2.5.0-legacy/CSQTT-universal.apk","bbc261eff2fce56b0ee774271416b0764b34ee16349e9e250ce3c8d45d660d0f")
         update(5,"Загрузка официального установщика")
         val apk = artifact(source.first,source.second)
@@ -193,7 +193,7 @@ object DeployEngine {
             val json = JSONObject().put("type",server.kind).put("name",server["name"]).put("server",server["host"]).put("server_port",server.port("peerPort"))
                 .put("password",server["password"]).put("device_id",server["deviceId"]).put("hashes",org.json.JSONArray())
                 .put("hash_source",DataStore.configurationStore.getString(VkRelayAccount.DEFAULT_SOURCE,"manual"))
-            if(server.kind == "qwdtt") json.put("raw_port",server.port("rawPort"))
+            if(server.kind == "qwdtt") json.put("raw_port",server.port("rawPort")).put("direct_port",server.port("directPort"))
             val config=DeployConfig.link(json,ownDeviceId())
             server.recordInstallation(config);DeployStore.save(server)
             state.update { it.copy(config=config) }

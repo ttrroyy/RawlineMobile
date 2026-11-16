@@ -49,7 +49,7 @@ object NativeHashPolicy {
         if (profile.hashSource != "auto") return profile
         val copy = OutboundFactory.newByType(profile.type) as Qwdtt
         check(copy.parseFromJson(profile.exportToJson()))
-        val slots = if (profile.type == "csqtt" || profile.type == "mrtt") 6 else 4
+        val slots = if (profile.type == "wdttplus") 4 else Qwdtt.MAX_HASHES
         val count = (if(profile is Csqtt) (copy.workers+9)/10 else (copy.workers+26)/27).coerceIn(1, slots)
         val hashes = picked.take(slots).ifEmpty { obtainHashes(count) }
         check((picked.isNotEmpty() || hashes.size == count) && hashes.isNotEmpty() && hashes.distinct().size == hashes.size && hashes.all {
@@ -82,13 +82,15 @@ object NativeHashPolicy {
             // Slots the user edited stay as they are; otherwise the subscription owns its leading slots
             // and local trailing slots survive until replaced.
             if (it.hashSource == "manual") incoming.hashes = if (it.manualHashesOverride) it.hashes
-                else mergeSlots(incoming.hashes,it.hashes,if(incoming.type=="csqtt" || incoming.type=="mrtt") 6 else 4)
+                else mergeSlots(incoming.hashes,it.hashes,if(incoming.type=="wdttplus") 4 else Qwdtt.MAX_HASHES)
             // Everything below is the user's choice, kept like hashes and workers.
             incoming.mode=it.mode
             incoming.turnTcp=it.turnTcp
             incoming.captchaMode=it.captchaMode
             if(incoming.type=="qwdtt") {
                 incoming.rawPort=it.rawPort;incoming.obfs=it.obfs;incoming.vkAnonPath=it.vkAnonPath;incoming.goDns=it.goDns
+                incoming.directPort=it.directPort;incoming.customTurnIps=it.customTurnIps
+                if(incoming.diagKey.isBlank()) incoming.diagKey=it.diagKey
             }
             if(incoming is Csqtt && it is Csqtt) {
                 incoming.turnTransport=it.turnTransport;incoming.srtpMode=it.srtpMode;incoming.obfs=it.obfs
@@ -120,11 +122,11 @@ object NativeHashPolicy {
     fun workerLimit(profile:Qwdtt):Int {
         if(profile is Csqtt) return 100
         if(profile is Mrtt) return Mrtt.maxWorkers(profile.hashes.size,profile.hashSource!="manual" || profile.transport=="max")
-        val slots=4
+        val slots=if(profile is WdttPlus) 4 else Qwdtt.MAX_HASHES
         val hashes=if(profile.hashSource=="auto") slots else profile.hashes.size.coerceIn(1,slots)
         // WDTT Plus groups 9 workers each up to 108 whatever the hash count.
         if(profile is WdttPlus) return (profile.maxWorkers / 9 * 9).takeIf { it >= 9 }?.coerceAtMost(108) ?: 108
-        return (hashes*27).coerceAtMost(108)
+        return (hashes*27).coerceAtMost(Qwdtt.MAX_WORKERS)
     }
     /** The user's count stays; it only drops when the new hash slots no longer allow it. */
     fun preservedWorkers(previous:Int,currentLimit:Int):Int = previous.coerceIn(9,currentLimit)/9*9

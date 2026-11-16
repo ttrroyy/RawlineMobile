@@ -9,6 +9,13 @@ internal object CaptchaAddressPolicy {
     /** OpenFlux's provider checks: Yandex SmartCaptcha and its sign-in (as the core's own captchaAddress). */
     fun allowedOpenFlux(value: String): Boolean = allowed(value,listOf("yandex.ru","yandex.com","yandex.net","ya.ru","mail.ru"))
 
+    /** FreeTurn's own presenter uses localhost; both names address its local proxy. */
+    fun allowedFreeTurn(value: String): Boolean {
+        val uri = runCatching { URI(value) }.getOrNull() ?: return false
+        return uri.scheme.equals("http", true) && uri.rawUserInfo == null && uri.port in 1..65535 &&
+            uri.host?.lowercase(Locale.ROOT) in listOf("localhost", "127.0.0.1")
+    }
+
     /** A Yandex page that is still the check or a sign-in, not the document behind it (CaptchaBrowser.isCheckpoint). */
     fun openFluxCheckpoint(value: String): Boolean =
         "showcaptcha" in value || "passport.yandex" in value || "/captcha" in value

@@ -48,6 +48,9 @@ object MobileHomeLayout {
     var chipBottom: Boolean
         get() = store.getString("qmobileChipPosition") == "bottom"
         set(value) = store.putString("qmobileChipPosition", position(value))
+    var chipHidden: Boolean
+        get() = store.getBoolean("qmobileChipHidden", false)
+        set(value) = store.putBoolean("qmobileChipHidden", value)
     /** Between the connection control and the servers, rather than on the control's outer side. */
     var chipNearList: Boolean
         get() = store.getBoolean("qmobileChipNearList", false)

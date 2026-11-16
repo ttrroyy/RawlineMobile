@@ -7,6 +7,18 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class QwdttIntegrationTest {
+    @Test fun version145LinksKeepSixHashesAndDiagnostics() {
+        val hashes=(1..6).map { "fixture_hash_12345678$it" }
+        val key="A".repeat(43)
+        val profile=Qwdtt()
+        assertTrue(profile.parseFromLink("qwdtt://config?peer=192.0.2.1%3A46000&pass=fixture&hashes=${hashes.joinToString(",")}&workers=162&raw=46003&direct=46002&dk=$key&turn_transport=tcp"))
+        assertEquals(hashes,profile.hashes);assertEquals(162,profile.workers)
+        val restored=Qwdtt().apply { assertTrue(parseFromLink(profile.exportToLink())) }
+        assertEquals(key,restored.diagKey);assertEquals(46003,restored.rawPort);assertEquals(46002,restored.directPort)
+        assertEquals("dtls=46000,raw=46003,direct=46002",restored.privateConfig(19001,19002,CarrierBridgeCredentials("user","secret")).string("diag_ports"))
+        assertFalse(Qwdtt().parseFromLink(profile.exportToLink()+"&direct=-1"))
+        assertFalse(Qwdtt().parseFromLink(profile.exportToLink().replace(key,"bad-key")))
+    }
     @Test fun wgDoesNotInferDirectTransportFromPortOrLegacyFlag() {
         for (port in listOf(56000,56002,46000)) for (legacy in listOf("","&no_dtls=1")) {
             val link="qwdtt://config?peer=192.0.2.1%3A$port&pass=fixture&hashes=demo_hash_123456789&workers=18&port=9000$legacy"
@@ -65,14 +77,14 @@ class QwdttIntegrationTest {
         val profile=profile();profile.password="bad|secret"
         try { CarrierPlan.qwdtt(7,profile);fail("invalid password accepted") } catch(_:IllegalArgumentException) {}
     }
-    @Test fun excessQwdttHashesKeepFirstFourSlots() {
+    @Test fun excessQwdttHashesKeepFirstSixSlots() {
         val input=profile().exportToJson()
         val hashes=(1..7).map { "test_hash_123456789_$it" }
         input["hashes"]=app.rawline.mobile.outbound.json.JsonArray.of(*hashes.toTypedArray())
         val restored=Qwdtt()
         assertTrue(restored.parseFromJson(input))
-        assertEquals(hashes.take(4),restored.hashes)
-        assertEquals(hashes.take(4),Qwdtt().apply { assertTrue(parseFromLink(restored.exportToLink())) }.hashes)
+        assertEquals(hashes.take(6),restored.hashes)
+        assertEquals(hashes.take(6),Qwdtt().apply { assertTrue(parseFromLink(restored.exportToLink())) }.hashes)
     }
     @Test fun excessCsqttLinkHashesKeepFirstSixSlots() {
         val hashes=(1..8).map { "test_hash_123456789_$it" }

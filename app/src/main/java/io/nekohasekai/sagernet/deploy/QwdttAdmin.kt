@@ -22,6 +22,7 @@ class QwdttAdmin(private val server: DeployServer) {
         val password: String, val label: String, val vkHash: String, val maxDevices: Int,
         val deviceIds: List<String>, val expiresAt: Long, val deactivated: Boolean,
         val downBytes: Long, val upBytes: Long, val activeDevices: Int,
+        val diagKey: String = "", val rawPort: Int = 0, val directPort: Int = 0,
     ) {
         val hashes: List<String> get() = vkHash.split(',', ';', '\n').map { it.trim() }.filter { it.isNotEmpty() }
         val title: String get() = label.ifBlank { password }
@@ -73,6 +74,7 @@ class QwdttAdmin(private val server: DeployServer) {
         deviceIds = o.optJSONArray("device_ids")?.let { a -> (0 until a.length()).map { a.optString(it) } }.orEmpty(),
         expiresAt = o.optLong("expires_at", 0L), deactivated = o.optBoolean("is_deactivated", false),
         downBytes = o.optLong("down_bytes", 0L), upBytes = o.optLong("up_bytes", 0L), activeDevices = o.optInt("active_devices", 0),
+        diagKey = o.optString("diag_key"), rawPort = o.optInt("raw_port"), directPort = o.optInt("direct_port"),
     )
 
     fun list(): List<Access> = subscriptions(call("/admin/passwords", null).optJSONArray("passwords")
@@ -104,14 +106,18 @@ class QwdttAdmin(private val server: DeployServer) {
     fun delete(password: String) { call("/admin/passwords/delete", mapOf("password" to password)) }
 
     /** The links of one access: qwdtt:// like the original admin tab, and the legacy wdtt:// form. */
-    fun links(access: Access): Pair<String, String> = links(server, access.title, access.password, access.hashes)
+    fun links(access: Access): Pair<String, String> = links(server, access.title, access.password, access.hashes, access.diagKey, access.rawPort, access.directPort)
 
     companion object {
-        fun links(server: DeployServer, name: String, password: String, hashes: List<String>): Pair<String, String> {
+        fun links(server: DeployServer, name: String, password: String, hashes: List<String>, diagKey: String = "", rawPort: Int = 0, directPort: Int = 0): Pair<String, String> {
             val host = server["host"].trim()
             val peer = server.port("peerPort")
             val qwdtt = DeployConfig.link(org.json.JSONObject().put("type", "qwdtt").put("name", name).put("server", host)
-                .put("server_port", peer).put("password", password).put("hashes", org.json.JSONArray(hashes)))
+                .put("server_port", peer).put("password", password).put("hashes", org.json.JSONArray(hashes)).apply {
+                    if(rawPort>0) put("raw_port",rawPort) else server["rawPort"].toIntOrNull()?.let { put("raw_port",it) }
+                    if(directPort>0) put("direct_port",directPort) else server["directPort"].toIntOrNull()?.let { put("direct_port",it) }
+                    if(diagKey.isNotBlank()) put("diag_key",diagKey)
+                })
             // wdtt://<server>:<dtls_port>:<wg_port>:<local_port>:<password>:<vk_hash>
             val wdtt = "wdtt://$host:$peer:${server["wgPort"].ifBlank { "56001" }}:9000:$password:${hashes.joinToString(",")}"
             return qwdtt to wdtt

@@ -55,7 +55,7 @@ class MobileCaptchaController(private val host: FragmentActivity): AutoCloseable
                 }
                 if(client=="freeturn") {
                     // The client's own captcha proxy on this phone.
-                    if(!url.matches(Regex("http://127\\.0\\.0\\.1:[0-9]{1,5}(/.*)?"))) { reply(id,"error:invalid captcha address");return }
+                    if(!CaptchaAddressPolicy.allowedFreeTurn(url)) { reply(id,"error:invalid captcha address");return }
                     showFreeturn(id,url);return
                 }
                 if(!allowed(url)) { reply(id,"error:invalid captcha address");return }
@@ -345,6 +345,8 @@ class MobileCaptchaController(private val host: FragmentActivity): AutoCloseable
             setBackgroundColor(MobilePalette.solid)
             settings.javaScriptEnabled=true
             settings.domStorageEnabled=true
+            settings.allowFileAccess=false
+            settings.allowContentAccess=false
             loadUrl(url)
         }
         body.addView(web,LinearLayout.LayoutParams(-1,(host.resources.displayMetrics.heightPixels*.7f).toInt()))

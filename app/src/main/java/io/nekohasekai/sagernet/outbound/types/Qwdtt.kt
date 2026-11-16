@@ -9,6 +9,10 @@ import java.util.UUID
 
 /** Desktop qwdtt.cpp configuration, without persisted runtime ports or bridge secrets. */
 open class Qwdtt : Outbound("qwdtt"), app.rawline.mobile.bg.carrier.NativeCarrier {
+    companion object {
+        const val MAX_HASHES = 6
+        const val MAX_WORKERS = MAX_HASHES * 27
+    }
     override val carrierKind get() = CarrierKind.QWDTT
     init { serverPort=56000 }
     var password=""
@@ -20,6 +24,9 @@ open class Qwdtt : Outbound("qwdtt"), app.rawline.mobile.bg.carrier.NativeCarrie
     // Set when the user edits the hash slots: a subscription refresh then keeps them all.
     var manualHashesOverride=false
     var rawPort=56003
+    var directPort=56002
+    var diagKey=""
+    var customTurnIps=""
     var workers=9
     var turnTcp=true
     var obfs="audio"
@@ -54,13 +61,20 @@ open class Qwdtt : Outbound("qwdtt"), app.rawline.mobile.bg.carrier.NativeCarrie
         password=if(obj.contains("password")) obj.string("password") else obj.string("pass")
         val h=if(obj.contains("hashes")) "hashes" else "vkHashes"
         val items=if(obj.isArray(h)) obj.array(h).strings() else listOf(obj.string(h))
-        hashes=items.flatMap { it.split(Regex("[,\\s]+")) }.map(VkCallHash::strip).filter { it.isNotBlank() }.distinct().take(4)
+        hashes=items.flatMap { it.split(Regex("[,\\s]+")) }.map(VkCallHash::strip).filter { it.isNotBlank() }.distinct().take(MAX_HASHES)
         mode=when(val m=obj.string("mode").lowercase().ifEmpty { runCatching { app.rawline.mobile.database.DataStore.relayDefaultQwdttMode }.getOrDefault("wg") }) {
             "raw","rawtun" -> "raw"; "","wg","vpn","socks" -> "wg"; else -> m }
-        rawPort=if(obj.contains("raw_port")) obj.int("raw_port") else 56003
+        rawPort=when { obj.contains("raw_port") -> obj.int("raw_port");obj.contains("rawPort") -> obj.int("rawPort");obj.contains("raw") -> obj.int("raw");else -> 56003 }
+        directPort=when { obj.contains("direct_port") -> obj.int("direct_port");obj.contains("directPort") -> obj.int("directPort");obj.contains("direct") -> obj.int("direct");else -> 56002 }
+        diagKey=obj.string("diag_key").ifEmpty { obj.string("diagKey").ifEmpty { obj.string("dk") } }.trim()
+        if(diagKey.isNotEmpty() && Base64Strict.decode(diagKey.trimEnd('='),true)?.size!=32) return false
+        customTurnIps=obj.string("custom_turn_ips").trim()
         workers=if(obj.contains("workers")) obj.int("workers") else if(obj.contains("workersPerHash")) obj.int("workersPerHash") else 9
-        workers=workers.coerceIn(9,(if(hashSource == "auto") 4 else hashes.size.coerceIn(1,4))*27)/9*9
+        workers=workers.coerceIn(9,(if(hashSource == "auto") MAX_HASHES else hashes.size.coerceIn(1,MAX_HASHES))*27)/9*9
         turnTcp=if(obj.contains("turn_tcp")) obj.bool("turn_tcp") else true
+        if(obj.contains("turn_transport")) {
+            turnTcp=when(obj.string("turn_transport").trim().lowercase()) { "tcp","tls" -> true;"udp" -> false;else -> return false }
+        }
         obfs=obj.string("obfs").ifEmpty { "audio" }
         goDns=obj.string("go_dns").ifEmpty { "yandex" }
         vkAnonPath=obj.string("vk_anon_path").ifEmpty { "vkcalls" }
@@ -71,7 +85,7 @@ open class Qwdtt : Outbound("qwdtt"), app.rawline.mobile.bg.carrier.NativeCarrie
         wdttWgPort=if(obj.contains("wg_port")) obj.int("wg_port") else 56001
         wdttLocalPort=if(obj.contains("local_port")) obj.int("local_port") else 9000
         if(wdttWgPort !in 1..65535 || wdttLocalPort !in 1..65535) return false
-        return server.isNotEmpty() && serverPort in 1..65535 && rawPort in 1..65535 && mode in listOf("raw","wg")
+        return server.isNotEmpty() && serverPort in 1..65535 && rawPort in 1..65535 && directPort in 1..65535 && mode in listOf("raw","wg")
     }
     override fun parseFromLink(link:String):Boolean {
         if(link.startsWith("wdtt://",true)) {
@@ -89,9 +103,9 @@ open class Qwdtt : Outbound("qwdtt"), app.rawline.mobile.bg.carrier.NativeCarrie
         val q=url.query
         if(!q.has("peer")) return false
         val obj=jsonObjectOf("type" to "qwdtt")
-        for(key in listOf("peer","name","pass","password","hashes","hash_source","mode","obfs","go_dns","device_id","vk_anon_path","captcha_mode"))
+        for(key in listOf("peer","name","pass","password","hashes","hash_source","mode","obfs","go_dns","device_id","vk_anon_path","captcha_mode","dk","diag_key","custom_turn_ips","turn_transport"))
             if(q.has(key)) obj[key]=q.valueFormDecoded(key)
-        for(key in listOf("raw_port","workers")) if(q.has(key)) obj[key]=q.value(key).toIntOrNull() ?: return false
+        for(key in listOf("raw_port","raw","direct_port","direct","workers")) if(q.has(key)) obj[key]=q.value(key).toIntOrNull() ?: return false
         if(q.has("turn_tcp")) obj["turn_tcp"]=q.value(key="turn_tcp") in listOf("1","true")
         if(!q.has("name")) obj["name"]=url.fragment ?: ""
         if(q.has("dtls_port") || q.has("server_port")) {
@@ -105,6 +119,7 @@ open class Qwdtt : Outbound("qwdtt"), app.rawline.mobile.bg.carrier.NativeCarrie
     override fun exportToJson()=jsonObjectOf("type" to type,"tag" to name,"server" to server,"server_port" to serverPort,
         "hash_source" to hashSource,"password" to password,"hashes" to JsonArray.of(*hashes.toTypedArray()),"mode" to mode,"raw_port" to rawPort,
         "workers" to workers,"turn_tcp" to turnTcp,"obfs" to obfs,"go_dns" to goDns,"device_id" to deviceId,
+        "direct_port" to directPort,"diag_key" to diagKey,"custom_turn_ips" to customTurnIps,
         "vk_anon_path" to vkAnonPath,"captcha_mode" to captchaMode).also {
             if(manualHashesOverride) it["manual_hashes_override"]=true
             if(wdttLink) { it["legacy"]=true;it["wg_port"]=wdttWgPort;it["local_port"]=wdttLocalPort }
@@ -118,6 +133,9 @@ open class Qwdtt : Outbound("qwdtt"), app.rawline.mobile.bg.carrier.NativeCarrie
         url.addQueryItem("pass",password);url.addQueryItem("hashes",hashes.joinToString(","))
         for((key,value) in exportToJson()) if(key in listOf("mode","raw_port","workers","obfs","go_dns","device_id","vk_anon_path","captcha_mode")) url.addQueryItem(key,value.toString())
         url.addQueryItem("turn_tcp",if(turnTcp) "1" else "0");url.addQueryItem("name",name)
+        url.addQueryItem("direct",directPort.toString())
+        if(diagKey.isNotEmpty()) url.addQueryItem("dk",diagKey)
+        if(customTurnIps.isNotEmpty()) url.addQueryItem("custom_turn_ips",customTurnIps)
         return url.build()
     }
     override fun build(ctx:BuildContext)=BuildResult(JsonObject(),"qWDTT requires a prepared native transport bridge")
@@ -126,7 +144,7 @@ open class Qwdtt : Outbound("qwdtt"), app.rawline.mobile.bg.carrier.NativeCarrie
         require(password.isNotEmpty() && password.none { it=='|' || it=='\n' || it=='\r' })
         require(deviceId.isNotEmpty() && deviceId.none { it=='|' || it=='\n' || it=='\r' })
         require(hashSource == "auto" || hashes.isNotEmpty()) { "Добавьте хеши VK в профиль или выберите автоматический источник" }
-        require((hashSource == "auto" || hashes.size in 1..4) && workers in 1..108)
+        require((hashSource == "auto" || hashes.size in 1..MAX_HASHES) && workers in 1..MAX_WORKERS)
         require(mode in listOf("raw","wg") && obfs in listOf("audio","video"))
         require(vkAnonPath in listOf("vkcalls","legacy") && captchaMode in listOf("auto","wv","rjs"))
         return exportToJson().also {
@@ -134,6 +152,8 @@ open class Qwdtt : Outbound("qwdtt"), app.rawline.mobile.bg.carrier.NativeCarrie
             it["listen"]=Hosts.displayAddress("127.0.0.1",udpPort)
             it["socks"]=Hosts.displayAddress("127.0.0.1",port)
             it["socks_user"]=credentials.username;it["socks_pass"]=credentials.password
+            it["diag_ports"]="dtls=$serverPort,raw=$rawPort,direct=$directPort"
+            it["network_dns"]=JsonArray.of(*DnsTunnel.systemResolvers().toTypedArray())
         }
     }
 }

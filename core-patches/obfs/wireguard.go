@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/netip"
 	"RawlineCore/internal/ssr"
+	"RawlineCore/internal/karing"
 	"strings"
 	"sync"
 	"time"
@@ -309,5 +310,6 @@ func (c *obfsPacketConn) Close() error {
 func Registries() (*outbound.Registry, *endpoint.Registry) {
 	outbounds, endpoints := include.OutboundRegistry(), include.EndpointRegistry()
 	Register(outbounds, endpoints)
+	karing.Register(outbounds)
 	return outbounds, endpoints
 }

@@ -301,7 +301,10 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         val items = mutableListOf<LayoutAction>()
         box.addView(when (part) {
             Part.TILES -> tiles(items)
-            Part.CHIP -> chip()
+            Part.CHIP -> removable(chip(), MobileHomeLayout.chipHidden, items) {
+                MobileHomeLayout.chipHidden = !MobileHomeLayout.chipHidden
+                fill(Part.CHIP)
+            }
             Part.CONTROL -> control(items)
         }, FrameLayout.LayoutParams(-1, -2))
         val strip = LinearLayout(this).apply { gravity = Gravity.END or Gravity.CENTER_VERTICAL }

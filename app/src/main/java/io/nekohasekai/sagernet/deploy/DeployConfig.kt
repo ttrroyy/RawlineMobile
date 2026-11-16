@@ -23,6 +23,9 @@ object DeployConfig {
             url.addQueryItem("peer",Hosts.displayAddress(config.getString("server"),config.getInt("server_port")))
             url.addQueryItem("hashes",config.optJSONArray("hashes")?.let { a -> (0 until a.length()).joinToString(",") { a.getString(it) } }.orEmpty())
             url.addQueryItem("workers","18");url.addQueryItem("port","9000")
+            if(config.has("raw_port")) url.addQueryItem("raw",config.getInt("raw_port").toString())
+            if(config.has("direct_port")) url.addQueryItem("direct",config.getInt("direct_port").toString())
+            if(config.optString("diag_key").isNotBlank()) url.addQueryItem("dk",config.getString("diag_key"))
             url.addQueryItem("pass",config.getString("password"))
         } else {
             // csqtt://connect?v=2&host&peer&password, as the original server panel builds it.
