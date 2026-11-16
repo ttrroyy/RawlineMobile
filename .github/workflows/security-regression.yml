@@ -77,7 +77,7 @@ jobs:
           ADB="$ANDROID_HOME/platform-tools/adb"
           PACKAGE=$("$ADB" shell pm list packages | sed -n 's/^package:\(app.rawline.mobile[^[:space:]]*\)/\1/p' | grep -v '\.test$' | tr -d '\r')
           "$ADB" shell run-as "$PACKAGE" ls files | tr -d '\r' | while read -r file; do
-            case "$file" in home-*.png) "$ADB" exec-out run-as "$PACKAGE" cat "files/$file" > "security-results/$file";; esac
+            case "$file" in core.log|core.log.prev|home-*.png) "$ADB" exec-out run-as "$PACKAGE" cat "files/$file" > "security-results/$file";; esac
           done
       - name: Short VPN and unauthorized command check
         run: |

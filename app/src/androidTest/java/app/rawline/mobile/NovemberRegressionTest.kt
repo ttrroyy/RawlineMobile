@@ -101,7 +101,8 @@ class NovemberRegressionTest {
                 "qwdtt://config?peer=192.0.2.7%3A56000&pass=fixture&hashes=$hash&name=Qwdtt",
             )) {
                 val imported = app.rawline.mobile.group.SubscriptionClient.importText(link, group.id)
-                assertEquals("Background import did not store the WDTT profile", 1, imported.count)
+                assertEquals("Background import did not store the WDTT profile: " +
+                    if (imported.count != 1) String(moe.matsuri.nb4a.utils.CoreLog.read(8_192)) else "", 1, imported.count)
                 assertFalse("Import started the VPN", DataStore.serviceState.canStop)
             }
             assertEquals(3, SagerDatabase.proxyDao.getByGroup(group.id).size)
