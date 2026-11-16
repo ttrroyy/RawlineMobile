@@ -159,6 +159,93 @@ class NovemberRegressionTest {
         }
     }
 
+    @Test fun combinedConnectionStatusSurvivesEditorLayoutsAndReconnects() {
+        val context = instrumentation.targetContext
+        val previousStyle = DataStore.uiStyle
+        val previousNight = DataStore.nightTheme
+        val previousSwitches = MobileHomeLayout.controlSwitches
+        val previousBottom = MobileHomeLayout.controlBottom
+        val previousScroll = MobileHomeLayout.scrollParts
+        val previousHiddenSwitch = MobileHomeLayout.hiddenSwitch
+        val previousGroup = GroupRepo.currentId()
+        val previousSelected = DataStore.selectedProxy
+        val previousCurrent = DataStore.currentProfile
+        val previousConnectedAt = DataStore.mobileConnectedAt
+        val previousState = DataStore.serviceState
+        val group = ProxyGroup(name = "State")
+        group.id = SagerDatabase.groupDao.insert(group)
+        val profile = ProxyEntity(groupId = group.id).putOutbound(Socks().apply {
+            name = "State server"; server = "192.0.2.1"; serverPort = 1080
+        })
+        profile.id = SagerDatabase.proxyDao.addProxy(profile)
+        fun descendants(view: View): List<View> = listOf(view) + if (view is ViewGroup)
+            (0 until view.childCount).flatMap { descendants(view.getChildAt(it)) } else emptyList()
+        fun homes(fragments: List<androidx.fragment.app.Fragment>): List<app.rawline.mobile.ui.MobileHomeFragment> =
+            fragments.flatMap { listOfNotNull(it as? app.rawline.mobile.ui.MobileHomeFragment) + homes(it.childFragmentManager.fragments) }
+        try {
+            MobileHomeLayout.controlSwitches = true
+            MobileHomeLayout.hiddenSwitch = ""
+            DataStore.selectedProxy = profile.id
+            DataStore.currentProfile = profile.id
+            for (style in listOf("new", "pastel")) for (night in listOf(1, 2))
+                for (bottom in listOf(false, true)) for (scroll in listOf(false, true)) {
+                    DataStore.uiStyle = style; DataStore.nightTheme = night
+                    MobileHomeLayout.controlBottom = bottom
+                    MobileHomeLayout.scrollParts = if (scroll) setOf("control", "chip") else emptySet()
+                    DataStore.serviceState = app.rawline.mobile.bg.BaseService.State.Stopped
+                    GroupRepo.setCurrent(group.id)
+                    instrumentation.runOnMainSync { Theme.applyNightTheme() }
+                    val activity = instrumentation.startActivitySync(Intent(context, MainActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)) as MainActivity
+                    try {
+                        val deadline = System.currentTimeMillis() + 15_000
+                        var ready = false
+                        while (!ready && System.currentTimeMillis() < deadline) {
+                            instrumentation.runOnMainSync {
+                                ready = descendants(activity.window.decorView).filterIsInstance<TextView>().any { it.text.toString() == "State server" && it.isShown }
+                            }
+                            if (!ready) Thread.sleep(50)
+                        }
+                        assertTrue("Editor layout did not render: $style/$night/$bottom/$scroll", ready)
+                        instrumentation.runOnMainSync {
+                            val home = homes(activity.supportFragmentManager.fragments).first()
+                            val controls = descendants(activity.window.decorView)
+                            val power = controls.filterIsInstance<TextView>().first {
+                                it.contentDescription?.toString()?.startsWith(context.getString(R.string.qmobile_connect) + ", ") == true
+                            }
+                            // No VPN starts: exercise the view transition while its combined container is reused.
+                            for (state in listOf(app.rawline.mobile.bg.BaseService.State.Stopped,
+                                app.rawline.mobile.bg.BaseService.State.Connected, app.rawline.mobile.bg.BaseService.State.Stopped,
+                                app.rawline.mobile.bg.BaseService.State.Connected)) {
+                                DataStore.serviceState = state
+                                DataStore.mobileConnectedAt = android.os.SystemClock.elapsedRealtime() - 65_000
+                                home.updateState()
+                                assertTrue("Combined state row vanished: $style/$night/$bottom/$scroll/$state", power.isShown)
+                                if (state.connected) {
+                                    assertTrue("Connected timer missing", Regex("\\d{2}:\\d{2}:\\d{2}").containsMatchIn(power.text))
+                                    assertTrue("Active server missing", power.text.contains("State server"))
+                                    val check = controls.filterIsInstance<TextView>().first { it.text.toString() == context.getString(R.string.qmobile_check_connection) }
+                                    assertTrue("Connection check hidden by its parent", check.isShown)
+                                }
+                            }
+                        }
+                    } finally {
+                        DataStore.serviceState = app.rawline.mobile.bg.BaseService.State.Stopped
+                        instrumentation.runOnMainSync { activity.finish() }
+                    }
+                }
+        } finally {
+            DataStore.uiStyle = previousStyle; DataStore.nightTheme = previousNight
+            MobileHomeLayout.controlSwitches = previousSwitches; MobileHomeLayout.controlBottom = previousBottom
+            MobileHomeLayout.scrollParts = previousScroll; MobileHomeLayout.hiddenSwitch = previousHiddenSwitch
+            DataStore.selectedProxy = previousSelected; DataStore.currentProfile = previousCurrent
+            DataStore.mobileConnectedAt = previousConnectedAt; DataStore.serviceState = previousState
+            GroupRepo.setCurrent(previousGroup)
+            instrumentation.runOnMainSync { Theme.applyNightTheme() }
+            SagerDatabase.proxyDao.deleteById(profile.id); SagerDatabase.groupDao.deleteById(group.id)
+        }
+    }
+
     @Test fun disablingSubscriptionRoutingRemovesTheAppBypassCaption() {
         val context = instrumentation.targetContext
         val group = ProxyGroup(name = "Subscription caption regression")

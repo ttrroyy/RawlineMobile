@@ -1177,6 +1177,8 @@ class MobileHomeFragment : ToolbarFragment() {
                         check?.let { addView(it,LinearLayout.LayoutParams(dp(156),-2)); currentCheck?.gravity=Gravity.END or Gravity.CENTER_VERTICAL }
                         addView(speeds,LinearLayout.LayoutParams(-2,-2))
                     },LinearLayout.LayoutParams(-2,-1))
+                    // updateState() may have hidden this row before it became the shared state container.
+                    status.visibility=View.VISIBLE
                     // Only the speed hides while disconnected; the state stays readable.
                     sheetSpeed=speeds
                     // As tall as its three lines or the check over the speed, whichever is taller.
