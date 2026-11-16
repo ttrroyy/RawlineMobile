@@ -25,6 +25,7 @@ import app.rawline.mobile.ui.test.TestSessionClient
 import androidx.room.InvalidationTracker
 import app.rawline.mobile.R
 import app.rawline.mobile.Key
+import app.rawline.mobile.Action
 import app.rawline.mobile.BuildConfig
 import app.rawline.mobile.TrafficFormat
 import app.rawline.mobile.SagerNet
@@ -389,7 +390,7 @@ class MobileHomeFragment : ToolbarFragment() {
         isFocusable = true; setOnClickListener { callback() }
     }
     private fun iconAction(icon: Int, description: String, color: Int = Color.TRANSPARENT, callback: () -> Unit) = ImageButton(requireContext()).apply {
-        setImageResource(icon); imageTintList=android.content.res.ColorStateList.valueOf(foregroundColor); setBackgroundColor(color); setPadding(dp(12),dp(12),dp(12),dp(12))
+        setImageResource(icon); imageTintList=android.content.res.ColorStateList.valueOf(foregroundColor); setBackgroundColor(color); setPadding(dp(if(icon==R.drawable.ic_mobile_add) 14 else 12),dp(12),dp(if(icon==R.drawable.ic_mobile_add) 14 else 12),dp(12))
         contentDescription=description; setOnClickListener { callback() }
         if(color!=Color.TRANSPARENT) {
             background=MobilePalette.actionShape(context,color)
@@ -1362,7 +1363,7 @@ class MobileHomeFragment : ToolbarFragment() {
                         isFocusable = true
                         setOnClickListener {
                             DataStore.selectedProxy = profile.id
-                            if (DataStore.serviceState.canStop) SagerNet.reloadService()
+                            if (DataStore.serviceState.canStop) requireContext().sendBroadcast(Intent(Action.SWITCH_PROFILE).setPackage(requireContext().packageName).putExtra(Action.EXTRA_PROFILE_ID, profile.id))
                             this@MobileHomeFragment.profileRows.forEach { (id,view) -> view.background=tile(id==profile.id); MobileFeedback.apply(view) }
                             updateState()
                         }
@@ -1747,6 +1748,7 @@ class MobileHomeFragment : ToolbarFragment() {
             }
         }
         dialog.setContentView(androidx.core.widget.NestedScrollView(requireContext()).apply {
+            isVerticalScrollBarEnabled=false; isHorizontalScrollBarEnabled=false
             clipToPadding=false
             addView(body,FrameLayout.LayoutParams(-1,-2))
         })
@@ -1784,7 +1786,7 @@ class MobileHomeFragment : ToolbarFragment() {
                     setOnClickListener {
                         dialog.dismiss()
                         DataStore.selectedProxy=profile.id
-                        if(DataStore.serviceState.canStop) SagerNet.reloadService()
+                        if(DataStore.serviceState.canStop) requireContext().sendBroadcast(Intent(Action.SWITCH_PROFILE).setPackage(requireContext().packageName).putExtra(Action.EXTRA_PROFILE_ID,profile.id))
                         refresh();updateState()
                     }
                     MobileFeedback.apply(this)
@@ -1801,7 +1803,7 @@ class MobileHomeFragment : ToolbarFragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
             override fun afterTextChanged(s: android.text.Editable?) = show()
         })
-        dialog.setContentView(androidx.core.widget.NestedScrollView(requireContext()).apply { clipToPadding=false; addView(body,FrameLayout.LayoutParams(-1,-2)) })
+        dialog.setContentView(androidx.core.widget.NestedScrollView(requireContext()).apply { isVerticalScrollBarEnabled=false; isHorizontalScrollBarEnabled=false; clipToPadding=false; addView(body,FrameLayout.LayoutParams(-1,-2)) })
         dialog.behavior.state=com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
         dialog.show()
         viewLifecycleOwner.lifecycleScope.launch {

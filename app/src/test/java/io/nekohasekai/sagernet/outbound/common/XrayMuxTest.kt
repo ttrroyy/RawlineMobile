@@ -8,6 +8,19 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class XrayMuxTest {
+    @Test fun absentXhttpExtrasDoNotWarnButMalformedExtrasDo() {
+        for (extra in listOf("null", "{}", "")) {
+            app.rawline.mobile.validation.ParseDiag.Scope().use { scope ->
+                assertTrue(XrayXhttp().parseFromLink("vless://id@example.org:443?type=xhttp&extra=$extra"))
+                assertTrue("Unexpected warning for extra=$extra", scope.issues().isEmpty())
+            }
+        }
+        app.rawline.mobile.validation.ParseDiag.Scope().use { scope ->
+            XrayXhttp().parseFromLink("vless://id@example.org:443?type=xhttp&extra=broken")
+            assertTrue(scope.issues().isNotEmpty())
+        }
+    }
+
     @Test fun poolCapAndUdp443RoundTrip() {
         val mux = XrayMultiplex()
         mux.parseFromLink("vless://id@example.org:443?mux=1&mux_max_connections=4&mux_xudp_proxy_udp443=Skip")

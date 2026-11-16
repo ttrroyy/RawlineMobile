@@ -195,6 +195,7 @@ class NovemberRegressionTest {
         val previousStyle = DataStore.uiStyle
         val previousNight = DataStore.nightTheme
         val previousHiddenChip = MobileHomeLayout.chipHidden
+        val previousSelected = DataStore.selectedProxy
         val previousGroup = GroupRepo.currentId()
         val group = ProxyGroup(name = "Theme regression")
         group.id = SagerDatabase.groupDao.insert(group)
@@ -224,6 +225,14 @@ class NovemberRegressionTest {
                     }
                     assertEquals("Server missing in $style / $night", 0L, ready.count)
                     instrumentation.runOnMainSync {
+                        val controls = descendants(activity.window.decorView)
+                        for (scroller in controls.filter { it is android.widget.ScrollView || it is android.widget.HorizontalScrollView }) {
+                            assertTrue("Unexpected home scrollbar in $style / $night", !scroller.isVerticalScrollBarEnabled && !scroller.isHorizontalScrollBarEnabled)
+                        }
+                        val row = controls.filterIsInstance<TextView>().first { it.text.toString() == profile.displayName() }.parent.parent as View
+                        assertTrue("Profile tap was not handled", row.performClick())
+                        assertEquals(profile.id, DataStore.selectedProxy)
+                        assertTrue("Profile selection started the VPN", !DataStore.serviceState.canStop)
                         val settings = descendants(activity.window.decorView).first { it.contentDescription == context.getString(R.string.qmobile_settings) }
                         assertTrue("Settings hidden in $style / $night", settings.getGlobalVisibleRect(Rect()))
                         if(hidden) assertTrue("Relocated add button hidden in $style / $night",
@@ -237,6 +246,7 @@ class NovemberRegressionTest {
                 }
             }
         } finally {
+            DataStore.selectedProxy = previousSelected
             DataStore.uiStyle = previousStyle
             DataStore.nightTheme = previousNight
             MobileHomeLayout.chipHidden = previousHiddenChip

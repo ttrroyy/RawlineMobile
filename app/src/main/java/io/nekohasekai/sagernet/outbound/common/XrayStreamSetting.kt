@@ -349,7 +349,7 @@ private fun xrayLinkHeaders(q: LinkQuery): MutableList<String> {
 
 private fun xrayWarnUnparsableExtra(value: String) {
     val trimmed = value.trim()
-    if (trimmed.isEmpty() || JsonInput.parseObjectOrNull(trimmed)?.isEmpty() == true) return
+    if (trimmed.isEmpty() || trimmed == "null" || JsonInput.parseObjectOrNull(trimmed)?.isEmpty() == true) return
     ParseDiag.warn("extra", vtr(R.string.validation_xray_extra_invalid))
 }
 
