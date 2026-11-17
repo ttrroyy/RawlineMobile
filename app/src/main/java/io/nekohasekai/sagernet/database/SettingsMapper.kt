@@ -77,6 +77,7 @@ object SettingsMapper {
             customInboundJson = DataStore.customInbound,
             vpnMode = DataStore.serviceMode == Key.MODE_VPN,
             tunMtu = DataStore.vpnMtu,
+            tunStack = DataStore.vpnStack,
             // strict_route is fixed on Android (decision D7).
             tunStrictRoute = true,
             tunIPv4Cidr = DataStore.vpnTunIpv4Cidr,

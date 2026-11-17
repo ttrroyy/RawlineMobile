@@ -78,7 +78,7 @@ class MobileHomeFragment : ToolbarFragment() {
     private var updatesTile: ImageButton? = null
     private var homeTitle: TextView? = null
     private var modeSwitches: Map<String,androidx.appcompat.widget.SwitchCompat> = emptyMap()
-    private var restartAfterStop = false
+    private val modeSwitch = MobileModeSwitch()
     private fun controlAtBottom()=MobileHomeLayout.controlBottom
     private fun chipAtBottom()=MobileHomeLayout.chipBottom
     private fun chipNearList()=MobileHomeLayout.chipNearList
@@ -88,10 +88,10 @@ class MobileHomeFragment : ToolbarFragment() {
         val state=DataStore.serviceState
         if(powerCovered() || state==app.rawline.mobile.bg.BaseService.State.Stopping) return
         if(state.canStop) {
-            restartAfterStop=DataStore.serviceMode!=mode
+            modeSwitch.request(DataStore.serviceMode, mode)
             SagerNet.stopService()
-            DataStore.serviceMode=mode
         } else {
+            modeSwitch.cancel()
             DataStore.serviceMode=mode
             host().toggleService()
         }
@@ -954,7 +954,7 @@ class MobileHomeFragment : ToolbarFragment() {
                     else rows.addView(power,LinearLayout.LayoutParams(-1,-2))
                     controlParent.addView(rows,LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(if(dockBottom) 2 else 10) })
                 } else {
-                power = action("") { if(!powerCovered()) host().toggleService() }.apply {
+                power = action("") { if(!powerCovered()) { modeSwitch.cancel(); host().toggleService() } }.apply {
                     contentDescription = getString(R.string.qmobile_connect)
                     background = MobileOrbArtwork(requireContext(),getString(R.string.qmobile_orb_idle))
                     // A remote or keyboard has no ripple to show where it stands.
@@ -1515,14 +1515,18 @@ class MobileHomeFragment : ToolbarFragment() {
             currentCheck?.text=getString(R.string.qmobile_check_connection)
         }
         power?.isEnabled = state != app.rawline.mobile.bg.BaseService.State.Stopping
-        if(restartAfterStop && !state.canStop && state!=app.rawline.mobile.bg.BaseService.State.Stopping) {
-            restartAfterStop=false
+        modeSwitch.takeAfterStop(state)?.let { mode ->
+            DataStore.serviceMode = mode
             host().toggleService()
         }
         // The row under the button holds nothing while disconnected: it gives its room to the list; the dock's speeds keep theirs.
         sheetSpeed?.visibility=if(state.connected) View.VISIBLE else if(sheetSpeed?.getTag(R.id.home_part)!=null) View.GONE else View.INVISIBLE
         if(!state.connected) { lastDown=0L;lastUp=0L }
-        modeSwitches.forEach { (mode,switch) -> switch.isChecked=(state.canStop || restartAfterStop) && DataStore.serviceMode==mode }
+        val pendingMode = modeSwitch.pendingMode
+        modeSwitches.forEach { (mode,switch) ->
+            switch.isChecked = (state.canStop || (pendingMode != null && state == app.rawline.mobile.bg.BaseService.State.Stopping)) &&
+                (pendingMode ?: DataStore.serviceMode) == mode
+        }
         val test=TestSessionClient.state.value
         val testing=test.running && test.kind==TestSpec.KIND_URL
         val snapshot=if(testing && !test.testCurrent) nativeTest?.takeIf {

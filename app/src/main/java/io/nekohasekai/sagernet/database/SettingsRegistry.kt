@@ -173,6 +173,7 @@ object SettingsRegistry {
 
     // ------------------------------------------------------------------------------------------------ tun
 
+    @JvmField val VPN_STACK = oneOf("vpn_stack", "", listOf("", "system", "gvisor", "mixed"))
     @JvmField val VPN_MTU = int("vpn_mtu", 1500) { it in 1000..10000 }
     @JvmField val VPN_IPV6 = bool("vpn_ipv6", false)
     @JvmField val VPN_TUN_IPV4_CIDR = string("vpn_tun_ipv4_cidr", DEFAULT_TUN_IPV4_CIDR) {
@@ -378,6 +379,7 @@ object SettingsRegistry {
     /** 0 XHTTP only, 1 XHTTP and Reality, 2 all VLESS (Const.hpp:70-75). */
     @JvmField val XRAY_VLESS_PREFERENCE = int("xray_vless_preference", 1) { it in 0..2 }
     /** Where geoip.dat / geosite.dat come from when an Xray config needs them (SettingsRepo.h:305-307). */
+    @JvmField val XRAY_GEO_AUTO_UPDATE = bool("xray_geo_auto_update", false)
     @JvmField val XRAY_GEOIP_URL = string("xray_geoip_url", "https://github.com/Loyalsoldier/v2ray-rules-dat/raw/release/geoip.dat")
     @JvmField val XRAY_GEOSITE_URL = string("xray_geosite_url", "https://github.com/Loyalsoldier/v2ray-rules-dat/raw/release/geosite.dat")
     @JvmField val SKIP_CERT = bool("skip_cert", false)

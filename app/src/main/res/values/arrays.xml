@@ -841,4 +841,6 @@
         <item>@string/sub_version_auto</item>
         <item>@string/sub_http_11</item>
     </string-array>
+    <string-array name="tun_stack_entries"><item>@string/tun_stack_auto</item><item>System</item><item>gVisor</item><item>Mixed</item></string-array>
+    <string-array name="tun_stack_values" translatable="false"><item></item><item>system</item><item>gvisor</item><item>mixed</item></string-array>
 </resources>

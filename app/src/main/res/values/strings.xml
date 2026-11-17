@@ -607,7 +607,7 @@
     <string name="auto_update_interval">Update interval</string>
     <string name="auto_update_interval_sum">%d minutes</string>
     <string name="auto_update_interval_invalid">Enter at least %d minutes</string>
-    <string name="dns_address_dialog_message">Examples: https://8.8.8.8/dns-query, tls://1.1.1.1, 8.8.8.8, localhost</string>
+    <string name="dns_address_dialog_message">Enter one server, or several separated by commas. The first successful answer is used. Examples: https://8.8.8.8/dns-query, tls://1.1.1.1</string>
     <string name="remote_dns_disable_ipv6">Remote DNS: disable IPv6</string>
     <string name="direct_dns_disable_ipv6">Direct DNS: disable IPv6</string>
     <string name="dns_disable_ipv6_sum">Answer AAAA queries sent to this server with an empty result</string>
@@ -2822,4 +2822,9 @@
     <string name="sniff_route_only_sum">Use the sniffed SNI or host only to pick the route, without replacing the connection address. Keep it on unless the server has to route by domain, for example in a cascade</string>
     <string name="http_proxy_auth">HTTP proxy authentication</string>
     <string name="http_proxy_auth_sum">Protect the HTTP proxy with the same login and password. Applies only while access from other devices is on</string>
+    <string name="tun_stack">TCP/IP stack</string>
+    <string name="tun_stack_auto">Auto (core default)</string>
+    <string name="tun_stack_summary">Auto keeps the current core default. Reconnect to apply changes.</string>
+    <string name="xray_geo_auto_update">Update geodata automatically</string>
+    <string name="xray_geo_auto_update_sum">Check daily and download geoip.dat and geosite.dat when they are more than a day old. If a download fails, keep the previous files.</string>
 </resources>

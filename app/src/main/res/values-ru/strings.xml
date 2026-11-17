@@ -652,7 +652,7 @@
     <string name="direct_test_url_sum">Запрашивается без какого-либо прокси, чтобы отличать обрыв связи от отказа серверов. Пусто — используется состояние сети системы.</string>
     <string name="disable_traffic_stats">Отключить статистику трафика</string>
     <string name="disable_traffic_stats_sum">Трафик профилей не считается</string>
-    <string name="dns_address_dialog_message">Примеры: https://8.8.8.8/dns-query, tls://1.1.1.1, 8.8.8.8, localhost</string>
+    <string name="dns_address_dialog_message">Один сервер или несколько через запятую. Используется первый успешный ответ. Примеры: https://8.8.8.8/dns-query, tls://1.1.1.1</string>
     <string name="dns_advanced">Дополнительные настройки</string>
     <string name="dns_advanced_sum">Поведение кэша, оптимистичный кэш и тайм-аут запроса</string>
     <string name="dns_cache_capacity">Ёмкость кэша</string>
@@ -2695,4 +2695,9 @@
     <string name="sniff_route_only_sum">Использовать SNI или host из сниффинга только для выбора маршрута, не подменяя адрес соединения. Оставьте включённым, если серверу не нужно маршрутизировать по доменам, например в каскаде</string>
     <string name="http_proxy_auth">Авторизация HTTP-прокси</string>
     <string name="http_proxy_auth_sum">Защищать HTTP-прокси тем же логином и паролем. Действует только при включённом доступе с других устройств</string>
+    <string name="tun_stack">Сетевой стек</string>
+    <string name="tun_stack_auto">Авто (выбор ядра)</string>
+    <string name="tun_stack_summary">Авто сохраняет прежний выбор ядра. Изменения применяются после переподключения.</string>
+    <string name="xray_geo_auto_update">Обновлять геоданные автоматически</string>
+    <string name="xray_geo_auto_update_sum">Проверять раз в сутки и загружать geoip.dat и geosite.dat старше суток. При ошибке загрузки сохраняются прежние файлы.</string>
 </resources>

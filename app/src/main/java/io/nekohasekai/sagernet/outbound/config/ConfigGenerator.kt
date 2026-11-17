@@ -663,7 +663,7 @@ class ConfigGenerator @JvmOverloads constructor(
     /**
      * The tun inbound of :1141-1180 with the Android field set of design В§2.4: no interface_name / auto_redirect
      * (the platform opens the device), per-app package lists instead of uid rules, the opt-in system HTTP proxy handed
-     * to the VpnService builder through `platform.http_proxy`, and an explicit 1.14 `dns_mode`. No `stack`: sing-tun's
+     * to the VpnService builder through `platform.http_proxy`, and an explicit 1.14 `dns_mode`. Auto omits `stack`, preserving sing-tun's
      * default, as on the desktop.
      */
     private fun buildTunInbound(state: BuildState): JsonObject {
@@ -672,6 +672,10 @@ class ConfigGenerator @JvmOverloads constructor(
         tun["type"] = "tun"
         tun["auto_route"] = true
         tun["mtu"] = settings.tunMtu
+        if (settings.tunStack.isNotEmpty()) {
+            require(settings.tunStack in setOf("system", "gvisor", "mixed")) { "Unknown TUN stack" }
+            tun["stack"] = settings.tunStack
+        }
         tun["strict_route"] = settings.tunStrictRoute
         state.tunIPv4Cidr = settings.tunIPv4Cidr
         val address = JsonArray.of(settings.tunIPv4Cidr)
@@ -980,30 +984,45 @@ class ConfigGenerator @JvmOverloads constructor(
         val headRules = JsonArray()
         // The emitted remote resolver, cloned per route chain for the app rules below; null in a test box.
         var remoteBase: JsonObject? = null
+        val dnsMembers = LinkedHashMap<String, List<String>>()
+        val remoteBases = ArrayList<JsonObject>()
+        fun addresses(text: String) = DnsServers.splitAddresses(text).ifEmpty { listOf(text) }
+        fun roleTags(tag: String, count: Int) = (0 until count).map { if (it == 0) tag else hopTag(tag, it) }
 
         if (!state.forTest) {
             // The authenticated SSTP bridge resolves this alias using only negotiated VPN resolvers.
             // A WireGuard exit resolves through its own DNS line, as the official clients do.
-            var remoteDnsObj = DnsServers.buildDnsObj(when {
-                state.sstpDnsTag.isNotEmpty() -> "tcp://127.0.0.53"
-                state.wireGuardDns.isNotEmpty() -> state.wireGuardDns
-                else -> settings.remoteDns
-            })
-            // Xray resolves through this server's transport and cannot carry udp or quic (:882-885).
-            if (state.proxyUsesXray && (remoteDnsObj.string("type") == "udp" || remoteDnsObj.string("type") == "quic")) {
-                remoteDnsObj = DnsServers.buildDnsObj(DnsServers.upgradeUdpDnsToDoH(remoteDnsObj.string("server")))
+            val remoteAddresses = when {
+                state.sstpDnsTag.isNotEmpty() -> listOf("tcp://127.0.0.53")
+                state.wireGuardDns.isNotEmpty() -> addresses(state.wireGuardDns)
+                else -> addresses(settings.remoteDns)
             }
-            remoteDnsObj["tag"] = Tags.DNS_REMOTE
-            remoteDnsObj["domain_resolver"] = Tags.DNS_LOCAL
-            remoteDnsObj["detour"] = state.sstpDnsTag.ifEmpty { Tags.PROXY }
-            servers.add(remoteDnsObj)
-            remoteBase = remoteDnsObj
+            val tags = roleTags(Tags.DNS_REMOTE, remoteAddresses.size)
+            dnsMembers[Tags.DNS_REMOTE] = tags
+            for ((index, address) in remoteAddresses.withIndex()) {
+                var remoteDnsObj = DnsServers.buildDnsObj(address)
+                // Xray resolves through this server's transport and cannot carry udp or quic (:882-885).
+                if (state.proxyUsesXray && (remoteDnsObj.string("type") == "udp" || remoteDnsObj.string("type") == "quic")) {
+                    remoteDnsObj = DnsServers.buildDnsObj(DnsServers.upgradeUdpDnsToDoH(remoteDnsObj.string("server")))
+                }
+                remoteDnsObj["tag"] = tags[index]
+                remoteDnsObj["domain_resolver"] = Tags.DNS_LOCAL
+                remoteDnsObj["detour"] = state.sstpDnsTag.ifEmpty { Tags.PROXY }
+                servers.add(remoteDnsObj)
+                remoteBases.add(remoteDnsObj)
+                if (remoteBase == null) remoteBase = remoteDnsObj
+            }
         }
 
-        val directDnsObj = DnsServers.buildDnsObj(settings.directDns, state.forTest)
-        directDnsObj["tag"] = Tags.DNS_DIRECT
-        directDnsObj["domain_resolver"] = Tags.DNS_LOCAL
-        servers.add(directDnsObj)
+        val directAddresses = addresses(settings.directDns)
+        val directTags = roleTags(Tags.DNS_DIRECT, directAddresses.size)
+        dnsMembers[Tags.DNS_DIRECT] = directTags
+        for ((index, address) in directAddresses.withIndex()) {
+            val directDnsObj = DnsServers.buildDnsObj(address, state.forTest)
+            directDnsObj["tag"] = directTags[index]
+            directDnsObj["domain_resolver"] = Tags.DNS_LOCAL
+            servers.add(directDnsObj)
+        }
 
         appFamilyGuard(state)?.let { headRules.add(it) }
 
@@ -1097,12 +1116,16 @@ class ConfigGenerator @JvmOverloads constructor(
         // the exit an app was routed to wins the way its route rule wins.
         if (!state.forTest) for (entry in pre.perAppDns) {
             if (entry.chainTag != null) {
-                val base = remoteBase ?: continue   // no remote resolver to clone (custom dns object)
+                if (remoteBase == null) continue // no remote resolver to clone (custom dns object)
                 if (servers.none { (it as? JsonObject)?.string("tag") == entry.serverTag }) {
-                    val clone = base.copy()
-                    clone["tag"] = entry.serverTag
-                    clone["detour"] = entry.chainTag
-                    servers.add(clone)
+                    val tags = roleTags(entry.serverTag, remoteBases.size)
+                    dnsMembers[entry.serverTag] = tags
+                    for ((index, resolver) in remoteBases.withIndex()) {
+                        val clone = resolver.copy()
+                        clone["tag"] = tags[index]
+                        clone["detour"] = entry.chainTag
+                        servers.add(clone)
+                    }
                 }
             }
             val rule = JsonObject()
@@ -1154,7 +1177,7 @@ class ConfigGenerator @JvmOverloads constructor(
         for (rule in echRules) allRules.add(rule)
         for (rule in headRules) allRules.add(rule)
         for (rule in rules) allRules.add(rule)
-        val dns = jsonObjectOf("servers" to servers, "rules" to allRules, "cache_capacity" to settings.dnsCacheCapacity)
+        val dns = jsonObjectOf("servers" to servers, "rules" to expandDnsRaces(allRules, dnsMembers), "cache_capacity" to settings.dnsCacheCapacity)
         if (settings.dnsDisableCache) dns["disable_cache"] = true
         if (settings.dnsDisableExpire) dns["disable_expire"] = true
         if (settings.dnsReverseMapping) dns["reverse_mapping"] = true
@@ -1238,6 +1261,38 @@ class ConfigGenerator @JvmOverloads constructor(
         val answers = JsonArray()
         for (address in addresses) answers.add("*. IN $type $address")
         rules.add(jsonObjectOf("domain" to domain, "action" to "predefined", "query_type" to type, "rcode" to "NOERROR", "answer" to answers))
+    }
+
+    // The pinned core starts evaluated queries before waiting on the following response race.
+    internal fun expandDnsRaces(rules: JsonArray, members: Map<String, List<String>>): JsonArray {
+        val result = JsonArray()
+        var groups = 0
+        for (item in rules) {
+            val rule = item as? JsonObject
+            val servers = rule?.let { members[it.string("server")] }.orEmpty()
+            if (rule == null || rule.string("action") != "route" || servers.size < 2) {
+                result.add(item)
+                continue
+            }
+            val prefix = "race${groups++}-"
+            for ((index, server) in servers.withIndex()) {
+                val evaluate = rule.copy()
+                evaluate["action"] = "evaluate"
+                evaluate["server"] = server
+                evaluate["tag"] = "$prefix$index"
+                result.add(evaluate)
+            }
+            for (rcode in listOf("NOERROR", "NXDOMAIN")) for (index in servers.indices) {
+                result.add(jsonObjectOf("match_response" to "$prefix$index", "response_rcode" to rcode,
+                    "action" to "respond", "race" to true))
+            }
+            val failure = rule.copy()
+            failure.remove("server")
+            failure["action"] = "predefined"
+            failure["rcode"] = "SERVFAIL"
+            result.add(failure)
+        }
+        return result
     }
 
     // appendDnsRoute (:370-383): the AAAA guard answers empty instead of falling through to another server.

@@ -45,7 +45,7 @@ class DnsSettingsFragment : SettingsScreenFragment(R.xml.settings_dns) {
             }
         }
         // dialog_manage_routes.cpp's server rules.
-        val server: Rule = { DnsServers.parseDnsAddress(it).why }
+        val server: Rule = DnsServers::addressListProblem
         gateText(SettingsRegistry.REMOTE_DNS.key, server, invalid = R.string.invalid_dns_address) { it.isNotEmpty() }
         gateText(SettingsRegistry.DIRECT_DNS.key, server, invalid = R.string.invalid_dns_address) { it.isNotEmpty() }
         pref<DnsServerPreference>(SettingsRegistry.REMOTE_DNS.key).suggestions = DnsServerHistory::remoteSuggestions

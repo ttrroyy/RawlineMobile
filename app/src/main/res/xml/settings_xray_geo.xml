@@ -22,6 +22,11 @@
         app:title="@string/xray_geo_geosite_url"
         app:useSimpleSummaryProvider="true" />
 
+    <SwitchPreference
+        app:key="xray_geo_auto_update"
+        app:title="@string/xray_geo_auto_update"
+        app:summary="@string/xray_geo_auto_update_sum" />
+
     <PreferenceCategory
         app:summary="@string/xray_geo_files_sum"
         app:title="@string/xray_geo_files">

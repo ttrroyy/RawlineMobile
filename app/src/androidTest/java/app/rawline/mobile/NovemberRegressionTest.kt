@@ -49,6 +49,49 @@ import java.net.ServerSocket
 class NovemberRegressionTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
 
+    @Test fun autoSelectorFilterFitsTheFullRussianLabelInEveryPalette() {
+        val context = instrumentation.targetContext
+        val previousStyle = DataStore.uiStyle
+        val previousNight = DataStore.nightTheme
+        try {
+            for (style in listOf("new", "pastel")) for (night in listOf(1, 2)) {
+                DataStore.uiStyle = style
+                DataStore.nightTheme = night
+                instrumentation.runOnMainSync { Theme.applyNightTheme() }
+                val activity = instrumentation.startActivitySync(Intent(context, app.rawline.mobile.ui.AutoSelectorStatusActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+                try {
+                    instrumentation.runOnMainSync {
+                        activity.findViewById<androidx.appcompat.widget.SwitchCompat>(R.id.only_problems).apply {
+                            text = "Показывать только профили с проблемами"
+                            textSize = 22f
+                        }
+                    }
+                    instrumentation.waitForIdleSync()
+                    SystemClock.sleep(500)
+                    instrumentation.runOnMainSync {
+                        val filter = activity.findViewById<androidx.appcompat.widget.SwitchCompat>(R.id.only_problems)
+                        assertTrue("Filter is hidden in $style / $night", filter.getGlobalVisibleRect(Rect()))
+                        val layout = requireNotNull(filter.layout)
+                        assertTrue("Large filter label did not wrap", layout.lineCount > 1)
+                        for (line in 0 until layout.lineCount) assertEquals("Filter label was truncated", 0, layout.getEllipsisCount(line))
+                        assertTrue("Filter text is clipped vertically", layout.height <= filter.height - filter.compoundPaddingTop - filter.compoundPaddingBottom)
+                        assertFalse(filter.isChecked)
+                        filter.performClick()
+                        assertTrue(filter.isChecked)
+                    }
+                    val screenshot = requireNotNull(instrumentation.uiAutomation.takeScreenshot())
+                    try { File(context.filesDir, "autosel-filter-$style-$night.png").outputStream().use { screenshot.compress(Bitmap.CompressFormat.PNG, 100, it) } }
+                    finally { screenshot.recycle() }
+                } finally { instrumentation.runOnMainSync { activity.finish() } }
+            }
+        } finally {
+            DataStore.uiStyle = previousStyle
+            DataStore.nightTheme = previousNight
+            instrumentation.runOnMainSync { Theme.applyNightTheme() }
+        }
+    }
+
     @Test fun rejectedCoreBindingFailsAndCanRecoverWithoutStartingVpn() = runBlocking {
         var unbound = 0
         var throwOnBind = false

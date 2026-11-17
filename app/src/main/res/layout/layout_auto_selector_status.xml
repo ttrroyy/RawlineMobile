@@ -52,6 +52,16 @@
             tools:text="Using Frankfurt 1 because you chose it."
             tools:visibility="visible" />
 
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/only_problems"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:singleLine="false"
+            android:text="@string/autosel_only_problems"
+            android:textColor="?android:attr/textColorPrimary" />
+
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/progress"
             android:layout_width="match_parent"

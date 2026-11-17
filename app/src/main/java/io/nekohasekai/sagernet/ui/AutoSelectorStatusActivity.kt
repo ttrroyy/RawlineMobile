@@ -109,6 +109,11 @@ class AutoSelectorStatusActivity : ThemedActivity(), SagerConnection.Callback {
             setHomeAsUpIndicator(R.drawable.baseline_arrow_back_24)
         }
         onlyProblems = savedInstanceState?.getBoolean(STATE_ONLY_PROBLEMS) ?: false
+        binding.onlyProblems.isChecked = onlyProblems
+        binding.onlyProblems.setOnCheckedChangeListener { _, checked ->
+            onlyProblems = checked
+            render()
+        }
         val current = AutoSelectorClient.status.value
         selectorId = intent.getLongExtra(EXTRA_SELECTOR_ID, -1L).takeIf { it > 0 } ?: current.selectorId
         // A notice from before the screen opened is not news.
@@ -158,20 +163,12 @@ class AutoSelectorStatusActivity : ThemedActivity(), SagerConnection.Callback {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.auto_selector_status_menu, menu)
-        menu.findItem(R.id.action_only_problems)?.isChecked = onlyProblems
         // The same colour as the title and the back arrow.
         menu.findItem(R.id.action_edit_selector)?.icon?.mutate()?.setTint(MobilePalette.text)
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
-        R.id.action_only_problems -> {
-            onlyProblems = !onlyProblems
-            item.isChecked = onlyProblems
-            render()
-            true
-        }
-
         R.id.action_edit_selector -> {
             val id = selectorId
             lifecycleScope.launch {

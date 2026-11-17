@@ -212,6 +212,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     }
 
     // tun
+    var vpnStack by SettingsRegistry.VPN_STACK
     var vpnMtu by SettingsRegistry.VPN_MTU
     var vpnIpv6 by SettingsRegistry.VPN_IPV6
     var vpnTunIpv4Cidr by SettingsRegistry.VPN_TUN_IPV4_CIDR
@@ -380,6 +381,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var coreBoxApiPort by SettingsRegistry.CORE_BOX_API_PORT
     var coreDnsInPort by SettingsRegistry.CORE_DNS_IN_PORT
     var xrayVlessPreference by SettingsRegistry.XRAY_VLESS_PREFERENCE
+    var xrayGeoAutoUpdate by SettingsRegistry.XRAY_GEO_AUTO_UPDATE
     var xrayGeoipUrl by SettingsRegistry.XRAY_GEOIP_URL
     var xrayGeositeUrl by SettingsRegistry.XRAY_GEOSITE_URL
     var skipCert by SettingsRegistry.SKIP_CERT

@@ -28,6 +28,18 @@ class DnsAddressParse(@JvmField val address: DnsAddress?, @JvmField val why: Str
 /** The desktop's DNS address syntax (ParseDnsAddress and buildDnsObj, generate.cpp) and the DoH upgrade table. */
 object DnsServers {
 
+    @JvmStatic
+    fun splitAddresses(text: String): List<String> = text.split(',').map(String::trim).filter(String::isNotEmpty).distinct()
+
+    @JvmStatic
+    fun addressListProblem(text: String): String {
+        val addresses = splitAddresses(text)
+        if (addresses.isEmpty()) return parseDnsAddress("").why
+        return addresses.firstNotNullOfOrNull { address ->
+            parseDnsAddress(address).why.takeIf(String::isNotEmpty)?.let { "$address: $it" }
+        } ?: ""
+    }
+
     private val IFACE = Regex("^[^\\s/]+$")
     private val IPV4_LIKE = Regex("^[0-9.]+$")
     private val HOSTNAME = Regex(

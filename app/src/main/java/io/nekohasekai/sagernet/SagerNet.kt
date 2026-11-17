@@ -124,6 +124,7 @@ class SagerNet : Application(),
             runOnDefaultDispatcher { File(filesDir, "custom_icon").deleteRecursively() }
             RemoteRouteUpdater.schedule()
             SubscriptionScheduler.schedule()
+            app.rawline.mobile.update.GeoAssetScheduler.start()
             Widgets.watchSelection(this)
             app.rawline.mobile.route.ProviderGeoAssets.listen()
         }
