@@ -1,5 +1,7 @@
 package app.rawline.mobile.bg
 
+import app.rawline.core.mobile.Mobile
+
 import android.os.Process
 import android.os.SystemClock
 import android.text.format.Formatter
@@ -259,6 +261,8 @@ object XrayGeoAssets {
                     out.fd.sync()
                 }
                 if (bytes == 0L) throw IOException(app.getString(R.string.xray_geo_empty_response))
+                Mobile.validateGeoFile(temp.absolutePath)
+                if (abort()) throw IOException(app.getString(R.string.xray_geo_aborted))
                 onProgress?.invoke(Progress(name, bytes, total))
                 if (!temp.renameTo(target)) throw IOException(app.getString(R.string.xray_geo_save_failed, target.path))
             }
