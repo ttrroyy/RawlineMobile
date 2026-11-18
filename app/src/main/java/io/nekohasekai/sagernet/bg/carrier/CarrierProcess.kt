@@ -300,13 +300,13 @@ class CarrierProcess private constructor(private val process: Process, private v
                                 deadline+=paused;interactionBudget-=paused
                             }
                             lastWaitTick=now
-                            val exited = try { child.exitValue(); true } catch (_: IllegalThreadStateException) { false }
-                            if(exited) {
+                            val exitCode = try { child.exitValue() } catch (_: IllegalThreadStateException) { null }
+                            if (exitCode != null) {
                                 outputReader.join(200)
                                 running.startupFailure.get()?.let { throw IllegalStateException(it) }
                                 if(kind==CarrierKind.QWDTT && running.unavailableCall.get()) throw UnavailableCall()
                                 if(kind in listOf(CarrierKind.QWDTT,CarrierKind.CSQTT,CarrierKind.MRTT) && running.health.transientFailure) throw TransientStartup()
-                                error(running.startupFailure.get() ?: "Transport client stopped before becoming ready")
+                                error(running.startupFailure.get() ?: "${kind.name} stopped before becoming ready (exit code $exitCode)")
                             }
                             if (socksReady(socksPort, bridgeCredentials)) {
                                 moe.matsuri.nb4a.utils.CoreLog.write("[Info] [${kind.name}] Native transport ready")

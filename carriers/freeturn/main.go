@@ -164,8 +164,8 @@ func control(sess *session.Session, cancel context.CancelFunc) {
 	}
 }
 
-func fatal(stage string) {
-	fmt.Fprintln(os.Stderr, "FATAL_FREETURN:", stage)
+func fatal(format string, args ...any) {
+	fmt.Fprintf(os.Stderr, "FATAL_FREETURN: "+format+"\n", args...)
 	os.Exit(1)
 }
 
@@ -176,19 +176,19 @@ func main() {
 	}
 	p, err := readConfig(os.Args[2])
 	if err != nil {
-		fatal("Cannot read FreeTurn launch configuration")
+		fatal("%v", err)
 	}
 	if p.StateDir != "" {
 		statedir.SetDir(p.StateDir)
 	}
 	cfg, err := config.ParseClientJSON(p.Core, "")
 	if err != nil {
-		fatal("Invalid FreeTurn relay configuration")
+		fatal("%v", err)
 	}
 	logger := logx.New(cfg.Log.Debug)
 	id, _, err := clientid.Resolve(cfg.ClientID, clientid.DefaultPaths())
 	if err != nil {
-		fatal("Cannot load FreeTurn client ID")
+		fatal("%v", err)
 	}
 	cfg.ClientID = id
 
@@ -199,7 +199,7 @@ func main() {
 		var relaySide net.PacketConn
 		vn, _, relaySide, closeTunnel, err = wgDevice(cfg, logger)
 		if err != nil {
-			fatal("Cannot initialize FreeTurn WireGuard tunnel")
+			fatal("%v", err)
 		}
 		deps.LocalPipe = relaySide
 	} else {
@@ -214,7 +214,7 @@ func main() {
 
 	socksLn, err := net.Listen("tcp", p.SOCKS)
 	if err != nil {
-		fatal("Cannot open FreeTurn local SOCKS listener")
+		fatal("SOCKS listen failed on %s: %v", p.SOCKS, err)
 	}
 	// Nothing is accepted before the relay is up, so the owner's readiness probe means a working tunnel.
 	proxy := &SOCKSProxy{vn: vn, socksUser: p.SOCKSUser, socksPass: p.SOCKSPass, logf: func(format string, args ...any) { logger.Debugf(format, args...) }}
@@ -233,7 +233,7 @@ func main() {
 
 	sess, err := session.New(cfg, deps)
 	if err != nil {
-		fatal("Cannot initialize FreeTurn relay session")
+		fatal("%v", err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -246,7 +246,7 @@ func main() {
 	_ = socksLn.Close()
 	closeTunnel()
 	if runErr != nil && !errors.Is(runErr, context.Canceled) {
-		fatal("FreeTurn relay session ended with an error")
+		fatal("%v", runErr)
 	}
 }
 
