@@ -22,9 +22,10 @@ class DnsMultipleServersTest {
     }
 
     @Test fun aCommaInsideAnHttpsPathStaysInTheAddress() {
-        val address = "https://example.org/dns,other"
+        val address = "https://example.org/dns,other/path"
         assertEquals(listOf(address), DnsServers.splitAddresses(address))
         assertEquals(listOf(address, "1.1.1.1"), DnsServers.splitAddresses("$address, 1.1.1.1"))
+        assertEquals(listOf(address, "1.1.1.1"), DnsServers.splitAddresses("$address,1.1.1.1"))
     }
 
     @Test fun severalResolversKeepTheirDetoursAndProduceOnlyKnownServerReferences() {

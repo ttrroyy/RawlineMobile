@@ -33,11 +33,11 @@ object DnsServers {
         val result = mutableListOf<String>()
         var current = ""
         for (part in text.split(',')) {
-            // A comma without a space can be part of an existing DoH path.
-            val startOfAnotherUrl = DNS_SCHEME_PREFIX.containsMatchIn(part)
+            // Keep compact resolver lists working when a suffix could also be a DNS address.
             val keepPathComma = current.trimStart().substringBefore("://").lowercase() in PATH_SCHEMES &&
-                '/' in current.substringAfter("://", "") &&
-                part == part.trimStart() && !startOfAnotherUrl
+                '/' in current.substringAfter("://", "") && part.isNotEmpty() &&
+                part == part.trimStart() && !DNS_SCHEME_PREFIX.containsMatchIn(part) &&
+                parseDnsAddress(part).address == null
             if (keepPathComma) current += ",$part"
             else {
                 current.trim().takeIf(String::isNotEmpty)?.let(result::add)
