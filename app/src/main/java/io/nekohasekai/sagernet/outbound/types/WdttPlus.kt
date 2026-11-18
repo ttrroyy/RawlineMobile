@@ -46,6 +46,7 @@ class WdttPlus : Qwdtt() {
         maxWorkers = if (obj.contains("max_workers")) obj.int("max_workers") else 0
         legacy = obj.bool("legacy")
         engine = obj.string("engine").ifEmpty { "qwdtt" }
+        if (carrierKind == CarrierKind.WDTTPLUS) hashes = hashes.take(4)
         mode = if (obj.string("mode").ifEmpty { runCatching { app.rawline.mobile.database.DataStore.relayDefaultWdttPlusMode }.getOrDefault("wg") } == "raw") "raw" else "wg"
         rawPort = if (obj.contains("raw_port")) obj.int("raw_port") else 56003
         tcpOnly = obj.bool("tcp_only")

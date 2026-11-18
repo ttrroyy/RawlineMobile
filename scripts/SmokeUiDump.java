@@ -7,6 +7,8 @@ import java.util.concurrent.TimeoutException;
 public final class SmokeUiDump {
     public static void main(String[] args) throws Exception {
         if (args.length != 3) throw new IllegalArgumentException("output width height required");
+        File output = new File(args[0]);
+        if (output.exists() && !output.delete()) throw new IllegalStateException("Cannot remove old tree");
         Class<?> wrapperClass = Class.forName("com.android.uiautomator.core.UiAutomationShellWrapper");
         Object wrapper = wrapperClass.getConstructor().newInstance();
         wrapperClass.getMethod("connect").invoke(wrapper);
@@ -24,9 +26,9 @@ public final class SmokeUiDump {
             try {
                 Class.forName("com.android.uiautomator.core.AccessibilityNodeInfoDumper")
                     .getMethod("dumpWindowToFile", AccessibilityNodeInfo.class, File.class, int.class, int.class, int.class)
-                    .invoke(null, root, new File(args[0]), 0, Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+                    .invoke(null, root, output, 0, Integer.parseInt(args[1]), Integer.parseInt(args[2]));
             } finally { root.recycle(); }
-            if (!new File(args[0]).isFile()) throw new IllegalStateException("Tree was not written");
+            if (!output.isFile() || output.length() == 0) throw new IllegalStateException("Tree was not written");
             System.out.println("UI hierarchy dumped to: " + args[0]);
         } finally { wrapperClass.getMethod("disconnect").invoke(wrapper); }
     }

@@ -77,6 +77,33 @@ func TestProviderGeoIPConversion(t *testing.T) {
 	}
 }
 
+func TestValidateXrayRejectsWrongDatabaseAndMalformedDomain(t *testing.T) {
+	file := filepath.Join(t.TempDir(), "geosite.dat")
+	entry := &geodata.GeoSite{Code: "TEST", Domain: []*geodata.Domain{{Type: geodata.Domain_Regex, Value: "example[.]org"}}}
+	writeEntry := func() {
+		t.Helper()
+		data, err := proto.Marshal(&geodata.GeoSiteList{Entry: []*geodata.GeoSite{entry}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(file, data, 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	writeEntry()
+	if err := ValidateXray(file, true); err != nil {
+		t.Fatal(err)
+	}
+	if err := ValidateXray(file, false); err == nil {
+		t.Fatal("geosite accepted as geoip")
+	}
+	entry.Domain[0].Value = "["
+	writeEntry()
+	if err := ValidateXray(file, true); err == nil {
+		t.Fatal("malformed geosite regular expression accepted")
+	}
+}
+
 func TestXrayProviderFileIsolation(t *testing.T) {
 	dir := t.TempDir()
 	provider := filepath.Join(dir, "provider-geodata")

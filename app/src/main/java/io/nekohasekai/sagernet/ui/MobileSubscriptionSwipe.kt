@@ -18,7 +18,7 @@ internal object MobileSubscriptionSwipe {
         view.setOnClickListener { tap() }
         val gestures = GestureDetector(view.context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onDown(event: MotionEvent) = true
-            override fun onSingleTapUp(event: MotionEvent): Boolean { if (!horizontal && !cancelled) view.performClick(); return true }
+            override fun onSingleTapConfirmed(event: MotionEvent): Boolean { if (!horizontal && !cancelled) view.performClick(); return true }
             override fun onLongPress(event: MotionEvent) { if (!horizontal && !cancelled) { cancelled = true; longPress() } }
             override fun onDoubleTap(event: MotionEvent): Boolean { if (!horizontal && !cancelled) doubleTap(); return true }
         })

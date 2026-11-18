@@ -9,6 +9,7 @@ import androidx.preference.Preference
 import app.rawline.mobile.ui.MobileAlertDialogBuilder as MobileAlertDialogBuilder
 import app.rawline.mobile.R
 import app.rawline.mobile.bg.XrayGeoAssets
+import app.rawline.mobile.database.DataStore
 import app.rawline.mobile.database.SettingsRegistry
 import app.rawline.mobile.databinding.DialogGeoDownloadBinding
 import app.rawline.mobile.ktx.needReload
@@ -16,6 +17,9 @@ import app.rawline.mobile.ktx.readableMessage
 import app.rawline.mobile.validation.Empty
 import app.rawline.mobile.validation.Validation
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -31,6 +35,7 @@ import java.util.Date
 class XrayGeoSettingsFragment : SettingsScreenFragment(R.xml.settings_xray_geo) {
 
     private var downloadJob: Job? = null
+    private val sourceChanges = Mutex()
 
     override fun bind() {
         val source = pref<SimpleMenuPreference>(KEY_SOURCE)
@@ -41,12 +46,10 @@ class XrayGeoSettingsFragment : SettingsScreenFragment(R.xml.settings_xray_geo) 
         // Both files come from the picked provider; Custom leaves the URLs to be edited.
         source.setOnPreferenceChangeListener { _, newValue ->
             val provider = (newValue as String).toIntOrNull()?.let(providers::getOrNull)
-            if (provider != null &&
-                (setUrl(XrayGeoAssets.GEOIP, provider.geoip) or setUrl(XrayGeoAssets.GEOSITE, provider.geosite))
-            ) {
-                sourceChanged()
+            if (provider == null) true else {
+                changeSources(XrayGeoAssets.GEOIP to provider.geoip, XrayGeoAssets.GEOSITE to provider.geosite)
+                false
             }
-            true
         }
         for (file in XrayGeoAssets.FILES) {
             bindUrl(file)
@@ -83,21 +86,34 @@ class XrayGeoSettingsFragment : SettingsScreenFragment(R.xml.settings_xray_geo) 
             val url = newValue?.toString().orEmpty().trim()
             if (!XrayGeoAssets.isValidUrl(url)) {
                 toast(R.string.xray_geo_invalid_url, url)
-            } else if (setUrl(file, url)) {
-                sourceChanged()
+            } else {
+                changeSources(file to url)
             }
             false
         }
         validation.bind(preference.key, Validation.Rules.url(SettingChecks.HTTP, Empty.Required)).gate()
     }
 
-    /** Stores [url] as the source of [file] and drops the installed copy; false when it is the stored one already. */
-    private fun setUrl(file: String, url: String): Boolean {
-        val preference = pref<EditTextPreference>(urlKey(file))
-        if (preference.text == url) return false
-        preference.text = url
-        XrayGeoAssets.delete(file)
-        return true
+    private fun changeSources(vararg changes: Pair<String, String>) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            sourceChanges.withLock {
+                var changed = false
+                try {
+                    for ((file, url) in changes) {
+                        changed = XrayGeoAssets.changeSource(file, url) || changed
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: java.io.IOException) {
+                    toast(R.string.xray_geo_save_failed, e.readableMessage)
+                }
+                for ((file, _) in changes) {
+                    pref<EditTextPreference>(urlKey(file)).text =
+                        if (file == XrayGeoAssets.GEOIP) DataStore.xrayGeoipUrl else DataStore.xrayGeositeUrl
+                }
+                if (changed) sourceChanged()
+            }
+        }
     }
 
     private fun sourceChanged() {

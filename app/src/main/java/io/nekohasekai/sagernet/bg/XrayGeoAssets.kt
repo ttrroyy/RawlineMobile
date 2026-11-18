@@ -34,6 +34,7 @@ import okhttp3.Response
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.RandomAccessFile
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -98,6 +99,7 @@ object XrayGeoAssets {
     private const val PROGRESS_INTERVAL_MS = 500L
     private const val STALE_TEMP_MS = 60 * 60 * 1000L
     private const val BUFFER_SIZE = 64 * 1024
+    private const val MAX_FILE_BYTES = 256L * 1024 * 1024
 
     /** geodata's prefixes that name a file (rule_parser.go); `geoip:` / `geosite:` read the default files. */
     private val EXT_PREFIXES = listOf("ext:", "ext-ip:", "ext-domain:", "ext-site:")
@@ -112,8 +114,24 @@ object XrayGeoAssets {
     /** Present and not empty. */
     fun installed(name: String): Boolean = file(name).let { it.isFile && it.length() > 0 }
 
-    fun delete(name: String) {
-        file(name).delete()
+    internal suspend fun changeSource(name: String, url: String): Boolean = withContext(Dispatchers.IO) {
+        withPublicationLock(name) {
+            if (urlOf(name) == url) return@withPublicationLock false
+            val installed = file(name)
+            if (installed.exists() && !installed.delete()) {
+                throw IOException(app.getString(R.string.xray_geo_save_failed, installed.path))
+            }
+            if (name == GEOIP) DataStore.xrayGeoipUrl = url else DataStore.xrayGeositeUrl = url
+            true
+        }
+    }
+
+    @Synchronized
+    private fun <T> withPublicationLock(name: String, block: () -> T): T {
+        // The manual downloader and the periodic worker use different processes.
+        return RandomAccessFile(File(app.filesDir, "$name.lock"), "rw").use { lockFile ->
+            lockFile.channel.lock().use { block() }
+        }
     }
 
     /** The configured source of [name]; an empty setting falls back to the default provider. */
@@ -192,6 +210,7 @@ object XrayGeoAssets {
         name: String,
         force: Boolean = false,
         abort: () -> Boolean = { false },
+        onlyIfModifiedBefore: Long? = null,
         onProgress: (suspend (Progress) -> Unit)? = null,
     ): Unit = withContext(Dispatchers.IO) {
         if (name != GEOIP && name != GEOSITE) {
@@ -202,7 +221,7 @@ object XrayGeoAssets {
             val url = urlOf(name)
             Logs.i("Downloading Xray geo asset $name from $url")
             try {
-                fetch(name, url, abort, onProgress)
+                fetch(name, url, abort, onlyIfModifiedBefore, onProgress)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -211,7 +230,6 @@ object XrayGeoAssets {
                 Logs.w("Failed to download Xray geo asset $name: ${e.readableMessage}")
                 throw DownloadException(app.getString(R.string.xray_geo_download_failed, name, url, e.readableMessage), e)
             }
-            Logs.i("Downloaded Xray geo asset $name")
         }
     }
 
@@ -219,10 +237,11 @@ object XrayGeoAssets {
         name: String,
         url: String,
         abort: () -> Boolean,
+        onlyIfModifiedBefore: Long?,
         onProgress: (suspend (Progress) -> Unit)?,
     ): Unit = coroutineScope {
         val target = file(name)
-        // Per process: the settings screen and :bg may fetch the same file at once, each renames a complete copy.
+        // Downloads have private temporary files. Only cache publication is serialized across processes.
         val temp = File(target.parentFile, "$name.${Process.myPid()}.tmp")
         sweepStaleTemps(name, temp)
         val client = appHttpClient(viaProxy = serviceConnected(), timeoutSeconds = TIMEOUT_SECONDS)
@@ -241,6 +260,7 @@ object XrayGeoAssets {
                 if (!response.isSuccessful) throw IOException(app.getString(R.string.xray_geo_http_status, response.code))
                 val body = response.body ?: throw IOException(app.getString(R.string.xray_geo_empty_response))
                 val total = body.contentLength()
+                if (total > MAX_FILE_BYTES) throw IOException(app.getString(R.string.xray_geo_save_failed, target.path))
                 var bytes = 0L
                 var reportedAt = 0L
                 FileOutputStream(temp).use { out ->
@@ -250,8 +270,9 @@ object XrayGeoAssets {
                         if (abort()) throw IOException(app.getString(R.string.xray_geo_aborted))
                         val n = input.read(buffer)
                         if (n < 0) break
-                        out.write(buffer, 0, n)
                         bytes += n
+                        if (bytes > MAX_FILE_BYTES) throw IOException(app.getString(R.string.xray_geo_save_failed, target.path))
+                        out.write(buffer, 0, n)
                         val now = SystemClock.elapsedRealtime()
                         if (onProgress != null && now - reportedAt >= PROGRESS_INTERVAL_MS) {
                             reportedAt = now
@@ -261,10 +282,19 @@ object XrayGeoAssets {
                     out.fd.sync()
                 }
                 if (bytes == 0L) throw IOException(app.getString(R.string.xray_geo_empty_response))
-                Mobile.validateGeoFile(temp.absolutePath)
-                if (abort()) throw IOException(app.getString(R.string.xray_geo_aborted))
+                Mobile.validateXrayGeoFile(temp.absolutePath, name == GEOSITE)
                 onProgress?.invoke(Progress(name, bytes, total))
-                if (!temp.renameTo(target)) throw IOException(app.getString(R.string.xray_geo_save_failed, target.path))
+                val context = currentCoroutineContext()
+                val published = withPublicationLock(name) {
+                    context.ensureActive()
+                    if (abort() || url != urlOf(name)) throw IOException(app.getString(R.string.xray_geo_aborted))
+                    if (onlyIfModifiedBefore != null && target.lastModified() > onlyIfModifiedBefore) {
+                        return@withPublicationLock false
+                    }
+                    if (!temp.renameTo(target)) throw IOException(app.getString(R.string.xray_geo_save_failed, target.path))
+                    true
+                }
+                if (published) Logs.i("Downloaded Xray geo asset $name")
             }
         } finally {
             watcher.cancel()

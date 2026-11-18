@@ -253,8 +253,13 @@ class CarrierProcess private constructor(private val process: Process, private v
                         }
                         if (kind == CarrierKind.QWDTT) {
                             val context = runCatching { app.rawline.mobile.ktx.app }.getOrNull()
-                            running.wdttLifecycle = context?.let { WdttPlusLifecycle(it) { command ->
-                                synchronized(child) { runCatching {
+                            running.wdttLifecycle = context?.let { WdttPlusLifecycle(it) { event ->
+                                val command = when (event) {
+                                    "DEVICE_SLEEP" -> "SCREEN_OFF"
+                                    "DEVICE_WAKE" -> "SCREEN_ON"
+                                    else -> null
+                                }
+                                if (command != null) synchronized(child) { runCatching {
                                     child.outputStream.write((command+'\n').toByteArray(Charsets.UTF_8)); child.outputStream.flush()
                                 } }
                             } }

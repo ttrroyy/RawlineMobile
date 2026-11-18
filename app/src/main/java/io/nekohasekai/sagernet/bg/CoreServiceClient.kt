@@ -14,6 +14,8 @@ import kotlinx.coroutines.withTimeout
 // Main-process client of the :bg CoreService; each call binds for its own duration.
 object CoreServiceClient {
 
+    private class BindingLost : IllegalStateException("core service died before connection")
+
     private class Connection : ServiceConnection {
         val service = CompletableDeferred<ICoreService>()
 
@@ -30,7 +32,7 @@ object CoreServiceClient {
         }
 
         private fun died() {
-            service.completeExceptionally(IllegalStateException("core service died"))
+            service.completeExceptionally(BindingLost())
         }
     }
 
@@ -51,9 +53,13 @@ object CoreServiceClient {
             val release = bind(app, connection)
             if (release != null) {
                 try {
-                    val service = withTimeout(15_000) { connection.service.await() }
-                    // Retry only a rejected binding, never an RPC that may already have imported data.
-                    return block(service)
+                    val service = try {
+                        withTimeout(15_000) { connection.service.await() }
+                    } catch (_: BindingLost) {
+                        null
+                    }
+                    // The retry ends when the first RPC is attempted.
+                    if (service != null) return block(service)
                 } finally {
                     release()
                 }

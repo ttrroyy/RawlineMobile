@@ -49,7 +49,7 @@ object NativeHashPolicy {
         if (profile.hashSource != "auto") return profile
         val copy = OutboundFactory.newByType(profile.type) as Qwdtt
         check(copy.parseFromJson(profile.exportToJson()))
-        val slots = if (profile.type == "wdttplus") 4 else Qwdtt.MAX_HASHES
+        val slots = profile.hashSlots
         val count = (if(profile is Csqtt) (copy.workers+9)/10 else (copy.workers+26)/27).coerceIn(1, slots)
         val hashes = picked.take(slots).ifEmpty { obtainHashes(count) }
         check((picked.isNotEmpty() || hashes.size == count) && hashes.isNotEmpty() && hashes.distinct().size == hashes.size && hashes.all {
@@ -82,7 +82,7 @@ object NativeHashPolicy {
             // Slots the user edited stay as they are; otherwise the subscription owns its leading slots
             // and local trailing slots survive until replaced.
             if (it.hashSource == "manual") incoming.hashes = if (it.manualHashesOverride) it.hashes
-                else mergeSlots(incoming.hashes,it.hashes,if(incoming.type=="wdttplus") 4 else Qwdtt.MAX_HASHES)
+                else mergeSlots(incoming.hashes,it.hashes,it.hashSlots)
             // Everything below is the user's choice, kept like hashes and workers.
             incoming.mode=it.mode
             incoming.turnTcp=it.turnTcp

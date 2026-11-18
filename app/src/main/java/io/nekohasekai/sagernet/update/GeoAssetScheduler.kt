@@ -70,9 +70,15 @@ object GeoAssetScheduler : OnPreferenceDataStoreChangeListener {
             var failed = false
             for (name in XrayGeoAssets.FILES) {
                 if (isStopped || !DataStore.xrayGeoAutoUpdate) return Result.success()
-                if (!updateDue(XrayGeoAssets.file(name).lastModified(), System.currentTimeMillis())) continue
+                val now = System.currentTimeMillis()
+                if (!updateDue(XrayGeoAssets.file(name).lastModified(), now)) continue
                 try {
-                    XrayGeoAssets.download(name, force = true, abort = { isStopped || !DataStore.xrayGeoAutoUpdate })
+                    XrayGeoAssets.download(
+                        name,
+                        force = true,
+                        abort = { isStopped || !DataStore.xrayGeoAutoUpdate },
+                        onlyIfModifiedBefore = now - TimeUnit.DAYS.toMillis(1),
+                    )
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {

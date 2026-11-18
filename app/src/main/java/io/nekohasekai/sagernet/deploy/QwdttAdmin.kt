@@ -1,6 +1,7 @@
 package app.rawline.mobile.deploy
 
 import android.util.Base64
+import app.rawline.mobile.outbound.link.LinkCodec
 import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -119,7 +120,7 @@ class QwdttAdmin(private val server: DeployServer) {
                     if(diagKey.isNotBlank()) put("diag_key",diagKey)
                 })
             // wdtt://<server>:<dtls_port>:<wg_port>:<local_port>:<password>:<vk_hash>
-            val wdtt = "wdtt://$host:$peer:${server["wgPort"].ifBlank { "56001" }}:9000:$password:${hashes.joinToString(",")}"
+            val wdtt = "wdtt://$host:$peer:${server["wgPort"].ifBlank { "56001" }}:9000:${LinkCodec.percentEncodeAll(password)}:${hashes.joinToString(",")}"
             return qwdtt to wdtt
         }
     }

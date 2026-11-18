@@ -78,7 +78,6 @@ class MobileHomeFragment : ToolbarFragment() {
     private var updatesTile: ImageButton? = null
     private var homeTitle: TextView? = null
     private var modeSwitches: Map<String,androidx.appcompat.widget.SwitchCompat> = emptyMap()
-    private val modeSwitch = MobileModeSwitch()
     private fun controlAtBottom()=MobileHomeLayout.controlBottom
     private fun chipAtBottom()=MobileHomeLayout.chipBottom
     private fun chipNearList()=MobileHomeLayout.chipNearList
@@ -88,10 +87,10 @@ class MobileHomeFragment : ToolbarFragment() {
         val state=DataStore.serviceState
         if(powerCovered() || state==app.rawline.mobile.bg.BaseService.State.Stopping) return
         if(state.canStop) {
-            modeSwitch.request(DataStore.serviceMode, mode)
+            host().modeSwitch.request(DataStore.serviceMode, mode)
             SagerNet.stopService()
         } else {
-            modeSwitch.cancel()
+            host().modeSwitch.cancel()
             DataStore.serviceMode=mode
             host().toggleService()
         }
@@ -954,7 +953,7 @@ class MobileHomeFragment : ToolbarFragment() {
                     else rows.addView(power,LinearLayout.LayoutParams(-1,-2))
                     controlParent.addView(rows,LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(if(dockBottom) 2 else 10) })
                 } else {
-                power = action("") { if(!powerCovered()) { modeSwitch.cancel(); host().toggleService() } }.apply {
+                power = action("") { if(!powerCovered()) { host().toggleService() } }.apply {
                     contentDescription = getString(R.string.qmobile_connect)
                     background = MobileOrbArtwork(requireContext(),getString(R.string.qmobile_orb_idle))
                     // A remote or keyboard has no ripple to show where it stands.
@@ -1048,6 +1047,7 @@ class MobileHomeFragment : ToolbarFragment() {
                 if (hasServers) {
                     val above=FrameLayout(requireContext())
                     currentCheck=text(currentPing ?: getString(R.string.qmobile_check_connection),12f,muted).apply {
+                        id = R.id.current_connection_check
                         // Text taller than its box gets a scroll bar on some phones, so it always fits.
                         maxLines=2;includeFontPadding=false;setPadding(dp(2),0,dp(2),0);gravity=Gravity.BOTTOM
                         isFocusable=true
@@ -1292,7 +1292,9 @@ class MobileHomeFragment : ToolbarFragment() {
                 run {
                     MobileSubscriptionSwipe.bind(heading, { groupPicker() }, { editGroup(group,true) },
                         { host().displayFragmentWithId(R.id.nav_group) }) { direction ->
-                        groups.getOrNull(groupIndex+direction)?.first?.let { selectGroup(it.id) }
+                        val siblings = pickerGroups
+                        val index = siblings.indexOfFirst { it.id == group.id }
+                        if (index >= 0) siblings.getOrNull(index + direction)?.let { selectGroup(it.id) }
                     }
                 }
                 title.addView(heading,LinearLayout.LayoutParams(0,-2,1f))
@@ -1515,14 +1517,10 @@ class MobileHomeFragment : ToolbarFragment() {
             currentCheck?.text=getString(R.string.qmobile_check_connection)
         }
         power?.isEnabled = state != app.rawline.mobile.bg.BaseService.State.Stopping
-        modeSwitch.takeAfterStop(state)?.let { mode ->
-            DataStore.serviceMode = mode
-            host().toggleService()
-        }
         // The row under the button holds nothing while disconnected: it gives its room to the list; the dock's speeds keep theirs.
         sheetSpeed?.visibility=if(state.connected) View.VISIBLE else if(sheetSpeed?.getTag(R.id.home_part)!=null) View.GONE else View.INVISIBLE
         if(!state.connected) { lastDown=0L;lastUp=0L }
-        val pendingMode = modeSwitch.pendingMode
+        val pendingMode = host().modeSwitch.pendingMode
         modeSwitches.forEach { (mode,switch) ->
             switch.isChecked = (state.canStop || (pendingMode != null && state == app.rawline.mobile.bg.BaseService.State.Stopping)) &&
                 (pendingMode ?: DataStore.serviceMode) == mode

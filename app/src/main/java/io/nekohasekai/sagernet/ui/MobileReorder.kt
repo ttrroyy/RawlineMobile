@@ -23,6 +23,7 @@ internal class MobileReorder(
     /** Profile rows: another group's [acceptFrom] zone may take the dragged item. */
     var movable=false
     private var source: View?=null
+    private var keyHandle: View? = null
     private var original=emptyList<View>()
     private var accepted=false
     private var transferred=false
@@ -150,6 +151,7 @@ internal class MobileReorder(
     }
 
     private fun keyMove(handle: View, item: View) {
+        keyHandle = handle
         original=children()
         source=item;accepted=false;transferred=false
         active(true)
@@ -160,7 +162,7 @@ internal class MobileReorder(
         // Some TV remotes emit repeated key-downs without Android's long-click flag.
         handle.isPressed=false
         // The release of the press that picked the item up comes here too: only a new press puts it down.
-        var pressed=false
+        var confirmationKey: Int? = null
         handle.setOnKeyListener { _,code,event ->
             if(source!==item) return@setOnKeyListener false
             val back=if(horizontal) android.view.KeyEvent.KEYCODE_DPAD_LEFT else android.view.KeyEvent.KEYCODE_DPAD_UP
@@ -172,8 +174,8 @@ internal class MobileReorder(
                 }
                 android.view.KeyEvent.KEYCODE_DPAD_CENTER,android.view.KeyEvent.KEYCODE_ENTER,android.view.KeyEvent.KEYCODE_BACK -> {
                     // On the release, so the press that ends the move opens nothing.
-                    if(event.action==android.view.KeyEvent.ACTION_DOWN && event.repeatCount==0) pressed=true
-                    else if(pressed || code==android.view.KeyEvent.KEYCODE_BACK) { bindKeyStart(handle,item);item.alpha=1f;finish(true) }
+                    if (event.action == android.view.KeyEvent.ACTION_DOWN && event.repeatCount == 0) confirmationKey = code
+                    if (event.action == android.view.KeyEvent.ACTION_UP && confirmationKey == code) finish(!event.isCanceled)
                     true
                 }
                 // The other neighbours (the other column, the toolbar) stay out of reach until the item is put down.
@@ -319,6 +321,8 @@ internal class MobileReorder(
 
     private fun finish(commit: Boolean) {
         val item=source ?: return
+        keyHandle?.let { bindKeyStart(it, item) }
+        keyHandle = null
         source=null;container.removeCallbacks(scrollStep)
         clearInsertion()
         container.parent?.requestDisallowInterceptTouchEvent(false)

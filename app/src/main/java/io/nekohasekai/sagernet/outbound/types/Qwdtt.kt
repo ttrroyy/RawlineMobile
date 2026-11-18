@@ -14,6 +14,7 @@ open class Qwdtt : Outbound("qwdtt"), app.rawline.mobile.bg.carrier.NativeCarrie
         const val MAX_WORKERS = MAX_HASHES * 27
     }
     override val carrierKind get() = CarrierKind.QWDTT
+    internal val hashSlots: Int get() = if (carrierKind == CarrierKind.WDTTPLUS) 4 else MAX_HASHES
     init { serverPort=56000 }
     var password=""
     var hashes:List<String> = emptyList()

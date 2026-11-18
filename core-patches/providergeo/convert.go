@@ -8,6 +8,7 @@ import (
 	"net/netip"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/sagernet/sing-box/common/srs"
@@ -15,6 +16,62 @@ import (
 	"github.com/xtls/xray-core/common/geodata"
 	"google.golang.org/protobuf/proto"
 )
+
+// ValidateXray decodes one category at a time using the same schema as the reader.
+func ValidateXray(path string, geosite bool) error {
+	return entries(path, func(_ string, entry *io.SectionReader) (bool, error) {
+		reader := newGeoReader(entry)
+		for {
+			tag, record, err := field(reader)
+			if err == io.EOF {
+				return false, nil
+			}
+			if err != nil {
+				return false, err
+			}
+			if tag != 18 {
+				continue
+			}
+			if err := validateXrayRecord(record, geosite); err != nil {
+				return false, err
+			}
+		}
+	})
+}
+
+func validateXrayRecord(record *io.SectionReader, geosite bool) error {
+	if record.Size() > 1<<20 {
+		return fmt.Errorf("Xray geo record exceeds 1 MiB")
+	}
+	data, err := io.ReadAll(record)
+	if err != nil {
+		return err
+	}
+	if geosite {
+		var domain geodata.Domain
+		if err := proto.Unmarshal(data, &domain); err != nil {
+			return err
+		}
+		switch domain.Type {
+		case geodata.Domain_Substr, geodata.Domain_Domain, geodata.Domain_Full:
+			return nil
+		case geodata.Domain_Regex:
+			_, err := regexp.Compile(domain.Value)
+			return err
+		default:
+			return fmt.Errorf("unsupported geosite domain type")
+		}
+	}
+	var cidr geodata.CIDR
+	if err := proto.Unmarshal(data, &cidr); err != nil {
+		return err
+	}
+	address, ok := netip.AddrFromSlice(cidr.Ip)
+	if !ok || cidr.Prefix > uint32(address.BitLen()) {
+		return fmt.Errorf("invalid geoip CIDR")
+	}
+	return nil
+}
 
 // ConvertGeoRuleSet keeps the provider's own geo categories rather than substituting another database.
 func Convert(input, output, kind, selector string) error {

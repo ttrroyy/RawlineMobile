@@ -2,8 +2,8 @@ package app.rawline.mobile.ui
 
 import app.rawline.mobile.bg.BaseService
 
-internal class MobileModeSwitch {
-    var pendingMode: String? = null
+internal class MobileModeSwitch(pending: String? = null) {
+    var pendingMode: String? = pending
         private set
 
     fun request(current: String, target: String) { pendingMode = target.takeUnless { it == current } }

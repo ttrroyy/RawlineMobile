@@ -347,6 +347,10 @@ class MobileCaptchaController(private val host: FragmentActivity): AutoCloseable
             settings.domStorageEnabled=true
             settings.allowFileAccess=false
             settings.allowContentAccess=false
+            webViewClient = object : WebViewClient() {
+                override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
+                    !CaptchaAddressPolicy.allowedFreeTurn(request.url.toString())
+            }
             loadUrl(url)
         }
         body.addView(web,LinearLayout.LayoutParams(-1,(host.resources.displayMetrics.heightPixels*.7f).toInt()))

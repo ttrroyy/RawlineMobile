@@ -10,6 +10,10 @@ func ValidateGeoFile(path string) error {
 	return providergeo.Validate(path)
 }
 
+func ValidateXrayGeoFile(path string, geosite bool) error {
+	return providergeo.ValidateXray(path, geosite)
+}
+
 // NormalizeGeoFileForXray makes a provider geo file's categories findable by Xray.
 func NormalizeGeoFileForXray(path string) error {
 	return providergeo.NormalizeForXray(path)

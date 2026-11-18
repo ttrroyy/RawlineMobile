@@ -21,6 +21,12 @@ class DnsMultipleServersTest {
         assertTrue(DnsServers.addressListProblem(" , ").isNotEmpty())
     }
 
+    @Test fun aCommaInsideAnHttpsPathStaysInTheAddress() {
+        val address = "https://example.org/dns,other"
+        assertEquals(listOf(address), DnsServers.splitAddresses(address))
+        assertEquals(listOf(address, "1.1.1.1"), DnsServers.splitAddresses("$address, 1.1.1.1"))
+    }
+
     @Test fun severalResolversKeepTheirDetoursAndProduceOnlyKnownServerReferences() {
         val result = generator("https://1.1.1.1/dns-query,https://8.8.8.8/dns-query", "8.8.8.8,1.1.1.1").build(1)
         assertNull(result.error)

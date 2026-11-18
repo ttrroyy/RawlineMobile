@@ -250,7 +250,7 @@ class RouteProfileActivity : ThemedActivity(R.layout.layout_route_profile) {
         headerAdapter.holder?.bindErrors()
     }
 
-    private fun dnsServerProblem(text: String): String = DnsServers.parseDnsAddress(text).why
+    private fun dnsServerProblem(text: String): String = DnsServers.addressListProblem(text)
 
     /** RouteDnsEditor::bindTo: the server fields are checked only while custom DNS is chosen. */
     private fun markDns() {

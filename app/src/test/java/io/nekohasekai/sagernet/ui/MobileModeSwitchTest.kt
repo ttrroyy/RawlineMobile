@@ -18,6 +18,13 @@ class MobileModeSwitchTest {
         assertEquals("vpn", switch.takeAfterStop(BaseService.State.Stopped))
     }
 
+    @Test fun restoredRequestWaitsForTheServiceAndIsConsumedOnce() {
+        val switch = MobileModeSwitch("vpn")
+        assertNull(switch.takeAfterStop(BaseService.State.Stopping))
+        assertEquals("vpn", switch.takeAfterStop(BaseService.State.Stopped))
+        assertNull(switch.takeAfterStop(BaseService.State.Stopped))
+    }
+
     @Test fun stoppingTheCurrentModeOrCancellingDoesNotRestartIt() {
         val switch = MobileModeSwitch()
         switch.request("vpn", "proxy")

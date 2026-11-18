@@ -29,7 +29,25 @@ class DnsAddressParse(@JvmField val address: DnsAddress?, @JvmField val why: Str
 object DnsServers {
 
     @JvmStatic
-    fun splitAddresses(text: String): List<String> = text.split(',').map(String::trim).filter(String::isNotEmpty).distinct()
+    fun splitAddresses(text: String): List<String> {
+        val result = mutableListOf<String>()
+        var current = ""
+        for (part in text.split(',')) {
+            // A comma without a space can be part of an existing DoH path.
+            val startOfAnotherUrl = DNS_SCHEME_PREFIX.containsMatchIn(part)
+            val keepPathComma = current.trimStart().substringBefore("://").lowercase() in PATH_SCHEMES &&
+                '/' in current.substringAfter("://", "") &&
+                part == part.trimStart() && !startOfAnotherUrl
+            if (keepPathComma) current += ",$part"
+            else {
+                current.trim().takeIf(String::isNotEmpty)?.let(result::add)
+                current = part
+            }
+        }
+        current.trim().takeIf(String::isNotEmpty)?.let(result::add)
+        return result.distinct()
+    }
+    private val DNS_SCHEME_PREFIX = Regex("^[A-Za-z][A-Za-z0-9+.-]*://")
 
     @JvmStatic
     fun addressListProblem(text: String): String {

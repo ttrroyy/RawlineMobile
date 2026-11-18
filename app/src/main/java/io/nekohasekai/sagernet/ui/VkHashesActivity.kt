@@ -226,8 +226,7 @@ class VkHashesActivity : ServerScreenActivity() {
                                     return@map profile.putOutbound(freeturn)
                                 }
                                 val outbound = profile.outbound as Qwdtt
-                                // The profile editors' slots: CSQTT has six, the others four.
-                                outbound.hashes = selected.take(if (outbound.type == "csqtt" || outbound.type == "mrtt") 6 else 4)
+                                outbound.hashes = selected.take(outbound.hashSlots)
                                 outbound.hashSource = "manual"; outbound.hashSourceChosen = true
                                 // A subscription refresh keeps hashes the user set.
                                 outbound.manualHashesOverride = true

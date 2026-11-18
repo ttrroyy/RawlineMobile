@@ -81,9 +81,31 @@ class MainActivity : ThemedActivity(),
     lateinit var binding: LayoutMainBinding
     lateinit var navigation: NavigationView
     private var currentMainFragment: ToolbarFragment? = null
+    internal var modeSwitch = MobileModeSwitch()
+        private set
+    private var modeSwitchForeground = false
+
+    private fun finishModeSwitch(state: BaseService.State) {
+        if (!modeSwitchForeground) return
+        val mode = modeSwitch.takeAfterStop(state) ?: return
+        DataStore.serviceMode = mode
+        app.rawline.mobile.ui.test.TestSessionClient.stop()
+        startFromUi()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("pendingServiceMode", modeSwitch.pendingMode)
+    }
+
+    override fun onPause() {
+        modeSwitchForeground = false
+        super.onPause()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        modeSwitch = MobileModeSwitch(savedInstanceState?.getString("pendingServiceMode"))
         captchaController=MobileCaptchaController(this)
         MessageStore.setCurrentActivity(this)
         // Update discovery while the app is on screen; the 15-minute interval decides when a request is sent.
@@ -215,6 +237,8 @@ class MainActivity : ThemedActivity(),
 
     override fun onResume() {
         super.onResume()
+        modeSwitchForeground = true
+        finishModeSwitch(DataStore.serviceState)
         MessageStore.setCurrentActivity(this)
         LauncherIcon.sync(this)
         DataStore.serviceError.takeIf { it.isNotEmpty() }?.let(::showServiceError)
@@ -490,6 +514,7 @@ class MainActivity : ThemedActivity(),
             showWhenConnected = state == BaseService.State.Connected,
             animate = animateControls,
         )
+        finishModeSwitch(state)
         if (state == BaseService.State.Connecting) errorBar?.dismiss()
         if (msg == null) return
         if (msg == DataStore.serviceError) showServiceError(msg) else snackbar(getString(R.string.vpn_error, msg)).show()
@@ -611,6 +636,7 @@ class MainActivity : ThemedActivity(),
     private val wifiFlow = WifiPermissionFlow(this)
 
     fun toggleService() {
+        if (DataStore.serviceState == BaseService.State.Stopping || modeSwitch.pendingMode != null) return
         if (DataStore.serviceState.canStop) SagerNet.stopService() else {
             app.rawline.mobile.ui.test.TestSessionClient.stop()
             startFromUi()
