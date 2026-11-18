@@ -73,8 +73,15 @@ def wait_for(value):
     (out/'vpn-failed.xml').write_text(xml())
     raise AssertionError('State not reached: '+value)
 def confirm_import_group(name):
-    # Loose profiles are imported straight into the server list by the current home screen.
-    wait_for(name)
+    for _ in range(30):
+        nodes = list(ET.fromstring(xml()).iter('node'))
+        if any(n.get('text') == f'Confirm you want to import profile {name}?' for n in nodes):
+            tap('Yes')
+        elif any(n.get('text') == name for n in nodes):
+            return
+        time.sleep(1)
+    (out/'vpn-failed.xml').write_text(xml())
+    raise AssertionError('Imported profile row not reached: ' + name)
 
 def profile_latency(name='VPN-smoke'):
     tree=ET.fromstring(xml())
@@ -137,7 +144,7 @@ shell('dumpsys','deviceidle','whitelist','+'+package)
 # detector otherwise waits forever for its bounds to stop changing.
 shell('settings','put','global','animator_duration_scale','0')
 shell('am','start','-n',activity,'-a','android.intent.action.VIEW','-d','socks5://127.0.0.1:8868#VPN-smoke')
-time.sleep(5); tap('Yes'); confirm_import_group('VPN-smoke')
+confirm_import_group('VPN-smoke')
 # A clean installation also asks about background battery restrictions.
 if 'Keep Rawline running' in xml(): tap('Not now')
 wait_for('VPN-smoke')
@@ -150,7 +157,7 @@ shell('input','text','http://example.test/generate_204'); tap('OK')
 shell('input','keyevent','4'); shell('input','keyevent','4')
 wait_for('VPN-smoke')
 shell('am','start','-n',activity,'-a','android.intent.action.VIEW','-d','socks5://127.0.0.1:8868#VPN-queued')
-time.sleep(3);tap('Yes');confirm_import_group('VPN-queued');wait_for('VPN-queued')
+confirm_import_group('VPN-queued')
 # Keep the fixture stalled long enough to inspect two independently requested scopes.
 tap('Settings');tap('Core settings');tap('Test timeout (ms)')
 edit=next(n for n in ET.fromstring(xml()).iter('node') if n.get('class')=='android.widget.EditText')
