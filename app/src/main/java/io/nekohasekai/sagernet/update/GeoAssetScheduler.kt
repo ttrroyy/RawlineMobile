@@ -20,10 +20,13 @@ import app.rawline.mobile.ktx.Logs
 import app.rawline.mobile.ktx.app
 import app.rawline.mobile.ktx.runOnDefaultDispatcher
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.TimeUnit
 
 object GeoAssetScheduler : OnPreferenceDataStoreChangeListener {
     private const val WORK_NAME = "RawlineGeoAssets"
+    private val scheduling = Mutex()
 
     fun start() {
         DataStore.configurationStore.registerChangeListener(this)
@@ -36,20 +39,24 @@ object GeoAssetScheduler : OnPreferenceDataStoreChangeListener {
 
     private fun sync() {
         runOnDefaultDispatcher {
-            try {
-                val manager = RemoteWorkManager.getInstance(app)
-                if (DataStore.xrayGeoAutoUpdate) {
-                    val request = PeriodicWorkRequestBuilder<RefreshTask>(24, TimeUnit.HOURS)
-                        .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
-                        .setInputData(Data.Builder()
-                            .putString(RemoteListenableWorker.ARGUMENT_PACKAGE_NAME, app.packageName)
-                            .putString(RemoteListenableWorker.ARGUMENT_CLASS_NAME, RemoteWorkerService::class.java.name)
-                            .build())
-                        .build()
-                    manager.enqueueUniquePeriodicWork(WORK_NAME, ExistingPeriodicWorkPolicy.UPDATE, request).get()
-                } else manager.cancelUniqueWork(WORK_NAME).get()
-            } catch (e: Exception) {
-                Logs.w("GeoAssetScheduler: scheduling failed", e)
+            scheduling.withLock {
+                try {
+                    val manager = RemoteWorkManager.getInstance(app)
+                    if (DataStore.xrayGeoAutoUpdate) {
+                        val request = PeriodicWorkRequestBuilder<RefreshTask>(24, TimeUnit.HOURS)
+                            .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+                            .setInputData(Data.Builder()
+                                .putString(RemoteListenableWorker.ARGUMENT_PACKAGE_NAME, app.packageName)
+                                .putString(RemoteListenableWorker.ARGUMENT_CLASS_NAME, RemoteWorkerService::class.java.name)
+                                .build())
+                            .build()
+                        manager.enqueueUniquePeriodicWork(WORK_NAME, ExistingPeriodicWorkPolicy.UPDATE, request).get()
+                    } else manager.cancelUniqueWork(WORK_NAME).get()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Logs.w("GeoAssetScheduler: scheduling failed", e)
+                }
             }
         }
     }

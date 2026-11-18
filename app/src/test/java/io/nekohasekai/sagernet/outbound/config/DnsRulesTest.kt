@@ -82,6 +82,18 @@ class DnsRulesTest {
         assertTrue(tags.none { it.startsWith("dns-user") })
     }
 
+    @Test fun customRuleSetUrlIsRegisteredAndUsesItsOwnDnsServer() {
+        val url = "https://example.org/custom.srs"
+        val config = build(GeneratorSettings(dnsRules = listOf(
+            DnsRule(sites = listOf("rule-set:$url"), server = "1.1.1.1"),
+        )), RuleSetCatalog(emptyList()))
+        val set = config.obj("route").array("rule_set").filterIsInstance<JsonObject>().single()
+        assertEquals(url, set.string("url"))
+        val rules = config.obj("dns").array("rules").filterIsInstance<JsonObject>()
+        assertTrue(rules.any { it.string("server") == "dns-user-0" &&
+            (it["rule_set"] as? JsonArray)?.strings() == listOf(set.string("tag")) })
+    }
+
     @Test fun xrayResolvesTheRuleServerOverHttps() {
         val xray = XrayVless().apply { server = "192.0.2.1"; serverPort = 443; uuid = "5a351653-bef1-4baf-a6e9-89cbf1a2329e" }
         val result = ConfigGenerator(ProfileProvider { xray }, GeneratorSettings(dnsRules = listOf(DnsRule(sites = listOf("x.org"), server = "8.8.8.8")))).build(1)

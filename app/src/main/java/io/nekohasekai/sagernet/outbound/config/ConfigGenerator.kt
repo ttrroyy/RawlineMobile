@@ -382,10 +382,14 @@ class ConfigGenerator @JvmOverloads constructor(
             match.suffixes.forEach { selectors.suffixes.add(it) }
             match.keywords.forEach { selectors.keywords.add(it) }
             match.regexes.forEach { selectors.regexes.add(it) }
-            for (name in match.ruleSets) {
-                val url = routing.catalog.urlOf(name) ?: continue
-                if (!pre.ruleSets.containsKey(name)) pre.ruleSets[name] = RuleSets.mirrorLink(url, settings.rulesetMirror)
-                selectors.ruleSets.add(name)
+            for (entry in match.ruleSets) {
+                val url = if (RuleSets.isUrl(entry)) entry else {
+                    val listed = routing.catalog.urlOf(entry) ?: continue
+                    RuleSets.mirrorLink(listed, settings.rulesetMirror)
+                }
+                val tag = RuleSets.tagFor(entry)
+                pre.ruleSets.putIfAbsent(tag, url)
+                selectors.ruleSets.add(tag)
             }
             if (selectors.hasInlineConditions() || selectors.ruleSets.isNotEmpty()) pre.userDns.add(rule to selectors)
         }
