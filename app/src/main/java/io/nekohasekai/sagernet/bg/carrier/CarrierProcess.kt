@@ -280,7 +280,9 @@ class CarrierProcess private constructor(private val process: Process, private v
                                 if (totalWorkers > 0) running.health.activeWorkers()?.let { runCatching { onWorkers(it.coerceAtMost(totalWorkers), totalWorkers) } }
                                 running.captcha.accept(line)
                                 if(NativeSessionPolicy.unavailableCall(line)) running.unavailableCall.set(true)
-                                NativeSessionPolicy.startupFailure(line)?.let { running.startupFailure.compareAndSet(null,it) }
+                                NativeSessionPolicy.startupFailure(line)?.let(redactor::redact)?.let {
+                                    running.startupFailure.compareAndSet(null, it)
+                                }
                                 redactor.redact(line)?.let { safe -> moe.matsuri.nb4a.utils.CoreLog.write("[Info] [${kind.name}] $safe") }
                             }
                         } }.also { running.captcha.close() } }, "Rawline-carrier-output").apply { isDaemon = true; start() }
