@@ -520,14 +520,14 @@ class UiTourTest {
             layout()
             MobileHomeLayout.chipHidden = false
             home("groups")
-            fun tapTitle(bottom: Boolean) {
-                val titles = mutableListOf<android.graphics.Rect>()
+            fun tapTitle(bottom: Boolean): android.view.View {
+                val titles = mutableListOf<Pair<android.view.View, android.graphics.Rect>>()
                 instrumentation.runOnMainSync {
                     fun collect(view: android.view.View) {
                         if (!view.isShown) return
                         if (view is android.widget.TextView && view.text.toString() == "Sub 3") {
                             val bounds = android.graphics.Rect()
-                            if (view.getGlobalVisibleRect(bounds)) titles.add(bounds)
+                            if (view.getGlobalVisibleRect(bounds)) titles.add(view to bounds)
                         }
                         if (view is android.view.ViewGroup) for (i in 0 until view.childCount) collect(view.getChildAt(i))
                     }
@@ -536,12 +536,11 @@ class UiTourTest {
                 check(titles.size == if (MobileHomeLayout.chipHidden) 1 else 2) {
                     "visible subscription labels: ${titles.size}, picker block hidden: ${MobileHomeLayout.chipHidden}"
                 }
-                val bounds = if (bottom) titles.maxBy { it.top } else titles.minBy { it.top }
-                repeat(if (MobileHomeLayout.chipHidden) 3 else 1) {
-                    val time = android.os.SystemClock.uptimeMillis()
-                    touch(android.view.MotionEvent.ACTION_DOWN, bounds.exactCenterX(), bounds.exactCenterY(), time)
-                    touch(android.view.MotionEvent.ACTION_UP, bounds.exactCenterX(), bounds.exactCenterY(), time)
-                }
+                val (title, bounds) = if (bottom) titles.maxBy { it.second.top } else titles.minBy { it.second.top }
+                val time = android.os.SystemClock.uptimeMillis()
+                touch(android.view.MotionEvent.ACTION_DOWN, bounds.exactCenterX(), bounds.exactCenterY(), time)
+                touch(android.view.MotionEvent.ACTION_UP, bounds.exactCenterX(), bounds.exactCenterY(), time)
+                return title
             }
             val footer = context.getString(R.string.qmobile_manage_groups)
             tapTitle(bottom = true)
@@ -554,9 +553,14 @@ class UiTourTest {
             Thread.sleep(400)
             MobileHomeLayout.chipHidden = true
             home("groups")
-            tapTitle(bottom = true)
+            val onlyTitle = tapTitle(bottom = true)
             Thread.sleep(800)
             check(centerOf(footer) != null) { "the only heading did not open the picker" }
+            // Send clicks to the original heading; touches at the same coordinates could select a sheet item.
+            instrumentation.runOnMainSync {
+                val heading = onlyTitle.parent.parent as android.view.View
+                repeat(2) { check(heading.performClick()) }
+            }
             instrumentation.sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
             Thread.sleep(600)
             check(centerOf(footer) == null) { "the picker opened more than once" }
@@ -582,6 +586,26 @@ class UiTourTest {
             check(frameOf(R.string.qmobile_layout_tiles).top >= frameOf(R.string.qmobile_layout_control).bottom - 2) {
                 "the title returned above the connection block"
             }
+        },
+        "home-reuse-connection-control" to {
+            layout()
+            orb(connected = true, bottom = true)
+            instrumentation.runOnMainSync {
+                val activity = resumed() as MainActivity
+                val fragments = activity.supportFragmentManager
+                val home = fragments.findFragmentById(R.id.fragment_holder)
+                check(home is app.rawline.mobile.ui.MobileHomeFragment)
+                val view = home.requireView()
+                repeat(2) { activity.displayFragmentWithId(activity.homeId) }
+                fragments.executePendingTransactions()
+                check(fragments.findFragmentById(R.id.fragment_holder) === home && home.view === view)
+                activity.displayFragmentWithId(R.id.nav_group)
+                fragments.executePendingTransactions()
+                activity.displayFragmentWithId(activity.homeId)
+                fragments.executePendingTransactions()
+                check(fragments.findFragmentById(R.id.fragment_holder) === home && home.view === view && !home.isHidden)
+            }
+            Thread.sleep(450)
         },
     )
 

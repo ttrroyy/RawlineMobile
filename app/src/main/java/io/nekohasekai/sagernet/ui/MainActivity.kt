@@ -408,6 +408,15 @@ class MainActivity : ThemedActivity(),
     fun displayFragment(fragment: ToolbarFragment) {
         if (fragment is MobileHomeFragment) {
             supportFragmentManager.popBackStackImmediate(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
+            val home = supportFragmentManager.findFragmentById(R.id.fragment_holder) as? MobileHomeFragment
+            if (home != null && !home.isHidden) {
+                // Replacing the same screen animates two copies of the live connection controls at once.
+                currentMainFragment = home
+                binding.drawerLayout.closeDrawers()
+                syncMainControls(home, showWhenConnected = false, animate = false)
+                home.refresh()
+                return
+            }
         }
         currentMainFragment = fragment
         val transaction=supportFragmentManager.beginTransaction()

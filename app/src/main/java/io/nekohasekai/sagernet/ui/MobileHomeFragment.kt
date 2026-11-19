@@ -1021,19 +1021,21 @@ class MobileHomeFragment : ToolbarFragment() {
                     // A smaller button right under the subscription: the servers and the subscription's actions keep the screen.
                     // The view spans the row and is 16 dp taller than the disc: the subscription and server line has the width.
                     val orb=MobileHomeLayout.orbSize(true)
-                    val artwork=power?.background as? MobileOrbArtwork
+                    val button = power
+                    val artwork=button?.background as? MobileOrbArtwork
                     artwork?.discSize=dp(orb)
-                    centre.addView(power, FrameLayout.LayoutParams(-1, dp(orb+16), Gravity.TOP or Gravity.CENTER_HORIZONTAL))
+                    centre.addView(button, FrameLayout.LayoutParams(-1, dp(orb+16), Gravity.TOP or Gravity.CENTER_HORIZONTAL))
                     if(dockBottom) {
                         centre.background=MobileDockGlass(MobilePalette.cardDp*resources.displayMetrics.density,MobileOrbArtwork.centerY(dp(orb)),MobileOrbArtwork.radius(dp(orb))*1.26f,dp(104*orb/190).toFloat())
                         // The check and the speed hold the dock's lower corners: the line keeps between them.
-                        power?.addOnLayoutChangeListener { view,_,_,_,_,_,_,_,_ -> artwork?.textRoom=(view.width-2*dp(14+92+6)).toFloat() }
+                        button?.addOnLayoutChangeListener { view,_,_,_,_,_,_,_,_ -> artwork?.textRoom=(view.width-2*dp(14+92+6)).toFloat() }
                     }
                     controlParent.addView(centre, LinearLayout.LayoutParams(-1, dp(if(dockBottom) orb+20 else orb+16)).apply { topMargin=dp(4) })
                     // The subscription and the server on two lines when one is too narrow for them: the button grows by that line.
                     artwork?.linesChanged={ lines -> centre.post {
+                        if (button == null || button !== power || !centre.isAttachedToWindow) return@post
                         val extra=if(lines==2) dp(16) else 0
-                        power?.layoutParams=power?.layoutParams?.apply { height=dp(orb+16)+extra }
+                        button.layoutParams=button.layoutParams.apply { height=dp(orb+16)+extra }
                         centre.layoutParams=centre.layoutParams.apply { height=dp(if(dockBottom) orb+20 else orb+16)+extra }
                     } }
                 }
