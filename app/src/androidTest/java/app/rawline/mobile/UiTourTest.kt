@@ -301,6 +301,9 @@ class UiTourTest {
     } + listOf(
         "layout-editor" to { editor() },
         "layout-editor-gestures" to {
+            MobileHomeLayout.chipHidden = false
+            MobileHomeLayout.hiddenSwitch = ""
+            MobileHomeLayout.proxySwitchFirst = false
             editor()
             val tiles = frameOf(R.string.qmobile_layout_tiles)
             val x = tiles.exactCenterX(); val y = tiles.exactCenterY()
@@ -346,6 +349,21 @@ class UiTourTest {
                 Thread.sleep(600)
                 check(MobileHomeLayout.chipNearList && !MobileHomeLayout.chipBottom) { "the subscription did not move under the connection control" }
                 check(frameOf(R.string.qmobile_layout_chip).top >= frameOf(R.string.qmobile_layout_control).bottom - 2) { "the subscription is not drawn under the connection control" }
+                val mode = DataStore.serviceMode
+                val frame = frameOf(R.string.qmobile_layout_control)
+                val switchX = frame.left + frame.width() * .25f
+                val switchY = frame.top + frame.height() * .60f
+                val swapAt = android.os.SystemClock.uptimeMillis()
+                touch(android.view.MotionEvent.ACTION_DOWN, switchX, switchY, swapAt)
+                Thread.sleep(850)
+                touch(android.view.MotionEvent.ACTION_UP, switchX, switchY, swapAt)
+                check(MobileHomeLayout.proxySwitchFirst && DataStore.serviceMode == mode) { "holding a switch did not only change the layout" }
+                press(context.getString(R.string.qmobile_layout_remove_subscription))
+                check(MobileHomeLayout.chipHidden && centerOf(context.getString(R.string.qmobile_layout_chip)) == null) {
+                    "the removed subscription block is still in the editor"
+                }
+                press(context.getString(R.string.qmobile_layout_restore_subscription))
+                check(!MobileHomeLayout.chipHidden) { "the subscription block did not return" }
             }
         },
         "home-after-editor" to { open(MainActivity::class.java); Thread.sleep(1000) },

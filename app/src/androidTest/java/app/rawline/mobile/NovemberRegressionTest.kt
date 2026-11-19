@@ -387,13 +387,13 @@ class NovemberRegressionTest {
         try {
             MobileHomeLayout.controlSwitches = true
             MobileHomeLayout.hiddenSwitch = ""
-            MobileHomeLayout.proxySwitchFirst = false
             DataStore.selectedProxy = profile.id
             DataStore.currentProfile = profile.id
             for (style in listOf("new", "pastel")) for (night in listOf(1, 2))
                 for (bottom in listOf(false, true)) for (scroll in listOf(false, true)) {
                     DataStore.uiStyle = style; DataStore.nightTheme = night
                     MobileHomeLayout.controlBottom = bottom
+                    MobileHomeLayout.proxySwitchFirst = bottom
                     MobileHomeLayout.scrollParts = if (scroll) setOf("control", "chip") else emptySet()
                     DataStore.serviceState = app.rawline.mobile.bg.BaseService.State.Stopped
                     GroupRepo.setCurrent(group.id)
@@ -415,17 +415,15 @@ class NovemberRegressionTest {
                             val controls = descendants(activity.window.decorView)
                             val tunLabel = context.getString(R.string.service_mode_vpn)
                             val proxyLabel = context.getString(R.string.service_mode_proxy)
-                            val switchLabels = controls.filterIsInstance<TextView>().filter {
-                                it.text.toString() in listOf(tunLabel, proxyLabel) && (it.parent as? View)?.isLongClickable == true
+                            val switchLabels = controls.filterIsInstance<TextView>().filter { label ->
+                                label.isShown && label.text.toString() in listOf(tunLabel, proxyLabel) &&
+                                    (label.parent as? ViewGroup)?.let { parent ->
+                                        (0 until parent.childCount).any { parent.getChildAt(it) is androidx.appcompat.widget.SwitchCompat }
+                                    } == true
                             }
-                            assertEquals(if (MobileHomeLayout.proxySwitchFirst) listOf(proxyLabel, tunLabel) else listOf(tunLabel, proxyLabel),
+                            assertEquals(if (bottom) listOf(proxyLabel, tunLabel) else listOf(tunLabel, proxyLabel),
                                 switchLabels.map { it.text.toString() })
-                            if (!MobileHomeLayout.proxySwitchFirst) {
-                                val mode = DataStore.serviceMode
-                                assertTrue((switchLabels.first().parent as View).performLongClick())
-                                assertTrue(MobileHomeLayout.proxySwitchFirst)
-                                assertEquals(mode, DataStore.serviceMode)
-                            }
+                            assertTrue(switchLabels.none { (it.parent as View).isLongClickable })
                             val power = controls.filterIsInstance<TextView>().first {
                                 it.contentDescription?.toString()?.startsWith(context.getString(R.string.qmobile_connect) + ", ") == true
                             }

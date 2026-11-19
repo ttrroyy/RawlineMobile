@@ -5,6 +5,32 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class NativeHashPolicyTest {
+    @Test fun subscriptionRefreshHonorsPublishedPortsAndAnExplicitTurnReset() {
+        val link = "qwdtt://config?name=Fixture&peer=192.0.2.1%3A56000&pass=fixture"
+        val prior = Qwdtt().apply {
+            assertTrue(parseFromLink(link + "&raw=56103&direct=56102&custom_turn_ips=192.0.2.2"))
+        }
+        val omitted = Qwdtt().apply { assertTrue(parseFromLink(link)) }
+        NativeHashPolicy.preserve(omitted, listOf(prior))
+        assertEquals(listOf(56103, 56102), listOf(omitted.rawPort, omitted.directPort))
+        assertEquals("192.0.2.2", omitted.customTurnIps)
+        val nullable = prior.exportToJson().apply {
+            this["raw_port"] = null
+            this["direct_port"] = null
+            this["custom_turn_ips"] = null
+        }
+        val fromNull = Qwdtt().apply { assertTrue(parseFromJson(nullable)) }
+        NativeHashPolicy.preserve(fromNull, listOf(prior))
+        assertEquals(listOf(56103, 56102), listOf(fromNull.rawPort, fromNull.directPort))
+        assertEquals("192.0.2.2", fromNull.customTurnIps)
+        val changed = Qwdtt().apply {
+            assertTrue(parseFromLink(link + "&raw=56003&direct=56002&custom_turn_ips="))
+        }
+        NativeHashPolicy.preserve(changed, listOf(prior))
+        assertEquals(listOf(56003, 56002), listOf(changed.rawPort, changed.directPort))
+        assertEquals("", changed.customTurnIps)
+    }
+
     @Test fun refreshUsesQwdttHashCeilingAndCsqttIndependentWorkerLimit() {
         assertEquals(81,NativeHashPolicy.preservedWorkers(108,81))
         // A chosen count stays when a new hash raises the limit (27 of one hash is not "always maximum").

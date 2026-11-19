@@ -83,9 +83,11 @@ class DnsRulesTest {
     }
 
     @Test fun customRuleSetUrlIsRegisteredAndUsesItsOwnDnsServer() {
-        val url = "https://example.org/custom.srs"
+        val url = "https://example.org/custom.srs?labels=a,full:b"
+        val sites = DnsRules.lines("rule-set:$url, full:local.test")
+        assertEquals(listOf("rule-set:$url", "full:local.test"), sites)
         val config = build(GeneratorSettings(dnsRules = listOf(
-            DnsRule(sites = listOf("rule-set:$url"), server = "1.1.1.1"),
+            DnsRule(sites = sites, server = "1.1.1.1"),
         )), RuleSetCatalog(emptyList()))
         val set = config.obj("route").array("rule_set").filterIsInstance<JsonObject>().single()
         assertEquals(url, set.string("url"))

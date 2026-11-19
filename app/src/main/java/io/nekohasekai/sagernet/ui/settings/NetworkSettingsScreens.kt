@@ -185,6 +185,11 @@ open class TunSettingsFragment : InboundSettingsFragment(R.xml.settings_tun_comb
             SettingsRegistry.ENABLE_TUN_ROUTING.key, SettingsRegistry.BLOCK_UNOWNED_TUN.key, SettingsRegistry.BLOCK_UNOWNED_TUN_STRICT.key, SettingsRegistry.BLOCK_QUIC.key,
             SettingsRegistry.SNIFF_ROUTE_ONLY.key, SettingsRegistry.HTTP_PROXY_AUTH.key,
         )
+        pref<SimpleMenuPreference>(SettingsRegistry.VPN_STACK.key).summaryProvider =
+            Preference.SummaryProvider<SimpleMenuPreference> { stack ->
+                val selected = stack.entry ?: getString(R.string.tun_stack_auto)
+                "$selected\n${getString(R.string.tun_stack_summary)}"
+            }
         val mtu = pref<MTUPreference>(SettingsRegistry.VPN_MTU.key)
         val vpnIpv6 = pref<SwitchPreference>(SettingsRegistry.VPN_IPV6.key)
         validation.bind(mtu.key, Validation.Rules.int(MIN_MTU.toLong(), MAX_MTU.toLong(), Empty.Required)).gate()

@@ -55,9 +55,23 @@ object DnsRules {
 
     fun encode(rules: List<DnsRule>): String = JsonArray().apply { rules.forEach { add(it.toJson()) } }.toCompact()
 
-    /** The sites of a text, one per line or separated by commas; blank lines and `#` notes are left out. */
-    fun lines(text: String): List<String> =
-        text.split('\n', ',').map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }
+    private val urlRule = Regex("\\s*rule-set:\\s*https?://", RegexOption.IGNORE_CASE)
+
+    /** A comma followed by whitespace can separate a URL rule set from the next site. */
+    fun lines(text: String): List<String> = buildList {
+        for (line in text.lineSequence()) {
+            var start = 0
+            var url = urlRule.matchAt(line, start) != null
+            for (index in 0..line.length) {
+                if (index < line.length && (line[index] != ',' ||
+                    (url && line.getOrNull(index + 1)?.isWhitespace() != true))) continue
+                val site = line.substring(start, index).trim()
+                if (site.isNotEmpty() && !site.startsWith("#")) add(site)
+                start = index + 1
+                if (start < line.length) url = urlRule.matchAt(line, start) != null
+            }
+        }
+    }
 
     fun withRuleSets(sites: List<String>, selected: List<String>): List<String> =
         sites.filterNot { it.substringBefore(':').lowercase() in setOf("geosite", "rule-set") } +

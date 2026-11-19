@@ -1,5 +1,7 @@
 package app.rawline.mobile.outbound.types
 
+import app.rawline.mobile.deploy.DeployServer
+import app.rawline.mobile.deploy.QwdttAdmin
 import app.rawline.mobile.outbound.`import`.ProfileImport
 import org.junit.Assert.*
 import org.junit.Test
@@ -15,6 +17,14 @@ class WdttPlusLinkTest {
         val restored = WdttPlus().apply { assertTrue(parseFromLink(profile.exportToLink())) }
         assertEquals(profile.password, restored.password)
         assertEquals(profile.hashes, restored.hashes)
+    }
+
+    @Test fun administrativeLegacyLinkPreservesPasswordOnImport() {
+        val server = DeployServer(org.json.JSONObject().put("kind", "qwdtt").put("host", "192.0.2.5").put("peerPort", "56000"))
+        val password = "a:b# c%+"
+        val (_, link) = QwdttAdmin.links(server, "fixture", password, listOf(hash))
+        val restored = WdttPlus().apply { assertTrue(parseFromLink(link)) }
+        assertEquals(password, restored.password)
     }
 
     @Test fun connectLinksBecomeWdttPlusProfiles() {

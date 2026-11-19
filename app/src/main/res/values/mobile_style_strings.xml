@@ -31,5 +31,7 @@
     <string name="qmobile_layout_size">Change size</string>
     <string name="qmobile_layout_scroll">Join to the list</string>
     <string name="qmobile_layout_remove">Remove</string>
+    <string name="qmobile_layout_remove_subscription">Remove subscription block</string>
+    <string name="qmobile_layout_restore_subscription">Restore subscription block</string>
     <string name="qmobile_layout_restore">Bring back</string>
 </resources>

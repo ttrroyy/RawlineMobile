@@ -30,5 +30,7 @@
     <string name="qmobile_layout_size">Сменить размер</string>
     <string name="qmobile_layout_scroll">Объединить со списком</string>
     <string name="qmobile_layout_remove">Убрать</string>
+    <string name="qmobile_layout_remove_subscription">Убрать блок подписки</string>
+    <string name="qmobile_layout_restore_subscription">Вернуть блок подписки</string>
     <string name="qmobile_layout_restore">Вернуть</string>
 </resources>

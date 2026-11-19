@@ -399,11 +399,35 @@ class MobileHomeFragment : ToolbarFragment() {
             setPadding(dp(20),dp(12),dp(20),dp(12))
         } else MobileFeedback.apply(this, circle=true)
     }
-    private fun View.showUpdating(updating: Boolean) {
+    private fun subscriptionAction(icon: Int, description: String, callback: () -> Unit) =
+        iconAction(icon, description, callback = callback).apply {
+            val frame = GradientDrawable().apply {
+                cornerRadius = dp(10).toFloat()
+                setColor(Color.TRANSPARENT)
+                setStroke(dp(1).coerceAtLeast(1), MobilePalette.outline)
+            }
+            val mask = GradientDrawable().apply { cornerRadius = dp(10).toFloat(); setColor(Color.WHITE) }
+            fun inset(shape: GradientDrawable) = android.graphics.drawable.InsetDrawable(shape, dp(2), dp(6), dp(2), dp(6))
+            val press = Color.argb(42, Color.red(foregroundColor), Color.green(foregroundColor), Color.blue(foregroundColor))
+            background = android.graphics.drawable.RippleDrawable(
+                android.content.res.ColorStateList.valueOf(press), inset(frame), inset(mask),
+            )
+            setPadding(dp(if (icon == R.drawable.ic_mobile_add) 11 else 9), dp(13), dp(if (icon == R.drawable.ic_mobile_add) 11 else 9), dp(13))
+            if (icon == R.drawable.ic_mobile_refresh) {
+                val glyph = drawable
+                setImageDrawable(android.graphics.drawable.RotateDrawable().apply {
+                    drawable = glyph
+                    fromDegrees = 0f
+                    toDegrees = 360f
+                })
+            }
+        }
+    private fun ImageButton.showUpdating(updating: Boolean) {
+        val icon = drawable as? android.graphics.drawable.RotateDrawable ?: return
         val previous = tag as? android.animation.ObjectAnimator
-        if (!updating) { previous?.cancel(); tag=null; rotation=0f; return }
+        if (!updating) { previous?.cancel(); tag=null; icon.level=0; return }
         if (previous != null) return
-        tag=android.animation.ObjectAnimator.ofFloat(this,View.ROTATION,0f,360f).apply {
+        tag=android.animation.ObjectAnimator.ofInt(icon, "level", 0, 10_000).apply {
             duration=900;repeatCount=android.animation.ValueAnimator.INFINITE
             interpolator=android.view.animation.LinearInterpolator(); start()
         }
@@ -931,11 +955,6 @@ class MobileHomeFragment : ToolbarFragment() {
                             addView(text(getString(label),14f).apply { setPadding(0,dp(4),dp(6),dp(4)) },LinearLayout.LayoutParams(0,-2,1f))
                             addView(switch)
                             setOnClickListener { pickMode(mode) }
-                            if (hiddenSwitch.isEmpty()) setOnLongClickListener {
-                                MobileHomeLayout.proxySwitchFirst = !MobileHomeLayout.proxySwitchFirst
-                                refresh()
-                                true
-                            }
                             MobileFeedback.apply(this)
                         },(if(landscape) LinearLayout.LayoutParams(-1,-2).apply { if(index>0) topMargin=dp(6) } else LinearLayout.LayoutParams(0,-1,1f).apply { if(index>0) marginStart=dp(8) }))
                         mode to switch
@@ -1291,11 +1310,23 @@ class MobileHomeFragment : ToolbarFragment() {
                 val heading = LinearLayout(requireContext()).apply { gravity=Gravity.CENTER_VERTICAL; setPadding(dp(12),0,0,0); isFocusable=true }
                 heading.addView(arrow,LinearLayout.LayoutParams(dp(20),dp(20)))
                 val names=LinearLayout(requireContext()).apply { orientation=LinearLayout.VERTICAL; setPadding(dp(10),dp(8),dp(4),dp(8)) }
-                names.addView(text(group.displayName(),17f).apply { setPadding(0,0,0,0); maxLines=3; ellipsize=android.text.TextUtils.TruncateAt.END })
+                names.addView(text(group.displayName(), 17f).apply {
+                    setPadding(0, 0, 0, 0)
+                    ellipsize = android.text.TextUtils.TruncateAt.END
+                    if (text.none(Char::isWhitespace)) {
+                        maxLines = 1
+                        androidx.core.widget.TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
+                            this, 15, 17, 1, android.util.TypedValue.COMPLEX_UNIT_SP,
+                        )
+                    } else {
+                        maxLines = 3
+                        breakStrategy = android.text.Layout.BREAK_STRATEGY_BALANCED
+                    }
+                })
                 if(group.isSubscription && group.subLastUpdate>0) names.addView(text(java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT,java.text.DateFormat.SHORT).format(java.util.Date(group.subLastUpdate*1000)),10f,muted).apply { setPadding(0,dp(3),0,0) })
                 heading.addView(names,LinearLayout.LayoutParams(0,-2,1f))
                 run {
-                    MobileSubscriptionSwipe.bind(heading, { groupPicker() }, { editGroup(group,true) },
+                    MobileSubscriptionSwipe.bind(heading, if (MobileHomeLayout.chipHidden) ::groupPicker else null, { editGroup(group,true) },
                         { host().displayFragmentWithId(R.id.nav_group) }) { direction ->
                         val siblings = pickerGroups
                         val index = siblings.indexOfFirst { it.id == group.id }
@@ -1303,12 +1334,12 @@ class MobileHomeFragment : ToolbarFragment() {
                     }
                 }
                 title.addView(heading,LinearLayout.LayoutParams(0,-2,1f))
-                if (MobileHomeLayout.chipHidden) title.addView(iconAction(R.drawable.ic_mobile_add,getString(R.string.qmobile_add)) { addMenu(title) },LinearLayout.LayoutParams(dp(40),dp(48)))
-                if (group.isSubscription) title.addView(iconAction(R.drawable.ic_mobile_refresh,getString(R.string.qmobile_refresh)) { SubscriptionClient.refreshGroup(group.id,false) }.apply { isEnabled=!SubscriptionClient.states.value.containsKey(group.id); alpha=1f;nextRefreshButtons[group.id]=this },LinearLayout.LayoutParams(dp(40),dp(48)))
-                title.addView(iconAction(R.drawable.ic_mobile_test,getString(R.string.qmobile_tests)) { testMenu(profiles.map { it.id }.toLongArray(),group.displayName(),group.id,true) },LinearLayout.LayoutParams(dp(40),dp(48)))
+                if (MobileHomeLayout.chipHidden) title.addView(subscriptionAction(R.drawable.ic_mobile_add,getString(R.string.qmobile_add)) { addMenu(title) },LinearLayout.LayoutParams(dp(40),dp(48)))
+                if (group.isSubscription) title.addView(subscriptionAction(R.drawable.ic_mobile_refresh,getString(R.string.qmobile_refresh)) { SubscriptionClient.refreshGroup(group.id,false) }.apply { isEnabled=!SubscriptionClient.states.value.containsKey(group.id); alpha=1f;nextRefreshButtons[group.id]=this },LinearLayout.LayoutParams(dp(40),dp(48)))
+                title.addView(subscriptionAction(R.drawable.ic_mobile_test,getString(R.string.qmobile_tests)) { testMenu(profiles.map { it.id }.toLongArray(),group.displayName(),group.id,true) },LinearLayout.LayoutParams(dp(40),dp(48)))
                 lateinit var more: ImageButton
-                more=iconAction(R.drawable.ic_mobile_more,getString(R.string.qmobile_more)) { groupMenu(group,more) }
-                title.addView(more,LinearLayout.LayoutParams(dp(44),dp(48)))
+                more=subscriptionAction(R.drawable.ic_mobile_more,getString(R.string.qmobile_more)) { groupMenu(group,more) }
+                title.addView(more,LinearLayout.LayoutParams(dp(40),dp(48)))
                 head.addView(title)
                 // Which routing this subscription's servers run with, one line above its card and notes.
                 // As wide as its text, so a press lights the line itself and not the whole width of the card.

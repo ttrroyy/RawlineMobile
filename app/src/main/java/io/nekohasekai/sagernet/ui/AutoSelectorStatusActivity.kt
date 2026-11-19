@@ -109,7 +109,16 @@ class AutoSelectorStatusActivity : ThemedActivity(), SagerConnection.Callback {
             setHomeAsUpIndicator(R.drawable.baseline_arrow_back_24)
         }
         onlyProblems = savedInstanceState?.getBoolean(STATE_ONLY_PROBLEMS) ?: false
-        binding.onlyProblems.isChecked = onlyProblems
+        binding.onlyProblems.apply {
+            if (MobileStyle.modern) {
+                setThumbResource(R.drawable.mobile_switch_thumb_drop)
+                setTrackResource(R.drawable.mobile_switch_track_new)
+                thumbTintList = androidx.core.content.ContextCompat.getColorStateList(context, R.color.mobile_switch_thumb_alpha)
+                thumbTintMode = android.graphics.PorterDuff.Mode.MULTIPLY
+                trackTintList = null
+            }
+            isChecked = onlyProblems
+        }
         binding.onlyProblems.setOnCheckedChangeListener { _, checked ->
             onlyProblems = checked
             render()

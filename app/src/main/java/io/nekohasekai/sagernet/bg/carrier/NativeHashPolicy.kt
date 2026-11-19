@@ -88,8 +88,10 @@ object NativeHashPolicy {
             incoming.turnTcp=it.turnTcp
             incoming.captchaMode=it.captchaMode
             if(incoming.type=="qwdtt") {
-                incoming.rawPort=it.rawPort;incoming.obfs=it.obfs;incoming.vkAnonPath=it.vkAnonPath;incoming.goDns=it.goDns
-                incoming.directPort=it.directPort;incoming.customTurnIps=it.customTurnIps
+                incoming.obfs=it.obfs;incoming.vkAnonPath=it.vkAnonPath;incoming.goDns=it.goDns
+                if(!incoming.rawPortProvided) incoming.rawPort=it.rawPort
+                if(!incoming.directPortProvided) incoming.directPort=it.directPort
+                if(!incoming.customTurnIpsProvided) incoming.customTurnIps=it.customTurnIps
                 if(incoming.diagKey.isBlank()) incoming.diagKey=it.diagKey
             }
             if(incoming is Csqtt && it is Csqtt) {

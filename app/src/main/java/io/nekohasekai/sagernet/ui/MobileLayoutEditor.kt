@@ -60,6 +60,8 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     /** Where the parts stand: the column itself upright, a side column beside the list when the screen lies. */
     private lateinit var host: LinearLayout
     private lateinit var list: FrameLayout
+    private lateinit var restoreChip: android.view.MenuItem
+    private val switchCells = mutableListOf<View>()
     private lateinit var root: FrameLayout
     private var landscape = false
     private var dragged: Part? = null
@@ -80,6 +82,11 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             title = getString(R.string.qmobile_edit_layout)
             setTitleTextColor(MobilePalette.text)
             setNavigationIcon(R.drawable.baseline_arrow_back_24); setNavigationOnClickListener { onBackPressedDispatcher.onBackPressed() }
+            restoreChip = menu.add(R.string.qmobile_layout_restore_subscription).apply {
+                setIcon(R.drawable.ic_mobile_add)
+                setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS)
+                setOnMenuItemClickListener { setChipHidden(false); true }
+            }
         })
         column = LinearLayout(this).apply {
             orientation = if (landscape) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
@@ -180,7 +187,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     private fun arrange() {
         column.removeAllViews()
         if (host !== column) host.removeAllViews()
-        val order = (if (MobileHomeLayout.chipNearList) listOf(Part.TILES, Part.CONTROL, Part.CHIP) else listOf(Part.TILES, Part.CHIP, Part.CONTROL)).filter { it in parts }
+        val order = (if (MobileHomeLayout.chipNearList) listOf(Part.TILES, Part.CONTROL, Part.CHIP) else listOf(Part.TILES, Part.CHIP, Part.CONTROL)).filter { it in parts && visible(it) }
         fun add(part: Part) = host.addView(parts.getValue(part), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         // As the home screen stacks them: the parts that stay on the screen first, then those that scroll with the list.
         val joined = joinedParts()
@@ -195,6 +202,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             column.addView(list, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(8) })
             order.reversed().filter(::isBottom).forEach(::add)
         }
+        restoreChip.isVisible = MobileHomeLayout.chipHidden
         updateJoins()
     }
 
@@ -233,6 +241,10 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             }
         }
         if (part == Part.CHIP) {
+            popup.menu.add(R.string.qmobile_layout_remove_subscription).setOnMenuItemClickListener {
+                setChipHidden(true)
+                true
+            }
             popup.menu.add(R.string.qmobile_layout_chip_near).setOnMenuItemClickListener {
                 MobileHomeLayout.chipNearList = true
                 place(part, MobileHomeLayout.controlBottom); anchor.requestFocus(); true
@@ -241,9 +253,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         if (part == Part.CONTROL) popup.menu.add(R.string.qmobile_layout_swap).setOnMenuItemClickListener { setSwitches(!MobileHomeLayout.controlSwitches); true }
         if (part == Part.CONTROL && MobileHomeLayout.controlSwitches && MobileHomeLayout.hiddenSwitch.isEmpty()) {
             popup.menu.add(R.string.qmobile_layout_swap_switches).setOnMenuItemClickListener {
-                MobileHomeLayout.proxySwitchFirst = !MobileHomeLayout.proxySwitchFirst
-                changing()
-                fill(Part.CONTROL)
+                swapSwitches()
                 true
             }
         }
@@ -251,6 +261,19 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         if (part != Part.CHIP) popup.menu.add(R.string.qmobile_layout_size).setOnMenuItemClickListener { setCompact(part, !compact(part)); true }
         if (!isBottom(part) && !landscape) popup.menu.add(R.string.qmobile_layout_scroll).setOnMenuItemClickListener { toggleScroll(part); true }
         popup.show()
+    }
+
+    private fun swapSwitches() {
+        MobileHomeLayout.proxySwitchFirst = !MobileHomeLayout.proxySwitchFirst
+        changing()
+        fill(Part.CONTROL)
+    }
+
+    private fun visible(part: Part) = part != Part.CHIP || !MobileHomeLayout.chipHidden
+
+    private fun setChipHidden(hidden: Boolean) {
+        MobileHomeLayout.chipHidden = hidden
+        rearrange()
     }
 
     private fun setSwitches(switches: Boolean) {
@@ -275,7 +298,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     }
 
     /** The parts that scroll with the list: they share one dashed outline with it (Miniature.dispatchDraw). */
-    private fun joinedParts() = if (landscape) emptyList() else parts.keys.filter { it.id in MobileHomeLayout.scrollParts && !isBottom(it) }
+    private fun joinedParts() = if (landscape) emptyList() else parts.keys.filter { visible(it) && it.id in MobileHomeLayout.scrollParts && !isBottom(it) }
 
     /** A joined part gives up its own outline for the one round it and the list. */
     private fun updateJoins() {
@@ -308,10 +331,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         val items = mutableListOf<LayoutAction>()
         box.addView(when (part) {
             Part.TILES -> tiles(items)
-            Part.CHIP -> removable(chip(), MobileHomeLayout.chipHidden, items) {
-                MobileHomeLayout.chipHidden = !MobileHomeLayout.chipHidden
-                fill(Part.CHIP)
-            }
+            Part.CHIP -> chip()
             Part.CONTROL -> control(items)
         }, FrameLayout.LayoutParams(-1, -2))
         val strip = LinearLayout(this).apply { gravity = Gravity.END or Gravity.CENTER_VERTICAL }
@@ -326,7 +346,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         when (part) {
             // The size is a pinch only.
             Part.TILES -> button(R.drawable.ic_layout_swap, R.string.qmobile_layout_swap) { setExtended(!MobileHomeLayout.extendedTiles) }
-            Part.CHIP -> {}
+            Part.CHIP -> button(R.drawable.ic_layout_remove, R.string.qmobile_layout_remove_subscription) { setChipHidden(true) }
             Part.CONTROL -> button(R.drawable.ic_layout_swap, R.string.qmobile_layout_swap) { setSwitches(!MobileHomeLayout.controlSwitches) }
         }
         // Always on the part, in the grown top of its outline: 6 dp under the outline and clear of its corner, 8 dp above the part.
@@ -399,6 +419,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     private fun check() = ui.text(getString(R.string.qmobile_check_connection), 12f, MobilePalette.muted).apply { gravity = Gravity.CENTER_VERTICAL }
 
     private fun control(items: MutableList<LayoutAction>): View {
+        switchCells.clear()
         val bottom = MobileHomeLayout.controlBottom
         val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         fun status() = box.addView(check().apply { setPadding(dp(10), 0, dp(6), 0) }, LinearLayout.LayoutParams(-1, dp(34)))
@@ -420,6 +441,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
                         MobileHomeLayout.hiddenSwitch = if (mode == hidden) "" else mode
                         TransitionManager.beginDelayedTransition(column, ChangeBounds().setDuration(160)); fill(Part.CONTROL)
                     } else cell
+                    if (hidden.isEmpty()) switchCells += cell
                     addView(wrapped, LinearLayout.LayoutParams(0, height, 1f).apply { if (index > 0) marginStart = dp(8) })
                 }
             }, LinearLayout.LayoutParams(-1, -2))
@@ -464,7 +486,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     /** [view]'s bounds in [column]'s coordinates. */
     private fun boundsOf(view: View) = Rect().also { view.getDrawingRect(it); column.offsetDescendantRectToMyCoords(view, it) }
 
-    private fun partAt(x: Float, y: Float) = parts.entries.firstOrNull { boundsOf(it.value).contains(x.toInt(), y.toInt()) }?.key
+    private fun partAt(x: Float, y: Float) = parts.entries.firstOrNull { visible(it.key) && boundsOf(it.value).contains(x.toInt(), y.toInt()) }?.key
 
     /** The small button under a tap, with a margin around it for a finger. */
     private fun actionAt(x: Float, y: Float): (() -> Unit)? {
@@ -504,7 +526,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             if (near != MobileHomeLayout.chipNearList) { MobileHomeLayout.chipNearList = near; rearrange() }
         }
         // And the control, dragged past the subscription on its side, goes between it and the edge or the list.
-        if (part == Part.CONTROL && Part.CHIP in parts && bottom == MobileHomeLayout.chipBottom) {
+        if (part == Part.CONTROL && visible(Part.CHIP) && bottom == MobileHomeLayout.chipBottom) {
             val chip = parts.getValue(Part.CHIP)
             val middle = chip.top + chip.height / 2f
             val near = if (bottom) hostY > middle else hostY < middle
@@ -573,7 +595,15 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             }
             override fun onLongPress(event: MotionEvent) {
                 if (pinches.isInProgress) return
-                partAt(event.x / scale, event.y / scale)?.let { startDrag(it, event.y / scale) }
+                val x = event.x / scale
+                val y = event.y / scale
+                if (actionAt(x, y) != null) return
+                if (switchCells.any { it.isShown && boundsOf(it).contains(x.toInt(), y.toInt()) }) {
+                    performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                    swapSwitches()
+                    return
+                }
+                partAt(x, y)?.let { startDrag(it, y) }
             }
         })
 
@@ -608,6 +638,9 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             if (joined.isEmpty() || dragged != null) return
             val bounds = boundsOf(list)
             joined.forEach { bounds.union(boundsOf(parts.getValue(it))) }
+            if (parts.any { (part, frame) ->
+                visible(part) && part !in joined && Rect.intersects(bounds, boundsOf(frame))
+            }) return
             joinRect.set(bounds.left * scale, bounds.top * scale, bounds.right * scale, bounds.bottom * scale)
             joinPaint.strokeWidth = dp(2) * scale
             joinPaint.pathEffect = android.graphics.DashPathEffect(floatArrayOf(dp(7) * scale, dp(5) * scale), 0f)

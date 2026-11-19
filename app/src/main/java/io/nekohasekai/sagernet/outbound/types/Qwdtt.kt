@@ -28,6 +28,12 @@ open class Qwdtt : Outbound("qwdtt"), app.rawline.mobile.bg.carrier.NativeCarrie
     var directPort=56002
     var diagKey=""
     var customTurnIps=""
+    internal var rawPortProvided=false
+        private set
+    internal var directPortProvided=false
+        private set
+    internal var customTurnIpsProvided=false
+        private set
     var workers=9
     var turnTcp=true
     var obfs="audio"
@@ -65,10 +71,15 @@ open class Qwdtt : Outbound("qwdtt"), app.rawline.mobile.bg.carrier.NativeCarrie
         hashes=items.flatMap { it.split(Regex("[,\\s]+")) }.map(VkCallHash::strip).filter { it.isNotBlank() }.distinct().take(MAX_HASHES)
         mode=when(val m=obj.string("mode").lowercase().ifEmpty { runCatching { app.rawline.mobile.database.DataStore.relayDefaultQwdttMode }.getOrDefault("wg") }) {
             "raw","rawtun" -> "raw"; "","wg","vpn","socks" -> "wg"; else -> m }
-        rawPort=when { obj.contains("raw_port") -> obj.int("raw_port");obj.contains("rawPort") -> obj.int("rawPort");obj.contains("raw") -> obj.int("raw");else -> 56003 }
-        directPort=when { obj.contains("direct_port") -> obj.int("direct_port");obj.contains("directPort") -> obj.int("directPort");obj.contains("direct") -> obj.int("direct");else -> 56002 }
+        val rawKey=listOf("raw_port", "rawPort", "raw").firstOrNull(obj::isNumber)
+        rawPortProvided=rawKey != null
+        rawPort=rawKey?.let(obj::int) ?: 56003
+        val directKey=listOf("direct_port", "directPort", "direct").firstOrNull(obj::isNumber)
+        directPortProvided=directKey != null
+        directPort=directKey?.let(obj::int) ?: 56002
         diagKey=obj.string("diag_key").ifEmpty { obj.string("diagKey").ifEmpty { obj.string("dk") } }.trim()
         if(diagKey.isNotEmpty() && Base64Strict.decode(diagKey.trimEnd('='),true)?.size!=32) return false
+        customTurnIpsProvided=obj.isString("custom_turn_ips")
         customTurnIps=obj.string("custom_turn_ips").trim()
         workers=if(obj.contains("workers")) obj.int("workers") else if(obj.contains("workersPerHash")) obj.int("workersPerHash") else 9
         workers=workers.coerceIn(9,(if(hashSource == "auto") MAX_HASHES else hashes.size.coerceIn(1,MAX_HASHES))*27)/9*9

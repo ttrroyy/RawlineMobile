@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.LinearLayout
@@ -17,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayInputStream
 import app.rawline.mobile.ui.MobileSheetDialog as BottomSheetDialog
 
 /** The captcha remains on its real HTTPS address in a bottom sheet. */
@@ -350,6 +352,15 @@ class MobileCaptchaController(private val host: FragmentActivity): AutoCloseable
             webViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
                     !CaptchaAddressPolicy.allowedFreeTurn(request.url.toString())
+
+                override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
+                    if (request.isForMainFrame && !CaptchaAddressPolicy.allowedFreeTurn(request.url.toString()))
+                        WebResourceResponse("text/plain", "UTF-8", ByteArrayInputStream(byteArrayOf()))
+                    else null
+
+                override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
+                    if (!CaptchaAddressPolicy.allowedFreeTurn(url)) view.stopLoading()
+                }
             }
             loadUrl(url)
         }

@@ -8,17 +8,17 @@ import kotlin.math.abs
 
 /** Horizontal subscription changes also work with a slow drag, without stealing vertical scrolling. */
 internal object MobileSubscriptionSwipe {
-    fun bind(view: View, tap: () -> Unit, longPress: () -> Unit, doubleTap: () -> Unit, change: (Int) -> Unit) {
+    fun bind(view: View, tap: (() -> Unit)?, longPress: () -> Unit, doubleTap: () -> Unit, change: (Int) -> Unit) {
         var x = 0f
         var y = 0f
         var horizontal = false
         var cancelled = false
         val slop = ViewConfiguration.get(view.context).scaledTouchSlop
         val distance = 40f * view.resources.displayMetrics.density
-        view.setOnClickListener { tap() }
+        if (tap != null) view.setOnClickListener { tap() }
         val gestures = GestureDetector(view.context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onDown(event: MotionEvent) = true
-            override fun onSingleTapConfirmed(event: MotionEvent): Boolean { if (!horizontal && !cancelled) view.performClick(); return true }
+            override fun onSingleTapConfirmed(event: MotionEvent): Boolean { if (tap != null && view.isAttachedToWindow && !horizontal && !cancelled) view.performClick(); return true }
             override fun onLongPress(event: MotionEvent) { if (!horizontal && !cancelled) { cancelled = true; longPress() } }
             override fun onDoubleTap(event: MotionEvent): Boolean { if (!horizontal && !cancelled) doubleTap(); return true }
         })
