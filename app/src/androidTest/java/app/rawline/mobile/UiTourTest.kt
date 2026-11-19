@@ -216,7 +216,7 @@ class UiTourTest {
         fixtures()
         // The first visit plays the tutorial over the editor; only its own pictures want it.
         DataStore.configurationStore.putBoolean("qmobileLayoutTutorialSeen", !tutorial)
-        if (reset) { MobileHomeLayout.tilesBottom = false; MobileHomeLayout.controlBottom = false; MobileHomeLayout.chipBottom = false; MobileHomeLayout.chipNearList = false; MobileHomeLayout.extendedTiles = false; MobileHomeLayout.controlSwitches = false }
+        if (reset) { MobileHomeLayout.tilesNearList = false; MobileHomeLayout.tilesBottom = false; MobileHomeLayout.controlBottom = false; MobileHomeLayout.chipBottom = false; MobileHomeLayout.chipNearList = false; MobileHomeLayout.extendedTiles = false; MobileHomeLayout.controlSwitches = false }
         open(MobileLayoutEditorActivity::class.java)
     }
     private fun shot(name: String) {
@@ -549,6 +549,28 @@ class UiTourTest {
             instrumentation.sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
             Thread.sleep(600)
             check(centerOf(footer) == null) { "the picker opened more than once" }
+        },
+        "layout-title-next-to-connection" to {
+            layout()
+            editor()
+            val tiles = frameOf(R.string.qmobile_layout_tiles)
+            val control = frameOf(R.string.qmobile_layout_control)
+            val x = tiles.exactCenterX()
+            val startY = tiles.exactCenterY()
+            val targetY = control.bottom - control.height() * .12f
+            val time = android.os.SystemClock.uptimeMillis()
+            touch(android.view.MotionEvent.ACTION_DOWN, x, startY, time)
+            Thread.sleep(850)
+            for (step in 1..10) {
+                touch(android.view.MotionEvent.ACTION_MOVE, x, startY + (targetY - startY) * step / 10, time)
+                Thread.sleep(30)
+            }
+            touch(android.view.MotionEvent.ACTION_UP, x, targetY, time)
+            Thread.sleep(650)
+            check(MobileHomeLayout.tilesNearList && !MobileHomeLayout.tilesBottom)
+            check(frameOf(R.string.qmobile_layout_tiles).top >= frameOf(R.string.qmobile_layout_control).bottom - 2) {
+                "the title returned above the connection block"
+            }
         },
     )
 

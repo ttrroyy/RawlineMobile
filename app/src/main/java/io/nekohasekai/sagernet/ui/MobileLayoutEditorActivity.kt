@@ -37,6 +37,9 @@ object MobileHomeLayout {
     var tilesBottom: Boolean
         get() = store.getString("qmobileNewTilesPosition") == "bottom"
         set(value) = store.putString("qmobileNewTilesPosition", position(value))
+    var tilesNearList: Boolean
+        get() = store.getBoolean("qmobileTilesNearList", false)
+        set(value) = store.putBoolean("qmobileTilesNearList", value)
     var extendedTiles: Boolean
         get() = store.getString("qmobileNewTiles") == "on"
         set(value) = store.putString("qmobileNewTiles", if (value) "on" else "off")

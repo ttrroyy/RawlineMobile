@@ -68,6 +68,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     private var dragged: Part? = null
     private var grabY = 0f
     private var fingerY = 0f
+    private var controlCenterOnGrab = 0f
     private var blink: ValueAnimator? = null
     private var breath = 255
     private var tutorial: MobileLayoutTutorial? = null
@@ -193,7 +194,14 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         (list.parent as? ViewGroup)?.removeView(list)
         column.removeAllViews()
         if (host !== column) host.removeAllViews()
-        val order = (if (MobileHomeLayout.chipNearList) listOf(Part.TILES, Part.CONTROL, Part.CHIP) else listOf(Part.TILES, Part.CHIP, Part.CONTROL)).filter { it in parts && visible(it) }
+        val tilesNear = MobileHomeLayout.tilesNearList && MobileHomeLayout.tilesBottom == MobileHomeLayout.controlBottom
+        val order = buildList {
+            if (!tilesNear) add(Part.TILES)
+            if (!MobileHomeLayout.chipNearList) add(Part.CHIP)
+            add(Part.CONTROL)
+            if (tilesNear) add(Part.TILES)
+            if (MobileHomeLayout.chipNearList) add(Part.CHIP)
+        }.filter(::visible)
         fun add(part: Part) = host.addView(parts.getValue(part), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         // As the home screen stacks them: the parts that stay on the screen first, then those that scroll with the list.
         val joined = joinedParts()
@@ -258,6 +266,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         positions.forEachIndexed { index, label ->
             popup.menu.add(label).setOnMenuItemClickListener {
                 if (part == Part.CHIP) MobileHomeLayout.chipNearList = false
+                if (part == Part.TILES) MobileHomeLayout.tilesNearList = false
                 place(part, index == 1); anchor.requestFocus(); true
             }
         }
@@ -270,6 +279,12 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
                 MobileHomeLayout.chipNearList = true
                 place(part, MobileHomeLayout.controlBottom); anchor.requestFocus(); true
             }
+        }
+        if (part == Part.TILES) popup.menu.add(R.string.qmobile_layout_chip_near).setOnMenuItemClickListener {
+            MobileHomeLayout.tilesNearList = true
+            place(part, MobileHomeLayout.controlBottom)
+            anchor.requestFocus()
+            true
         }
         if (part == Part.CONTROL) popup.menu.add(R.string.qmobile_layout_swap).setOnMenuItemClickListener { setSwitches(!MobileHomeLayout.controlSwitches); true }
         if (part == Part.CONTROL && MobileHomeLayout.controlSwitches && MobileHomeLayout.hiddenSwitch.isEmpty()) {
@@ -558,6 +573,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         val frame = parts.getValue(part)
         dragged = part
         fingerY = y
+        controlCenterOnGrab = boundsOf(parts.getValue(Part.CONTROL)).exactCenterY()
         grabY = y - boundsOf(frame).top
         frame.rotation = 0f
         // The part keeps its own see-through glass while carried; an opaque plate darkened it and hid the parts it passed.
@@ -575,6 +591,17 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         val bottom = y > divide
         if (bottom != isBottom(part)) place(part, bottom)
         val hostY = y - host.top.takeIf { landscape }.let { it ?: 0 }
+        if (part == Part.TILES && bottom == MobileHomeLayout.controlBottom) {
+            val near = if (bottom) y < controlCenterOnGrab else y > controlCenterOnGrab
+            if (near != MobileHomeLayout.tilesNearList) {
+                MobileHomeLayout.tilesNearList = near
+                if (!landscape && !bottom) {
+                    val joined = MobileHomeLayout.scrollParts
+                    MobileHomeLayout.scrollParts = if ("control" in joined) joined + "tiles" else joined - "tiles"
+                }
+                rearrange()
+            }
+        }
         // On the control's side the finger also chooses which side of the control the subscription takes.
         if (part == Part.CHIP && bottom == MobileHomeLayout.controlBottom) {
             val control = parts.getValue(Part.CONTROL)

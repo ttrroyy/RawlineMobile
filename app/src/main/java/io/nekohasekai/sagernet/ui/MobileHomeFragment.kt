@@ -824,7 +824,8 @@ class MobileHomeFragment : ToolbarFragment() {
             val landscape=resources.configuration.orientation==android.content.res.Configuration.ORIENTATION_LANDSCAPE
             val groupHeaderJoined = MobileHomeLayout.groupHeaderJoined(landscape)
             val tilesBottom=tilesAtBottom()
-            val tilesKey="${extendedTiles()}:$tilesBottom:${homeSwitchesOn()}:${controlAtBottom()}:${chipAtBottom()}:${chipNearList()}:"+
+            val tilesNear = MobileHomeLayout.tilesNearList && tilesBottom == (controlAtBottom() && !landscape)
+            val tilesKey="${extendedTiles()}:$tilesBottom:$tilesNear:${homeSwitchesOn()}:${controlAtBottom()}:${chipAtBottom()}:${chipNearList()}:"+
                 "${MobileHomeLayout.scrollParts}:${MobileHomeLayout.compactControl}:${MobileHomeLayout.compactTiles}:${MobileHomeLayout.hiddenSwitch}:${MobileHomeLayout.proxySwitchFirst}:${MobileHomeLayout.hiddenTiles}:${MobileHomeLayout.chipHidden}:$groupHeaderJoined"
             // A moved tile bar rebuilds the screen even when the server list is the same.
             val unchanged=withContext(Dispatchers.Default) { previousStructure == structure } && renderedGroupId==focusedGroup && chromeKey?.endsWith(":$tilesKey")!=false
@@ -913,7 +914,7 @@ class MobileHomeFragment : ToolbarFragment() {
                         }
                     }
                 }
-                if(!tilesBottom) side.addView(header, LinearLayout.LayoutParams(-1, -2))
+                if(!tilesBottom && !tilesNear) side.addView(header, LinearLayout.LayoutParams(-1, -2))
                 // The subscription in use, as one card with a list behind it, and adding beside it.
                 val chipBottom=chipAtBottom() && !landscape
                 if(MobileHomeLayout.chipHidden) groupChip=null
@@ -1111,6 +1112,7 @@ class MobileHomeFragment : ToolbarFragment() {
                     it.layoutParams=LinearLayout.LayoutParams(0,-1,1f); statusRow?.addView(it,0)
                     currentCheck?.let { check -> check.layoutParams=FrameLayout.LayoutParams(-1,-1); check.gravity=Gravity.START or Gravity.CENTER_VERTICAL; androidx.core.widget.TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(check,8,12,1,android.util.TypedValue.COMPLEX_UNIT_SP) }
                 } else body.addView(it) }
+                if (!tilesBottom && tilesNear) side.addView(header, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
                 if(!chipBottom && chipNear) chipRow?.let { side.addView(it,LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(6);bottomMargin=dp(6) }) }
                 updateGeoStatus()
                 val serverPanel=LinearLayout(requireContext()).apply {
@@ -1186,10 +1188,11 @@ class MobileHomeFragment : ToolbarFragment() {
                     body.addView(imports,LinearLayout.LayoutParams(-1,dp(48)))
                 }
                 if(chipBottom && chipNear) chipRow?.let { body.addView(it,LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(8) }) }
+                if (tilesBottom && tilesNear) side.addView(header, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
                 if(dockBottom) body.addView(controlParent,LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(6) })
                 if(chipBottom && !chipNear) chipRow?.let { body.addView(it,LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(8) }) }
                 // Appearance: the tile bar at the very bottom, under the server list.
-                if(tilesBottom) {
+                if(tilesBottom && !tilesNear) {
                     if(landscape) side.addView(View(requireContext()),LinearLayout.LayoutParams(-1,0,1f))
                     side.addView(header, LinearLayout.LayoutParams(-1, -2).apply { topMargin=dp(10) })
                 }
