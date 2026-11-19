@@ -137,7 +137,9 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
         private val dash = DashPathEffect(floatArrayOf(dp(7f), dp(5f)), 0f)
         private val backdrop = MobileHomeBackdrop()
         private var backdropBitmap: android.graphics.Bitmap? = null
-        private val backdropPaint = Paint(Paint.FILTER_BITMAP_FLAG)
+        private val bitmapPaint = Paint(Paint.FILTER_BITMAP_FLAG)
+        private val previewClip = android.graphics.Path()
+        private val clipBounds = RectF()
         private val font = TextView(context).typeface
         private val boldFont = Typeface.create(font, Typeface.BOLD)
         private val subscription = context.getString(R.string.subscription)
@@ -269,7 +271,12 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
             canvas.drawRoundRect(box, corner, corner, paint)
             paint.style = Paint.Style.STROKE; paint.strokeWidth = dp(1f); paint.color = MobilePalette.outline
             canvas.drawRoundRect(box, corner, corner, paint)
-            canvas.clipRect(0f, 0f, w, h)
+            if (clipBounds != box) {
+                clipBounds.set(box)
+                previewClip.rewind()
+                previewClip.addRoundRect(clipBounds, corner, corner, android.graphics.Path.Direction.CW)
+            }
+            canvas.clipPath(previewClip)
             if (MobileStyle.pastel || MobilePalette.light) {
                 val bw = (w * k).toInt().coerceAtLeast(1)
                 val bh = (h * k).toInt().coerceAtLeast(1)
@@ -279,7 +286,7 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                         backdrop.draw(Canvas(it))
                         backdropBitmap = it
                     }
-                canvas.drawBitmap(texture, null, box, backdropPaint)
+                canvas.drawBitmap(texture, null, box, bitmapPaint)
             }
 
             // MobileLayoutEditorActivity: column padding 16 (12 on top), parts 8 apart, each framed 8 dp inside its outline.
@@ -335,7 +342,7 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                     surface(side, y, w - side, y + dp(56f))
                     flagBitmaps[i % flags.size]?.let { flag ->
                         box.set(side + dp(12f), y + dp(17f), side + dp(42f), y + dp(39f))
-                        c.drawBitmap(flag, null, box, paint)
+                        c.drawBitmap(flag, null, box, bitmapPaint)
                     }
                     text(countries[i % flags.size], side + dp(54f), y + dp(33f), dp(15f))
                     y += dp(56f); i++
@@ -371,11 +378,13 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
             fun block(top: Float, height: Float, scale: Float = 1f, lift: Float = 0f, grown: Float = 0f, content: (Float) -> Unit) {
                 // Picked up, the part grows 3 % and covers the list with the screen's colour, as the editor does it.
                 val s = scale * (1 + .03f * lift)
-                c.save(); c.scale(s, s, cx, top + height / 2)
+                c.save()
+                if (lift == 0f) c.clipRect(side, top - frame, w - side, top + height + frame)
+                c.scale(s, s, cx, top + height / 2)
                 if (lift > 0f) surface(side, top - frame - strip * grown, w - side, top + height + frame, MobilePalette.background, radius = dp(MobilePalette.rowDp + 4f))
                 content(top)
-                outlineAround(top, height, grown, held = lift > .5f)
                 c.restore()
+                outlineAround(top, height, grown, held = lift > .5f)
             }
             fun still() {
                 outlineAround(tilesTop, tile, 1f); strip(tilesTop, 1f, false)

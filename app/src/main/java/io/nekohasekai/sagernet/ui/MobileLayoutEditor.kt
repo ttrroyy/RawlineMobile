@@ -609,6 +609,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         private var scale = 1f
         private val virtualWidth = resources.displayMetrics.widthPixels
         private val virtualHeight = maxOf(resources.displayMetrics.heightPixels, dp(if (landscape) 440 else 620))
+        private var previewHeight = virtualHeight
         private var pinched: Part? = null
         private var pinch = 1f
         private val pinches = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
@@ -672,13 +673,25 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         }
 
         override fun onMeasure(widthSpec: Int, heightSpec: Int) {
-            scale = minOf(1f, MeasureSpec.getSize(widthSpec).toFloat() / virtualWidth, MeasureSpec.getSize(heightSpec).toFloat() / virtualHeight)
-            column.measure(MeasureSpec.makeMeasureSpec(virtualWidth, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(virtualHeight, MeasureSpec.EXACTLY))
-            setMeasuredDimension((virtualWidth * scale).toInt(), (virtualHeight * scale).toInt())
+            val width = MeasureSpec.makeMeasureSpec(virtualWidth, MeasureSpec.EXACTLY)
+            previewHeight = virtualHeight
+            column.measure(width, MeasureSpec.makeMeasureSpec(previewHeight, MeasureSpec.EXACTLY))
+            val listColumn = list.parent as LinearLayout
+            val fixedHeight = (0 until listColumn.childCount).sumOf { index ->
+                val child = listColumn.getChildAt(index)
+                val params = child.layoutParams as LinearLayout.LayoutParams
+                (if (child === list) dp(124) else child.measuredHeight) + params.topMargin + params.bottomMargin
+            } + column.paddingTop + column.paddingBottom
+            if (fixedHeight > previewHeight) {
+                previewHeight = fixedHeight
+                column.measure(width, MeasureSpec.makeMeasureSpec(previewHeight, MeasureSpec.EXACTLY))
+            }
+            scale = minOf(1f, MeasureSpec.getSize(widthSpec).toFloat() / virtualWidth, MeasureSpec.getSize(heightSpec).toFloat() / previewHeight)
+            setMeasuredDimension((virtualWidth * scale).toInt(), (previewHeight * scale).toInt())
         }
 
         override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
-            column.layout(0, 0, virtualWidth, virtualHeight)
+            column.layout(0, 0, virtualWidth, previewHeight)
             column.pivotX = 0f; column.pivotY = 0f
             column.scaleX = scale; column.scaleY = scale
         }
