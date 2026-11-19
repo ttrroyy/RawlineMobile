@@ -793,7 +793,7 @@ class MobileHomeFragment : ToolbarFragment() {
             groups.forEach { (group, _) -> knownGroups.add(group.id) }
             val tilesBottom=tilesAtBottom()
             val tilesKey="${extendedTiles()}:$tilesBottom:${homeSwitchesOn()}:${controlAtBottom()}:${chipAtBottom()}:${chipNearList()}:"+
-                "${MobileHomeLayout.scrollParts}:${MobileHomeLayout.compactControl}:${MobileHomeLayout.compactTiles}:${MobileHomeLayout.hiddenSwitch}:${MobileHomeLayout.hiddenTiles}:${MobileHomeLayout.chipHidden}"
+                "${MobileHomeLayout.scrollParts}:${MobileHomeLayout.compactControl}:${MobileHomeLayout.compactTiles}:${MobileHomeLayout.hiddenSwitch}:${MobileHomeLayout.proxySwitchFirst}:${MobileHomeLayout.hiddenTiles}:${MobileHomeLayout.chipHidden}"
             // A moved tile bar rebuilds the screen even when the server list is the same.
             val unchanged=withContext(Dispatchers.Default) { previousStructure == structure } && renderedGroupId==focusedGroup && chromeKey?.endsWith(":$tilesKey")!=false
             if (unchanged) {
@@ -912,7 +912,7 @@ class MobileHomeFragment : ToolbarFragment() {
                     val pair=LinearLayout(requireContext()).apply { isBaselineAligned=false;if(landscape) orientation=LinearLayout.VERTICAL }
                     val hiddenSwitch=MobileHomeLayout.hiddenSwitch
                     val switchHeight=dp(if(MobileHomeLayout.compactControl) 44 else 52)
-                    val switches=listOf(Key.MODE_VPN to R.string.service_mode_vpn,Key.MODE_PROXY to R.string.service_mode_proxy).filter { it.first!=hiddenSwitch }.mapIndexed { index,(mode,label) ->
+                    val switches=MobileHomeLayout.modeSwitches().filter { it.first!=hiddenSwitch }.mapIndexed { index,(mode,label) ->
                         // The switch only shows the state of the service, so a declined VPN request leaves it off.
                         val switch=androidx.appcompat.widget.SwitchCompat(requireContext()).apply {
                             isClickable=false;isFocusable=false
@@ -931,6 +931,11 @@ class MobileHomeFragment : ToolbarFragment() {
                             addView(text(getString(label),14f).apply { setPadding(0,dp(4),dp(6),dp(4)) },LinearLayout.LayoutParams(0,-2,1f))
                             addView(switch)
                             setOnClickListener { pickMode(mode) }
+                            if (hiddenSwitch.isEmpty()) setOnLongClickListener {
+                                MobileHomeLayout.proxySwitchFirst = !MobileHomeLayout.proxySwitchFirst
+                                refresh()
+                                true
+                            }
                             MobileFeedback.apply(this)
                         },(if(landscape) LinearLayout.LayoutParams(-1,-2).apply { if(index>0) topMargin=dp(6) } else LinearLayout.LayoutParams(0,-1,1f).apply { if(index>0) marginStart=dp(8) }))
                         mode to switch

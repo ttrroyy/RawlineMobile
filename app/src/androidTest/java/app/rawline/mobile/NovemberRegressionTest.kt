@@ -368,6 +368,7 @@ class NovemberRegressionTest {
         val previousBottom = MobileHomeLayout.controlBottom
         val previousScroll = MobileHomeLayout.scrollParts
         val previousHiddenSwitch = MobileHomeLayout.hiddenSwitch
+        val previousProxyFirst = MobileHomeLayout.proxySwitchFirst
         val previousGroup = GroupRepo.currentId()
         val previousSelected = DataStore.selectedProxy
         val previousCurrent = DataStore.currentProfile
@@ -386,6 +387,7 @@ class NovemberRegressionTest {
         try {
             MobileHomeLayout.controlSwitches = true
             MobileHomeLayout.hiddenSwitch = ""
+            MobileHomeLayout.proxySwitchFirst = false
             DataStore.selectedProxy = profile.id
             DataStore.currentProfile = profile.id
             for (style in listOf("new", "pastel")) for (night in listOf(1, 2))
@@ -411,6 +413,19 @@ class NovemberRegressionTest {
                         instrumentation.runOnMainSync {
                             val home = homes(activity.supportFragmentManager.fragments).first()
                             val controls = descendants(activity.window.decorView)
+                            val tunLabel = context.getString(R.string.service_mode_vpn)
+                            val proxyLabel = context.getString(R.string.service_mode_proxy)
+                            val switchLabels = controls.filterIsInstance<TextView>().filter {
+                                it.text.toString() in listOf(tunLabel, proxyLabel) && (it.parent as? View)?.isLongClickable == true
+                            }
+                            assertEquals(if (MobileHomeLayout.proxySwitchFirst) listOf(proxyLabel, tunLabel) else listOf(tunLabel, proxyLabel),
+                                switchLabels.map { it.text.toString() })
+                            if (!MobileHomeLayout.proxySwitchFirst) {
+                                val mode = DataStore.serviceMode
+                                assertTrue((switchLabels.first().parent as View).performLongClick())
+                                assertTrue(MobileHomeLayout.proxySwitchFirst)
+                                assertEquals(mode, DataStore.serviceMode)
+                            }
                             val power = controls.filterIsInstance<TextView>().first {
                                 it.contentDescription?.toString()?.startsWith(context.getString(R.string.qmobile_connect) + ", ") == true
                             }
@@ -439,6 +454,7 @@ class NovemberRegressionTest {
             DataStore.uiStyle = previousStyle; DataStore.nightTheme = previousNight
             MobileHomeLayout.controlSwitches = previousSwitches; MobileHomeLayout.controlBottom = previousBottom
             MobileHomeLayout.scrollParts = previousScroll; MobileHomeLayout.hiddenSwitch = previousHiddenSwitch
+            MobileHomeLayout.proxySwitchFirst = previousProxyFirst
             DataStore.selectedProxy = previousSelected; DataStore.currentProfile = previousCurrent
             DataStore.mobileConnectedAt = previousConnectedAt; DataStore.serviceState = previousState
             GroupRepo.setCurrent(previousGroup)

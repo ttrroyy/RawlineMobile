@@ -26,7 +26,6 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import app.rawline.mobile.Key
 import app.rawline.mobile.R
 import app.rawline.mobile.database.DataStore
 import java.util.Locale
@@ -240,6 +239,14 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             }
         }
         if (part == Part.CONTROL) popup.menu.add(R.string.qmobile_layout_swap).setOnMenuItemClickListener { setSwitches(!MobileHomeLayout.controlSwitches); true }
+        if (part == Part.CONTROL && MobileHomeLayout.controlSwitches && MobileHomeLayout.hiddenSwitch.isEmpty()) {
+            popup.menu.add(R.string.qmobile_layout_swap_switches).setOnMenuItemClickListener {
+                MobileHomeLayout.proxySwitchFirst = !MobileHomeLayout.proxySwitchFirst
+                changing()
+                fill(Part.CONTROL)
+                true
+            }
+        }
         if (part == Part.TILES) popup.menu.add(R.string.qmobile_layout_swap).setOnMenuItemClickListener { setExtended(!MobileHomeLayout.extendedTiles); true }
         if (part != Part.CHIP) popup.menu.add(R.string.qmobile_layout_size).setOnMenuItemClickListener { setCompact(part, !compact(part)); true }
         if (!isBottom(part) && !landscape) popup.menu.add(R.string.qmobile_layout_scroll).setOnMenuItemClickListener { toggleScroll(part); true }
@@ -401,7 +408,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             val height = dp(if (MobileHomeLayout.compactControl) 44 else 52)
             box.addView(LinearLayout(this).apply {
                 isBaselineAligned = false
-                listOf(Key.MODE_VPN to R.string.service_mode_vpn, Key.MODE_PROXY to R.string.service_mode_proxy).forEachIndexed { index, (mode, label) ->
+                MobileHomeLayout.modeSwitches().forEachIndexed { index, (mode, label) ->
                     // A removed switch's place is only its dashed outline and the plus.
                     val cell: View = if (mode == hidden) View(context) else LinearLayout(context).apply {
                         gravity = Gravity.CENTER_VERTICAL; setPadding(dp(14), dp(2), dp(8), dp(2)); background = MobilePalette.rowShape(context)

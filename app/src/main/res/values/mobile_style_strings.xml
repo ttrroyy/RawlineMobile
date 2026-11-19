@@ -27,6 +27,7 @@
     <string name="qmobile_layout_step_remove">Minus removes, plus brings back</string>
     <string name="qmobile_layout_step_scroll">The arrows join a block to the list: one outline, they scroll together</string>
     <string name="qmobile_layout_swap">Change type</string>
+    <string name="qmobile_layout_swap_switches">Swap TUN and proxy</string>
     <string name="qmobile_layout_size">Change size</string>
     <string name="qmobile_layout_scroll">Join to the list</string>
     <string name="qmobile_layout_remove">Remove</string>

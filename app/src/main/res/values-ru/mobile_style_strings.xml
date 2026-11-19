@@ -26,6 +26,7 @@
     <string name="qmobile_layout_step_remove">Минус убирает, плюс возвращает</string>
     <string name="qmobile_layout_step_scroll">Стрелки объединяют блок со списком: одна обводка, листаются вместе</string>
     <string name="qmobile_layout_swap">Сменить вид</string>
+    <string name="qmobile_layout_swap_switches">Поменять местами TUN и прокси</string>
     <string name="qmobile_layout_size">Сменить размер</string>
     <string name="qmobile_layout_scroll">Объединить со списком</string>
     <string name="qmobile_layout_remove">Убрать</string>

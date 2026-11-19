@@ -24,6 +24,7 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import app.rawline.mobile.Key
 import app.rawline.mobile.R
 import app.rawline.mobile.database.DataStore
 import java.util.Locale
@@ -76,6 +77,15 @@ object MobileHomeLayout {
     var hiddenSwitch: String
         get() = store.getString("qmobileHiddenSwitch").orEmpty()
         set(value) = store.putString("qmobileHiddenSwitch", value)
+    var proxySwitchFirst: Boolean
+        get() = store.getBoolean("qmobileProxySwitchFirst", false)
+        set(value) = store.putBoolean("qmobileProxySwitchFirst", value)
+
+    fun modeSwitches(): List<Pair<String, Int>> {
+        val modes = listOf(Key.MODE_VPN to R.string.service_mode_vpn, Key.MODE_PROXY to R.string.service_mode_proxy)
+        return if (proxySwitchFirst) modes.asReversed() else modes
+    }
+
     /** The quick tiles of the tile bar, by id; the settings tile always stays. */
     val QUICK_TILES = listOf("mode", "route", "groups", "updates")
     var hiddenTiles: Set<String>
