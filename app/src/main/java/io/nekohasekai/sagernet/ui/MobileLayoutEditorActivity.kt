@@ -68,9 +68,10 @@ object MobileHomeLayout {
         get() = store.getString("qmobileScrollParts").orEmpty().split(',').filter { it.isNotEmpty() }.toSet().let { stored ->
             // Joined parts lie together right above the list: the subscription between a joined control and the list
             // scrolls too, and one above a control that stays on the screen does not.
-            if (chipBottom || controlBottom) stored
+            val joined = if (chipBottom || controlBottom) stored
             else if ("control" in stored) if (chipNearList) stored + "chip" else stored
             else if (!chipNearList) stored - "chip" else stored
+            if (chipHidden) joined - "chip" else joined
         }
         set(value) = store.putString("qmobileScrollParts", value.sorted().joinToString(","))
     /** A smaller connect button, or lower switches. */

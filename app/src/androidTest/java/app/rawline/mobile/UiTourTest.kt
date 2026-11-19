@@ -515,6 +515,41 @@ class UiTourTest {
             check(app.rawline.mobile.deploy.DeployStore.all().none { it.id == server.id }) { "the swiped VPS is still stored" }
             check(topmost("Removable VPS") == null) { "the removed VPS is still shown" }
         },
+        "home-subscription-picker-once" to {
+            layout()
+            MobileHomeLayout.chipHidden = false
+            home("groups")
+            fun tapTitle(bottom: Boolean) {
+                val titles = instrumentation.uiAutomation.rootInActiveWindow?.findAccessibilityNodeInfosByText("Sub 3")
+                    .orEmpty().filter { it.text?.toString() == "Sub 3" }.map {
+                        android.graphics.Rect().also(it::getBoundsInScreen)
+                    }.filterNot { it.isEmpty }.sortedBy { it.top }
+                check(titles.size == if (MobileHomeLayout.chipHidden) 1 else 2)
+                val bounds = if (bottom) titles.last() else titles.first()
+                repeat(if (MobileHomeLayout.chipHidden) 3 else 1) {
+                    val time = android.os.SystemClock.uptimeMillis()
+                    touch(android.view.MotionEvent.ACTION_DOWN, bounds.exactCenterX(), bounds.exactCenterY(), time)
+                    touch(android.view.MotionEvent.ACTION_UP, bounds.exactCenterX(), bounds.exactCenterY(), time)
+                }
+            }
+            val footer = context.getString(R.string.qmobile_manage_groups)
+            tapTitle(bottom = true)
+            Thread.sleep(400)
+            check(centerOf(footer) == null) { "the second heading opened a duplicate picker" }
+            tapTitle(bottom = false)
+            Thread.sleep(750)
+            check(centerOf(footer) != null) { "the separate block did not open the picker" }
+            instrumentation.sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
+            Thread.sleep(400)
+            MobileHomeLayout.chipHidden = true
+            home("groups")
+            tapTitle(bottom = true)
+            Thread.sleep(800)
+            check(centerOf(footer) != null) { "the only heading did not open the picker" }
+            instrumentation.sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
+            Thread.sleep(600)
+            check(centerOf(footer) == null) { "the picker opened more than once" }
+        },
     )
 
     /** The editor's choices back to the defaults, then [hiddenSwitch], [hiddenTiles] and [compact]. */
