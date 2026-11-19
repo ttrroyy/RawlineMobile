@@ -52,6 +52,13 @@ object MobileHomeLayout {
     var chipHidden: Boolean
         get() = store.getBoolean("qmobileChipHidden", false)
         set(value) = store.putBoolean("qmobileChipHidden", value)
+    fun groupHeaderJoined(landscape: Boolean): Boolean =
+        store.getBoolean("qmobileGroupHeaderJoined", !landscape && scrollParts.isNotEmpty())
+
+    fun setGroupHeaderJoined(joined: Boolean) {
+        store.putBoolean("qmobileGroupHeaderJoined", joined)
+    }
+
     /** Between the connection control and the servers, rather than on the control's outer side. */
     var chipNearList: Boolean
         get() = store.getBoolean("qmobileChipNearList", false)

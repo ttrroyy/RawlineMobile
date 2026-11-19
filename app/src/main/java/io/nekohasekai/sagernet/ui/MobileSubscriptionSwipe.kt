@@ -8,7 +8,7 @@ import kotlin.math.abs
 
 /** Horizontal subscription changes also work with a slow drag, without stealing vertical scrolling. */
 internal object MobileSubscriptionSwipe {
-    fun bind(view: View, tap: (() -> Unit)?, longPress: () -> Unit, doubleTap: () -> Unit, change: (Int) -> Unit) {
+    fun bind(view: View, tap: (() -> Unit)?, longPress: () -> Unit, doubleTap: (() -> Unit)?, change: (Int) -> Unit) {
         var x = 0f
         var y = 0f
         var horizontal = false
@@ -18,9 +18,13 @@ internal object MobileSubscriptionSwipe {
         if (tap != null) view.setOnClickListener { tap() }
         val gestures = GestureDetector(view.context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onDown(event: MotionEvent) = true
-            override fun onSingleTapConfirmed(event: MotionEvent): Boolean { if (tap != null && view.isAttachedToWindow && !horizontal && !cancelled) view.performClick(); return true }
+            override fun onSingleTapUp(event: MotionEvent): Boolean {
+                if (doubleTap == null && tap != null && view.isAttachedToWindow && !horizontal && !cancelled) view.performClick()
+                return true
+            }
+            override fun onSingleTapConfirmed(event: MotionEvent): Boolean { if (doubleTap != null && tap != null && view.isAttachedToWindow && !horizontal && !cancelled) view.performClick(); return true }
             override fun onLongPress(event: MotionEvent) { if (!horizontal && !cancelled) { cancelled = true; longPress() } }
-            override fun onDoubleTap(event: MotionEvent): Boolean { if (!horizontal && !cancelled) doubleTap(); return true }
+            override fun onDoubleTap(event: MotionEvent): Boolean { if (!horizontal && !cancelled) doubleTap?.invoke(); return true }
         })
         view.setOnTouchListener { _, event ->
             when (event.actionMasked) {

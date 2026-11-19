@@ -43,7 +43,8 @@ internal fun contrastOn(background: Int) = if (ColorUtils.calculateLuminance(bac
  */
 class MobileLayoutEditorActivity : ServerScreenActivity() {
     private enum class Part(val title: Int, val id: String) {
-        TILES(R.string.qmobile_layout_tiles, "tiles"), CHIP(R.string.qmobile_layout_chip, "chip"), CONTROL(R.string.qmobile_layout_control, "control")
+        TILES(R.string.qmobile_layout_tiles, "tiles"), CHIP(R.string.qmobile_layout_chip, "chip"),
+        CONTROL(R.string.qmobile_layout_control, "control"), GROUP_HEADER(R.string.qmobile_layout_group_header, "groupHeader")
     }
 
     private val ui by lazy { ServerUi(this) }
@@ -165,6 +166,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         Part.TILES -> MobileHomeLayout.tilesBottom
         Part.CHIP -> MobileHomeLayout.chipBottom
         Part.CONTROL -> MobileHomeLayout.controlBottom
+        Part.GROUP_HEADER -> false
     }
 
     private fun place(part: Part, bottom: Boolean) {
@@ -172,6 +174,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             Part.TILES -> MobileHomeLayout.tilesBottom = bottom
             Part.CHIP -> MobileHomeLayout.chipBottom = bottom
             Part.CONTROL -> MobileHomeLayout.controlBottom = bottom
+            Part.GROUP_HEADER -> return
         }
         // The control looks different at the bottom, in a panel of its own; a part below the list never scrolls with it.
         fill(part)
@@ -185,20 +188,32 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
 
     /** The home screen's order: from the top edge tiles, then subscription and control in either order; the same ones mirrored under the list. */
     private fun arrange() {
+        val groupHeader = parts.getValue(Part.GROUP_HEADER)
+        (groupHeader.parent as? ViewGroup)?.removeView(groupHeader)
+        (list.parent as? ViewGroup)?.removeView(list)
         column.removeAllViews()
         if (host !== column) host.removeAllViews()
         val order = (if (MobileHomeLayout.chipNearList) listOf(Part.TILES, Part.CONTROL, Part.CHIP) else listOf(Part.TILES, Part.CHIP, Part.CONTROL)).filter { it in parts && visible(it) }
         fun add(part: Part) = host.addView(parts.getValue(part), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         // As the home screen stacks them: the parts that stay on the screen first, then those that scroll with the list.
         val joined = joinedParts()
-        order.filterNot(::isBottom).sortedBy { it in joined }.forEach(::add)
         if (landscape) {
+            order.filterNot(::isBottom).forEach(::add)
             // As the home screen lies: the parts in a side column, the list beside it.
             host.addView(View(this), LinearLayout.LayoutParams(-1, 0, 1f))
             order.reversed().filter(::isBottom).forEach(::add)
             column.addView(host, LinearLayout.LayoutParams(dp(280), -1))
-            column.addView(list, LinearLayout.LayoutParams(0, -1, 1f).apply { marginStart = dp(12) })
+            column.addView(LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                addView(groupHeader, LinearLayout.LayoutParams(-1, -2))
+                addView(list, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(8) })
+            }, LinearLayout.LayoutParams(0, -1, 1f).apply { marginStart = dp(12) })
         } else {
+            val headerJoined = Part.GROUP_HEADER in joined
+            order.filter { !isBottom(it) && it !in joined }.forEach(::add)
+            if (!headerJoined) add(Part.GROUP_HEADER)
+            order.filter { !isBottom(it) && it in joined }.forEach(::add)
+            if (headerJoined) add(Part.GROUP_HEADER)
             column.addView(list, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(8) })
             order.reversed().filter(::isBottom).forEach(::add)
         }
@@ -233,6 +248,12 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
 
     private fun menu(part: Part, anchor: View) {
         val popup = PopupMenu(this, anchor)
+        if (part == Part.GROUP_HEADER) {
+            val label = if (isJoined(part)) R.string.qmobile_layout_unjoin else R.string.qmobile_layout_scroll
+            popup.menu.add(label).setOnMenuItemClickListener { toggleScroll(part); true }
+            popup.show()
+            return
+        }
         val positions = resources.getStringArray(R.array.qmobile_tiles_positions)
         positions.forEachIndexed { index, label ->
             popup.menu.add(label).setOnMenuItemClickListener {
@@ -273,6 +294,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
 
     private fun setChipHidden(hidden: Boolean) {
         MobileHomeLayout.chipHidden = hidden
+        fill(Part.GROUP_HEADER)
         rearrange()
     }
 
@@ -298,17 +320,28 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     }
 
     /** The parts that scroll with the list: they share one dashed outline with it (Miniature.dispatchDraw). */
-    private fun joinedParts() = if (landscape) emptyList() else parts.keys.filter { visible(it) && it.id in MobileHomeLayout.scrollParts && !isBottom(it) }
+    private fun isJoined(part: Part) = when (part) {
+        Part.GROUP_HEADER -> MobileHomeLayout.groupHeaderJoined(landscape)
+        else -> !landscape && visible(part) && part.id in MobileHomeLayout.scrollParts && !isBottom(part)
+    }
+
+    private fun joinedParts() = parts.keys.filter(::isJoined)
 
     /** A joined part gives up its own outline for the one round it and the list. */
     private fun updateJoins() {
-        parts.keys.filter { shownJoined[it] != (it.id in MobileHomeLayout.scrollParts) }.forEach(::fill)
+        parts.keys.filter { shownJoined[it] != isJoined(it) }.forEach(::fill)
         val joined = joinedParts()
         parts.forEach { (part, frame) -> frame.foreground = if (part in joined) null else dashes[part] }
         column.parent?.let { (it as View).invalidate() }
     }
 
     private fun toggleScroll(part: Part) {
+        if (part == Part.GROUP_HEADER) {
+            MobileHomeLayout.setGroupHeaderJoined(!isJoined(part))
+            fill(part)
+            rearrange()
+            return
+        }
         val scrolls = MobileHomeLayout.scrollParts
         MobileHomeLayout.scrollParts = if (part.id in scrolls) scrolls - part.id else scrolls + part.id
         // The subscription moves to where its choice holds (MobileHomeLayout.scrollParts): unjoined from under a joined
@@ -333,6 +366,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             Part.TILES -> tiles(items)
             Part.CHIP -> chip()
             Part.CONTROL -> control(items)
+            Part.GROUP_HEADER -> groupHeader()
         }, FrameLayout.LayoutParams(-1, -2))
         val strip = LinearLayout(this).apply { gravity = Gravity.END or Gravity.CENTER_VERTICAL }
         // Plain buttons are one quiet grey; only a setting that is on (the scrolling part) lights up.
@@ -341,13 +375,17 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             strip.addView(view, LinearLayout.LayoutParams(dp(26), dp(26)).apply { marginStart = dp(8) })
             items.add(view to action)
         }
-        shownJoined[part] = part.id in MobileHomeLayout.scrollParts
-        if (!isBottom(part) && !landscape) button(R.drawable.ic_layout_scroll, R.string.qmobile_layout_scroll, part.id in MobileHomeLayout.scrollParts) { toggleScroll(part) }
+        shownJoined[part] = isJoined(part)
+        if (part == Part.GROUP_HEADER || (!isBottom(part) && !landscape)) {
+            val label = if (isJoined(part)) R.string.qmobile_layout_unjoin else R.string.qmobile_layout_scroll
+            button(R.drawable.ic_layout_scroll, label, isJoined(part)) { toggleScroll(part) }
+        }
         when (part) {
             // The size is a pinch only.
             Part.TILES -> button(R.drawable.ic_layout_swap, R.string.qmobile_layout_swap) { setExtended(!MobileHomeLayout.extendedTiles) }
             Part.CHIP -> button(R.drawable.ic_layout_remove, R.string.qmobile_layout_remove_subscription) { setChipHidden(true) }
             Part.CONTROL -> button(R.drawable.ic_layout_swap, R.string.qmobile_layout_swap) { setSwitches(!MobileHomeLayout.controlSwitches) }
+            Part.GROUP_HEADER -> Unit
         }
         // Always on the part, in the grown top of its outline: 6 dp under the outline and clear of its corner, 8 dp above the part.
         padFrame(box, strip.childCount > 0)
@@ -414,6 +452,25 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             gravity = Gravity.CENTER_VERTICAL; maxLines = 1; setPadding(dp(16), 0, dp(12), 0); background = MobilePalette.rowShape(context)
         }, LinearLayout.LayoutParams(0, dp(48), 1f).apply { marginEnd = dp(8) })
         addView(icon(R.drawable.ic_mobile_add), LinearLayout.LayoutParams(dp(48), dp(48)))
+    }
+
+    private fun groupHeader() = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        addView(LinearLayout(context).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            addView(ui.text(getString(R.string.subscription), 17f).apply {
+                maxLines = 1
+                ellipsize = android.text.TextUtils.TruncateAt.END
+                setPadding(dp(10), 0, dp(6), 0)
+            }, LinearLayout.LayoutParams(0, -2, 1f))
+            val icons = if (MobileHomeLayout.chipHidden) listOf(R.drawable.ic_mobile_add) else emptyList()
+            (icons + listOf(R.drawable.ic_mobile_refresh, R.drawable.ic_mobile_test, R.drawable.ic_mobile_more)).forEach { id ->
+                addView(icon(id).apply { setPadding(dp(10), dp(10), dp(10), dp(10)) }, LinearLayout.LayoutParams(dp(36), dp(36)))
+            }
+        })
+        addView(ui.text(getString(R.string.qmobile_layout_preview_routing), 11f, MobilePalette.muted).apply {
+            setPadding(dp(8), dp(4), 0, 0)
+        })
     }
 
     private fun check() = ui.text(getString(R.string.qmobile_check_connection), 12f, MobilePalette.muted).apply { gravity = Gravity.CENTER_VERTICAL }
@@ -551,12 +608,12 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     private inner class Miniature(context: Context) : ViewGroup(context) {
         private var scale = 1f
         private val virtualWidth = resources.displayMetrics.widthPixels
-        private val virtualHeight = resources.displayMetrics.heightPixels
+        private val virtualHeight = maxOf(resources.displayMetrics.heightPixels, dp(if (landscape) 440 else 620))
         private var pinched: Part? = null
         private var pinch = 1f
         private val pinches = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
             override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
-                pinched = partAt(detector.focusX / scale, detector.focusY / scale)?.takeIf { it != Part.CHIP }
+                pinched = partAt(detector.focusX / scale, detector.focusY / scale)?.takeIf { it == Part.TILES || it == Part.CONTROL }
                 pinch = 1f
                 return pinched != null
             }
@@ -603,7 +660,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
                     swapSwitches()
                     return
                 }
-                partAt(x, y)?.let { startDrag(it, y) }
+                partAt(x, y)?.takeUnless { it == Part.GROUP_HEADER }?.let { startDrag(it, y) }
             }
         })
 

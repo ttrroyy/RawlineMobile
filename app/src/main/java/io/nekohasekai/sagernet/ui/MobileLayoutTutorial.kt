@@ -28,7 +28,7 @@ import java.util.Locale
 class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : FrameLayout(context) {
     private enum class Step(val caption: Int) {
         DRAG(R.string.qmobile_layout_step_drag), DOUBLE(R.string.qmobile_layout_step_double), PINCH(R.string.qmobile_layout_step_pinch),
-        BADGES(R.string.qmobile_layout_step_badges), REMOVE(R.string.qmobile_layout_step_remove), SCROLL(R.string.qmobile_layout_step_scroll)
+        REMOVE(R.string.qmobile_layout_step_remove), SCROLL(R.string.qmobile_layout_step_scroll)
     }
 
     private fun dp(n: Float) = n * resources.displayMetrics.density
@@ -135,7 +135,11 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
         private var t = 0f
         private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
         private val dash = DashPathEffect(floatArrayOf(dp(7f), dp(5f)), 0f)
-        private val removedDash = DashPathEffect(floatArrayOf(dp(5f), dp(4f)), 0f)
+        private val backdrop = MobileHomeBackdrop()
+        private val subscription = context.getString(R.string.subscription)
+        private val quickIcons = intArrayOf(R.drawable.ic_mobile_settings, R.drawable.ic_mobile_tun, R.drawable.ic_mobile_route,
+            R.drawable.ic_mobile_subscriptions, R.drawable.ic_mobile_update)
+        private val headingIcons = intArrayOf(R.drawable.ic_mobile_refresh, R.drawable.ic_mobile_test, R.drawable.ic_mobile_more)
         private val box = RectF()
         private val ui = ServerUi(context)
         // The switch cells as the editor builds them, so the switch, its label and its wrapping are the real ones.
@@ -165,6 +169,7 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
         }
         private val flags = listOf("de", "fi", "nl", "se", "us", "jp", "gb", "ca", "fr", "pl")
         private val countries = flags.map { Locale("", it).displayCountry }
+        private val flagBitmaps by lazy { flags.map { MobileCountryFlags.bitmap(context, it) } }
         private val clock = ValueAnimator.ofFloat(0f, 1f).apply {
             duration = 4200; repeatCount = ValueAnimator.INFINITE; interpolator = LinearInterpolator()
             addUpdateListener {
@@ -247,9 +252,13 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
             c = canvas
             // The real screen, in real dp, scaled to this view as the editor scales its miniature.
             val metrics = resources.displayMetrics
-            val k = width.toFloat() / metrics.widthPixels
-            val w = metrics.widthPixels.toFloat(); val h = height / k
-            canvas.save(); canvas.scale(k, k)
+            if (width == 0 || height == 0) return
+            val w = metrics.widthPixels.toFloat()
+            val h = maxOf(metrics.heightPixels.toFloat(), dp(620f))
+            val k = minOf(width / w, height / h)
+            canvas.save()
+            canvas.translate((width - w * k) / 2, (height - h * k) / 2)
+            canvas.scale(k, k)
             box.set(0f, 0f, w, h)
             val corner = dp(MobilePalette.cardDp.toFloat())
             paint.style = Paint.Style.FILL; paint.pathEffect = null; paint.color = MobilePalette.background
@@ -257,6 +266,10 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
             paint.style = Paint.Style.STROKE; paint.strokeWidth = dp(1f); paint.color = MobilePalette.outline
             canvas.drawRoundRect(box, corner, corner, paint)
             canvas.clipRect(0f, 0f, w, h)
+            if (MobileStyle.pastel) {
+                backdrop.setBounds(0, 0, w.toInt(), h.toInt())
+                backdrop.draw(canvas)
+            }
 
             // MobileLayoutEditorActivity: column padding 16 (12 on top), parts 8 apart, each framed 8 dp inside its outline.
             val side = dp(16f); val frame = dp(8f); val gap = dp(8f)
@@ -272,33 +285,34 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
             val cx = w / 2
             fun outlineAround(top: Float, height: Float, grown: Float = 0f, held: Boolean = false) =
                 outline(side, top - frame - strip * grown, w - side, top + height + frame, held)
-            fun tiles(y: Float, removed: Float = 0f) {
-                // Settings and the four quick tiles spanning the row; the quick ones carry a minus, the taken one a plus.
-                val icons = listOf(R.drawable.ic_mobile_settings, R.drawable.ic_mobile_tun, R.drawable.ic_mobile_route, R.drawable.ic_mobile_subscriptions, R.drawable.ic_mobile_update)
+            fun tiles(y: Float) {
                 val each = (right - left - gap * 4) / 5
-                icons.forEachIndexed { i, res ->
+                quickIcons.forEachIndexed { i, res ->
                     val x = left + i * (each + gap)
-                    val fade = if (i == 3) 1 - .7f * removed else 1f
-                    surface(x, y, x + each, y + tile, fade = fade)
-                    icon(res, x + each / 2, y + tile / 2, dp(24f), MobilePalette.text, fade)
-                    if (i == 3 && removed > 0f) {
-                        box.set(x, y, x + each, y + tile)
-                        paint.style = Paint.Style.STROKE; paint.strokeWidth = dp(2f); paint.pathEffect = removedDash
-                        paint.color = ColorUtils.setAlphaComponent(MobilePalette.muted, (255 * removed).toInt())
-                        val r = dp(MobilePalette.rowDp.toFloat()); c.drawRoundRect(box, r, r, paint); paint.pathEffect = null
-                    }
-                    if (i > 0) {
-                        val plus = i == 3 && removed > .5f
-                        badge(if (plus) R.drawable.ic_mobile_add else R.drawable.ic_layout_remove, x + each - dp(13f), y + dp(13f),
-                            if (plus) accent else Color.rgb(220, 66, 61), dp(20f), dp(3f))
-                    }
+                    surface(x, y, x + each, y + tile)
+                    icon(res, x + each / 2, y + tile / 2, dp(24f), MobilePalette.text)
                 }
             }
             fun chip(y: Float) {
                 surface(left, y, right - tile - gap, y + tile)
-                text(context.getString(R.string.subscription), left + dp(16f), y + tile / 2 + dp(6f), dp(16f), bold = true)
+                text(subscription, left + dp(16f), y + tile / 2 + dp(6f), dp(16f), bold = true)
                 surface(right - tile, y, right, y + tile)
                 icon(R.drawable.ic_mobile_add, right - tile / 2, y + tile / 2, dp(24f), MobilePalette.text)
+            }
+            fun groupHeader(top: Float, chipHidden: Boolean = false) {
+                val button = dp(33f)
+                val count = headingIcons.size + if (chipHidden) 1 else 0
+                val first = right - button * count
+                text(subscription, left + dp(4f), top + dp(23f), dp(16f), bold = true)
+                if (chipHidden) {
+                    surface(first, top, first + button - dp(3f), top + button - dp(3f), radius = dp(9f))
+                    icon(R.drawable.ic_mobile_add, first + button / 2, top + button / 2, dp(18f), MobilePalette.text)
+                }
+                headingIcons.forEachIndexed { index, drawable ->
+                    val x = right - button * (headingIcons.size - index)
+                    surface(x, top, x + button - dp(3f), top + button - dp(3f), radius = dp(9f))
+                    icon(drawable, x + button / 2, top + button / 2, dp(18f), MobilePalette.text)
+                }
             }
             fun rows(top: Float, bottom: Float = h) {
                 // The list: 56 dp rows 6 dp apart, flag and country as the editor's list shows them.
@@ -308,7 +322,7 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                 while (y < bottom) {
                     y += dp(6f)
                     surface(side, y, w - side, y + dp(56f))
-                    MobileCountryFlags.bitmap(context, flags[i % flags.size])?.let { flag ->
+                    flagBitmaps[i % flags.size]?.let { flag ->
                         box.set(side + dp(12f), y + dp(17f), side + dp(42f), y + dp(39f))
                         c.drawBitmap(flag, null, box, paint)
                     }
@@ -328,10 +342,10 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                 c.save(); c.translate(left, top); c.scale(k, k, (right - left) / 2, 0f); orb.draw(c); c.restore()
             }
             val switchesHeight = dp(52f) + dp(40f)
-            fun switches(top: Float) {
+            fun switches(top: Float, reversed: Boolean = false) {
                 // Two switches 52 dp tall, 8 dp apart, and the check line under them: the editor's own views, drawn here.
                 val half = (right - left - gap) / 2
-                switchCells.forEachIndexed { index, cell -> place(cell, left + index * (half + gap), top, half, dp(52f)) }
+                for (index in switchCells.indices) place(switchCells[if (reversed) 1 - index else index], left + index * (half + gap), top, half, dp(52f))
                 place(checkLine, left, top + dp(52f), right - left, dp(40f))
             }
             fun strip(top: Float, grown: Float, scrollLit: Boolean, scrollPressed: Float = 0f, swapPressed: Float = 0f, swap: Boolean = true) {
@@ -340,10 +354,8 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                 if (grown <= 0f) return
                 val y = top - frame - strip * grown + dp(6f) + dp(13f)
                 val last = w - side - dp(14f) - dp(13f)
-                c.saveLayerAlpha(last - dp(60f), y - dp(16f), last + dp(16f), y + dp(16f), (255 * grown).toInt())
                 badge(R.drawable.ic_layout_scroll, last - dp(34f), y, if (scrollLit) accent else MobilePalette.badge, dp(26f), dp(5f), scrollPressed)
                 if (swap) badge(R.drawable.ic_layout_swap, last, y, MobilePalette.badge, dp(26f), dp(5f), swapPressed)
-                c.restore()
             }
             fun block(top: Float, height: Float, scale: Float = 1f, lift: Float = 0f, grown: Float = 0f, content: (Float) -> Unit) {
                 // Picked up, the part grows 3 % and covers the list with the screen's colour, as the editor does it.
@@ -354,19 +366,12 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                 outlineAround(top, height, grown, held = lift > .5f)
                 c.restore()
             }
-            /** The finger along [keys] of (time, x, y), easing from one to the next. */
-            fun path(keys: List<Triple<Float, Float, Float>>): Pair<Float, Float> {
-                val next = keys.indexOfFirst { it.first > t }
-                if (next <= 0) return (if (next == 0) keys.first() else keys.last()).let { it.second to it.third }
-                val (t0, x0, y0) = keys[next - 1]; val (t1, x1, y1) = keys[next]
-                val k2 = ease(((t - t0) / (t1 - t0)).coerceIn(0f, 1f))
-                return lerp(x0, x1, k2) to lerp(y0, y1, k2)
-            }
             fun still() {
                 outlineAround(tilesTop, tile, 1f); strip(tilesTop, 1f, false)
                 outlineAround(chipTop, tile, 1f); strip(chipTop, 1f, false, swap = false)
             }
             val orbHeight = orbSize + dp(16f)
+            val headingSpace = dp(49f)
             fun listTop(controlHeight: Float, grown: Float = 0f) = controlTop + strip * grown + controlHeight + frame + gap
             when (step) {
                 Step.DRAG -> {
@@ -375,22 +380,29 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                     val top = lerp(body, slot, ease(span(.25f, .7f)))
                     val swapped = ease(span(.47f, .513f))
                     tiles(tilesTop); chip(chipTop); still()
-                    rows(lerp(listTop(orbHeight, 1f), controlTop - frame, swapped), lerp(h, slot - frame - strip - gap, swapped))
+                    val headerTop = lerp(listTop(orbHeight, 1f), controlTop - frame, swapped)
+                    groupHeader(headerTop)
+                    rows(headerTop + headingSpace, lerp(h, slot - frame - strip - gap, swapped))
                     val lift = span(.14f, .18f) * (1 - span(.72f, .76f))
                     block(top, orbHeight, lift = lift, grown = 1f) { drawOrb(it, orbSize) }
                     strip(top, 1f, false)
                     finger(cx, top + orbSize * .43f, span(.08f, .14f) * (1 - span(.72f, .76f)), span(.02f, .08f) * (1 - span(.78f, .86f)))
                 }
                 Step.DOUBLE -> {
-                    // Two taps swap the look at once, the outline and the list follow in 180 ms; two more swap it back.
-                    val switchesOn = t >= .23f && t < .68f
-                    val k2 = ease(span(.23f, .273f)) * (1 - ease(span(.68f, .723f)))
-                    val height = lerp(orbHeight, switchesHeight, k2)
-                    tiles(tilesTop); chip(chipTop); still(); rows(listTop(height, 1f))
-                    block(body, height, grown = 1f) { top -> if (switchesOn) switches(top) else drawOrb(top, orbSize) }
+                    val switchesOn = t >= .23f && t < .85f
+                    val reversed = t >= .61f
+                    val height = if (switchesOn) switchesHeight else orbHeight
+                    tiles(tilesTop); chip(chipTop); still()
+                    val headerTop = listTop(height, 1f)
+                    groupHeader(headerTop); rows(headerTop + headingSpace)
+                    block(body, height, grown = 1f) { top ->
+                        if (switchesOn) switches(top, reversed) else drawOrb(top, orbSize)
+                    }
                     strip(body, 1f, false)
-                    val tap = pulse(.14f) + pulse(.2f) + pulse(.59f) + pulse(.65f)
-                    finger(cx, body + height / 2, tap, span(.06f, .12f) * (1 - span(.76f, .84f)))
+                    val x = if (switchesOn) lerp(cx, left + (right - left) / 4, ease(span(.27f, .39f))) else cx
+                    val y = body + if (switchesOn) dp(26f) else orbSize * .43f
+                    val held = span(.42f, .5f) * (1 - span(.64f, .73f))
+                    finger(x, y, pulse(.14f) + pulse(.20f) + held, span(.06f, .12f) * (1 - span(.76f, .84f)))
                 }
                 Step.PINCH -> {
                     // The part follows the fingers within 15 %; let go, it springs back and takes the new size.
@@ -403,7 +415,9 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                         t < .87f -> 1 + .15f * spread
                         else -> lerp(1.15f, 1f, ease(span(.87f, .905f)))
                     }
-                    tiles(tilesTop); chip(chipTop); still(); rows(listTop(size + dp(16f), 1f))
+                    tiles(tilesTop); chip(chipTop); still()
+                    val headerTop = listTop(size + dp(16f), 1f)
+                    groupHeader(headerTop); rows(headerTop + headingSpace)
                     block(body, size + dp(16f), scale, grown = 1f) { drawOrb(it, size) }
                     strip(body, 1f, false)
                     val apart = if (t < .52f) lerp(dp(90f), dp(36f), squeeze) else lerp(dp(36f), dp(90f), spread)
@@ -411,56 +425,45 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                     val visible = span(.05f, .12f) * (1 - span(.46f, .5f)) + span(.54f, .6f) * (1 - span(.86f, .9f))
                     finger(cx - apart, cy - apart * .5f, .6f, visible); finger(cx + apart, cy + apart * .5f, .6f, visible)
                 }
-                Step.BADGES -> {
-                    // The buttons are on the outline from the start; the look button swaps the part's look and back.
-                    val grown = 1f
-                    val switchesOn = t >= .41f && t < .69f
-                    val k2 = ease(span(.41f, .453f)) * (1 - ease(span(.69f, .733f)))
-                    val height = lerp(orbHeight, switchesHeight, k2)
-                    val top = controlTop + strip * grown
-                    tiles(tilesTop); chip(chipTop); still(); rows(listTop(height, grown))
-                    block(top, height, grown = grown) { if (switchesOn) switches(it) else drawOrb(it, orbSize) }
-                    strip(top, grown, false, swapPressed = pulse(.39f) + pulse(.67f))
-                    val swapX = w - side - dp(27f); val stripY = controlTop - frame + dp(19f)
-                    val (fx, fy) = path(listOf(Triple(.05f, cx, body + orbSize * .43f), Triple(.2f, cx, body + orbSize * .43f),
-                        Triple(.32f, swapX, stripY), Triple(.76f, swapX, stripY), Triple(.84f, cx, h - dp(60f))))
-                    finger(fx, fy, pulse(.39f) + pulse(.67f), span(.03f, .09f) * (1 - span(.92f, .97f)))
-                }
                 Step.REMOVE -> {
-                    // The minus fades the tile under a dashed outline and turns into a plus; the plus brings it back.
-                    val gone = ease(span(.27f, .308f)) * (1 - ease(span(.67f, .708f)))
-                    tiles(tilesTop, gone); chip(chipTop); still(); rows(listTop(orbHeight, 1f))
-                    block(body, orbHeight, grown = 1f) { drawOrb(it, orbSize) }
-                    strip(body, 1f, false)
-                    val each = (right - left - gap * 4) / 5
-                    val bx = left + 3 * (each + gap) + each - dp(13f); val by = tilesTop + dp(13f)
-                    finger(bx, by, pulse(.25f) + pulse(.65f), span(.12f, .2f) * (1 - span(.78f, .86f)))
+                    val hidden = t >= .27f && t < .71f
+                    val shift = if (hidden) tile + strip + frame * 2 + gap else 0f
+                    tiles(tilesTop); outlineAround(tilesTop, tile, 1f); strip(tilesTop, 1f, false)
+                    val bx = w - side - dp(27f)
+                    val by = if (hidden) dp(18f) else chipTop - frame - strip + dp(19f)
+                    if (!hidden) {
+                        chip(chipTop); outlineAround(chipTop, tile, 1f)
+                        strip(chipTop, 1f, false, swap = false)
+                    }
+                    badge(if (hidden) R.drawable.ic_mobile_add else R.drawable.ic_layout_remove,
+                        bx, by, if (hidden) accent else MobilePalette.badge, dp(26f), dp(5f))
+                    val top = body - shift
+                    block(top, orbHeight, grown = 1f) { drawOrb(it, orbSize) }
+                    strip(top, 1f, false)
+                    val headerTop = listTop(orbHeight, 1f) - shift
+                    groupHeader(headerTop, hidden); rows(headerTop + headingSpace)
+                    finger(bx, by, pulse(.22f) + pulse(.66f), span(.12f, .2f) * (1 - span(.78f, .86f)))
                 }
                 Step.SCROLL -> {
-                    // The arrows join the part to the list: its outline reaches down round the list, and a swipe scrolls the
-                    // two together, up and back; the arrows again split them.
-                    val grown = 1f
-                    val lit = t >= .25f && t < .77f
-                    val join = ease(span(.26f, .32f)) * (1 - ease(span(.77f, .83f)))
-                    val scroll = -dp(150f) * ease(span(.38f, .5f)) * (1 - ease(span(.58f, .7f)))
-                    val outlineTop = controlTop - frame
-                    val top = controlTop + strip * grown + scroll
+                    val joined = t >= .25f && t < .77f
+                    val scroll = -dp(105f) * ease(span(.38f, .5f)) * (1 - ease(span(.58f, .7f)))
                     tiles(tilesTop); chip(chipTop); still()
-                    // The joined content scrolls under the outline's top edge.
-                    c.save(); c.clipRect(0f, outlineTop + dp(1f), w, h)
-                    rows(listTop(orbHeight, grown) + scroll)
-                    drawOrb(top, orbSize)
+                    block(body, orbHeight, grown = 1f) { drawOrb(it, orbSize) }
+                    strip(body, 1f, false)
+                    val top = listTop(orbHeight, 1f) + strip
+                    val limit = top - strip - frame
+                    c.save(); c.clipRect(0f, limit, w, h)
+                    groupHeader(top + if (joined) scroll else 0f)
+                    rows(top + headingSpace + scroll)
                     c.restore()
-                    outline(side, outlineTop, w - side, lerp(controlTop + strip * grown + orbHeight + frame, h - dp(10f), join))
-                    strip(body, grown, lit, scrollPressed = pulse(.24f) + pulse(.76f))
-                    val scrollX = w - side - dp(27f) - dp(34f); val stripY = controlTop - frame + dp(19f)
-                    val low = h * .8f; val high = low - dp(150f)
-                    val (fx, fy) = path(listOf(Triple(.02f, cx, body + orbSize * .43f), Triple(.1f, cx, body + orbSize * .43f),
-                        Triple(.19f, scrollX, stripY), Triple(.3f, scrollX, stripY), Triple(.36f, cx, low), Triple(.38f, cx, low),
-                        Triple(.5f, cx, high), Triple(.58f, cx, high), Triple(.7f, cx, low), Triple(.72f, scrollX, stripY),
-                        Triple(.8f, scrollX, stripY), Triple(.88f, cx, h - dp(60f))))
-                    val drag = span(.37f, .38f) * (1 - span(.5f, .51f)) + span(.57f, .58f) * (1 - span(.7f, .71f))
-                    finger(fx, fy, pulse(.24f) + drag + pulse(.76f), span(.01f, .05f) * (1 - span(.92f, .97f)))
+                    outline(side, limit, w - side, if (joined) h - dp(10f) else top + headingSpace - frame)
+                    val x = w - side - dp(27f)
+                    val y = limit + dp(19f)
+                    badge(R.drawable.ic_layout_scroll, x, y, if (joined) accent else MobilePalette.badge, dp(26f), dp(5f))
+                    val scrollGesture = t in .38f..0.70f
+                    finger(if (scrollGesture) cx else x, if (scrollGesture) h - dp(50f) + scroll else y,
+                        if (scrollGesture) 1f else pulse(.20f) + pulse(.72f),
+                        span(.08f, .16f) * (1 - span(.8f, .88f)))
                 }
             }
             canvas.restore()

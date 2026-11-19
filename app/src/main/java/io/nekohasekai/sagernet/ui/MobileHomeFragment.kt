@@ -482,6 +482,7 @@ class MobileHomeFragment : ToolbarFragment() {
     private var groupChip: TextView? = null
     private var groupTabs: View? = null
     private var pickerGroups: List<ProxyGroup> = emptyList()
+    private var groupPickerSheet: MobileSheetDialog? = null
     private var sheetDown: TextView? = null
     private var sheetUp: TextView? = null
     private var sheetSpeed: View? = null
@@ -498,7 +499,10 @@ class MobileHomeFragment : ToolbarFragment() {
     }
     /** The new style's subscriptions: one sheet to switch between them, add one, or manage them. */
     private fun groupPicker() {
+        if (groupPickerSheet != null || !isResumed) return
         val sheet=MobileSheetDialog(requireContext())
+        groupPickerSheet = sheet
+        sheet.setOnDismissListener { if (groupPickerSheet === sheet) groupPickerSheet = null }
         val current=renderedGroupId
         val body=LinearLayout(requireContext()).apply { orientation=LinearLayout.VERTICAL; setPadding(dp(16),dp(8),dp(16),dp(16)) }
         val handle=View(requireContext()).apply { background=GradientDrawable().apply { setColor(muted);cornerRadius=dp(2).toFloat() } }
@@ -746,6 +750,8 @@ class MobileHomeFragment : ToolbarFragment() {
         }
     }
     override fun onDestroyView() {
+        groupPickerSheet?.dismiss()
+        groupPickerSheet = null
         activeProfileDrag?.cancel()
         if(nativeReceiverRegistered) { requireContext().unregisterReceiver(nativeStatusReceiver);nativeReceiverRegistered=false }
         groupReorder?.cancel();groupReorder=null;profileReorders.values.forEach { it.cancel() };profileReorders.clear();reordering=false
@@ -815,9 +821,11 @@ class MobileHomeFragment : ToolbarFragment() {
             if((reordering && previewGroup==null) || (previewGroup!=null && previewGroup!=groupDragPreview.previewGroupId)) return@launch
             val column = content ?: return@launch
             groups.forEach { (group, _) -> knownGroups.add(group.id) }
+            val landscape=resources.configuration.orientation==android.content.res.Configuration.ORIENTATION_LANDSCAPE
+            val groupHeaderJoined = MobileHomeLayout.groupHeaderJoined(landscape)
             val tilesBottom=tilesAtBottom()
             val tilesKey="${extendedTiles()}:$tilesBottom:${homeSwitchesOn()}:${controlAtBottom()}:${chipAtBottom()}:${chipNearList()}:"+
-                "${MobileHomeLayout.scrollParts}:${MobileHomeLayout.compactControl}:${MobileHomeLayout.compactTiles}:${MobileHomeLayout.hiddenSwitch}:${MobileHomeLayout.proxySwitchFirst}:${MobileHomeLayout.hiddenTiles}:${MobileHomeLayout.chipHidden}"
+                "${MobileHomeLayout.scrollParts}:${MobileHomeLayout.compactControl}:${MobileHomeLayout.compactTiles}:${MobileHomeLayout.hiddenSwitch}:${MobileHomeLayout.proxySwitchFirst}:${MobileHomeLayout.hiddenTiles}:${MobileHomeLayout.chipHidden}:$groupHeaderJoined"
             // A moved tile bar rebuilds the screen even when the server list is the same.
             val unchanged=withContext(Dispatchers.Default) { previousStructure == structure } && renderedGroupId==focusedGroup && chromeKey?.endsWith(":$tilesKey")!=false
             if (unchanged) {
@@ -839,7 +847,6 @@ class MobileHomeFragment : ToolbarFragment() {
                 groupStrip=null;groupStripScroll=null;groupLeftIndicator=null;groupRightIndicator=null;serverDropArea=null
                 column.removeAllViews(); nextLatencyViews.clear(); nextProfileRows.clear(); nextGroupViews.clear(); nextRefreshButtons.clear()
                 // Landscape: the header and the power button in a side column, so the server list keeps the full height.
-                val landscape=resources.configuration.orientation==android.content.res.Configuration.ORIENTATION_LANDSCAPE
                 column.orientation=if(landscape) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
                 val side0=if(landscape) LinearLayout(requireContext()).apply { orientation=LinearLayout.VERTICAL } else column
                 val body=if(landscape) LinearLayout(requireContext()).apply { orientation=LinearLayout.VERTICAL } else column
@@ -1215,16 +1222,19 @@ class MobileHomeFragment : ToolbarFragment() {
                 val listHolder=serverDropArea
                 val listIndex=listHolder?.let { column.indexOfChild(it) } ?: -1
                 val scrollParts=MobileHomeLayout.scrollParts
-                if(scrollParts.isNotEmpty() && !landscape && listIndex>0) {
+                if (groupHeaderJoined || (scrollParts.isNotEmpty() && !landscape && listIndex > 0)) {
                     val head=LinearLayout(requireContext()).apply { orientation=LinearLayout.VERTICAL }
-                    (0 until listIndex).map { column.getChildAt(it) }.filter { (it.getTag(R.id.home_part) as? String).let { part -> part==null || part in scrollParts } }.forEach { child ->
+                    (0 until if (landscape) 0 else listIndex).map { column.getChildAt(it) }.filter { (it.getTag(R.id.home_part) as? String).let { part -> part==null || part in scrollParts } }.forEach { child ->
                         val params=child.layoutParams;column.removeView(child);head.addView(child,params)
                     }
                     val scrolled=LinearLayout(requireContext()).apply { orientation=LinearLayout.VERTICAL }
                     // The subscription's heading keeps its own padding: no extra gap under the parts.
                     scrolled.addView(head,LinearLayout.LayoutParams(-1,-2))
                     // The subscription's own heading goes with it, above its servers.
-                    serverHeader?.let { heading -> (heading.parent as? ViewGroup)?.removeView(heading);scrolled.addView(heading,LinearLayout.LayoutParams(-1,-2)) }
+                    if (groupHeaderJoined) serverHeader?.let { heading ->
+                        (heading.parent as? ViewGroup)?.removeView(heading)
+                        scrolled.addView(heading, LinearLayout.LayoutParams(-1, -2))
+                    }
                     serverScroll.removeView(serverColumn)
                     scrolled.addView(serverColumn,LinearLayout.LayoutParams(-1,-2))
                     serverScroll.addView(scrolled,FrameLayout.LayoutParams(-1,-2))
@@ -1326,8 +1336,13 @@ class MobileHomeFragment : ToolbarFragment() {
                 if(group.isSubscription && group.subLastUpdate>0) names.addView(text(java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT,java.text.DateFormat.SHORT).format(java.util.Date(group.subLastUpdate*1000)),10f,muted).apply { setPadding(0,dp(3),0,0) })
                 heading.addView(names,LinearLayout.LayoutParams(0,-2,1f))
                 run {
-                    MobileSubscriptionSwipe.bind(heading, if (MobileHomeLayout.chipHidden) ::groupPicker else null, { editGroup(group,true) },
-                        { host().displayFragmentWithId(R.id.nav_group) }) { direction ->
+                    val chipHidden = MobileHomeLayout.chipHidden
+                    MobileSubscriptionSwipe.bind(
+                        heading,
+                        if (chipHidden) ::groupPicker else null,
+                        { editGroup(group, true) },
+                        if (chipHidden) null else ({ host().displayFragmentWithId(R.id.nav_group) }),
+                    ) { direction ->
                         val siblings = pickerGroups
                         val index = siblings.indexOfFirst { it.id == group.id }
                         if (index >= 0) siblings.getOrNull(index + direction)?.let { selectGroup(it.id) }

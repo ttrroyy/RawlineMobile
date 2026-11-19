@@ -364,6 +364,19 @@ class UiTourTest {
                 }
                 press(context.getString(R.string.qmobile_layout_restore_subscription))
                 check(!MobileHomeLayout.chipHidden) { "the subscription block did not return" }
+                val heading = frameOf(R.string.qmobile_layout_group_header)
+                val headingButtonX = heading.right - heading.width() * .065f
+                val headingButtonY = heading.top + heading.height() * .22f
+                val landscape = context.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+                val joined = MobileHomeLayout.groupHeaderJoined(landscape)
+                val otherParts = MobileHomeLayout.scrollParts
+                val toggleAt = android.os.SystemClock.uptimeMillis()
+                touch(android.view.MotionEvent.ACTION_DOWN, headingButtonX, headingButtonY, toggleAt)
+                touch(android.view.MotionEvent.ACTION_UP, headingButtonX, headingButtonY, toggleAt)
+                Thread.sleep(650)
+                check(MobileHomeLayout.groupHeaderJoined(landscape) != joined && MobileHomeLayout.scrollParts == otherParts) {
+                    "the list heading is not independently joinable"
+                }
             }
         },
         "home-after-editor" to { open(MainActivity::class.java); Thread.sleep(1000) },
