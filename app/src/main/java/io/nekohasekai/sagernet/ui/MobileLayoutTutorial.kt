@@ -136,6 +136,10 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
         private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
         private val dash = DashPathEffect(floatArrayOf(dp(7f), dp(5f)), 0f)
         private val backdrop = MobileHomeBackdrop()
+        private var backdropBitmap: android.graphics.Bitmap? = null
+        private val backdropPaint = Paint(Paint.FILTER_BITMAP_FLAG)
+        private val font = TextView(context).typeface
+        private val boldFont = Typeface.create(font, Typeface.BOLD)
         private val subscription = context.getString(R.string.subscription)
         private val quickIcons = intArrayOf(R.drawable.ic_mobile_settings, R.drawable.ic_mobile_tun, R.drawable.ic_mobile_route,
             R.drawable.ic_mobile_subscriptions, R.drawable.ic_mobile_update)
@@ -232,7 +236,7 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
         }
 
         private fun text(value: String, x: Float, y: Float, size: Float, color: Int = MobilePalette.text, bold: Boolean = false) {
-            paint.style = Paint.Style.FILL; paint.color = color; paint.textSize = size; paint.typeface = if (bold) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
+            paint.style = Paint.Style.FILL; paint.color = color; paint.textSize = size; paint.typeface = if (bold) boldFont else font
             paint.textAlign = Paint.Align.LEFT
             c.drawText(value, x, y, paint)
         }
@@ -266,9 +270,16 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
             paint.style = Paint.Style.STROKE; paint.strokeWidth = dp(1f); paint.color = MobilePalette.outline
             canvas.drawRoundRect(box, corner, corner, paint)
             canvas.clipRect(0f, 0f, w, h)
-            if (MobileStyle.pastel) {
-                backdrop.setBounds(0, 0, w.toInt(), h.toInt())
-                backdrop.draw(canvas)
+            if (MobileStyle.pastel || MobilePalette.light) {
+                val bw = (w * k).toInt().coerceAtLeast(1)
+                val bh = (h * k).toInt().coerceAtLeast(1)
+                val texture = backdropBitmap?.takeIf { it.width == bw && it.height == bh }
+                    ?: android.graphics.Bitmap.createBitmap(bw, bh, android.graphics.Bitmap.Config.ARGB_8888).also {
+                        backdrop.setBounds(0, 0, bw, bh)
+                        backdrop.draw(Canvas(it))
+                        backdropBitmap = it
+                    }
+                canvas.drawBitmap(texture, null, box, backdropPaint)
             }
 
             // MobileLayoutEditorActivity: column padding 16 (12 on top), parts 8 apart, each framed 8 dp inside its outline.

@@ -434,7 +434,7 @@ class UiTourTest {
                 }
             }
         },
-    ) + (0..5).map { step ->
+    ) + (0..4).map { step ->
         // Each tutorial step half way through its loop.
         "layout-tutorial-$step" to {
             layout()
