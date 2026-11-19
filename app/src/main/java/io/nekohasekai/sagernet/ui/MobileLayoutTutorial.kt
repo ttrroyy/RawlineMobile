@@ -22,7 +22,7 @@ import java.util.Locale
 
 /**
  * The layout editor's tutorial: each gesture played by a finger on a small home screen drawn with the app's own
- * tiles, button, switches and servers, one short line under it. It lies over the editor, dimmed but see-through;
+ * tiles, button, switches and servers, one short line under it. It lies over the editor;
  * skipped or finished, [onClose] runs.
  */
 class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : FrameLayout(context) {
@@ -42,8 +42,8 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
     private val next = TextView(context)
 
     init {
-        // Nearly opaque: the editor behind must not mix with the small home screen played here.
-        setBackgroundColor(Color.argb(238, 0, 0, 0))
+        // Keep the editor hidden when the demo fades between loops.
+        setBackgroundColor(Color.BLACK)
         isClickable = true; isFocusable = true
         alpha = 0f; animate().alpha(1f).setDuration(220).start()
         val column = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL }

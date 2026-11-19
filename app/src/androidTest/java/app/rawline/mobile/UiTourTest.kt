@@ -311,7 +311,8 @@ class UiTourTest {
             val downAt = android.os.SystemClock.uptimeMillis()
             touch(android.view.MotionEvent.ACTION_DOWN, x, y, downAt)
             Thread.sleep(900)
-            val end = context.resources.displayMetrics.heightPixels * .8f
+            val end = centerOf(java.util.Locale("", "fi").displayCountry)?.get(1)?.toFloat()
+                ?: context.resources.displayMetrics.heightPixels * .9f
             for (step in 1..12) { touch(android.view.MotionEvent.ACTION_MOVE, x, y + (end - y) * step / 12, downAt); Thread.sleep(30) }
             touch(android.view.MotionEvent.ACTION_UP, x, end, downAt)
             Thread.sleep(600)
@@ -520,12 +521,22 @@ class UiTourTest {
             MobileHomeLayout.chipHidden = false
             home("groups")
             fun tapTitle(bottom: Boolean) {
-                val titles = instrumentation.uiAutomation.rootInActiveWindow?.findAccessibilityNodeInfosByText("Sub 3")
-                    .orEmpty().filter { it.text?.toString() == "Sub 3" }.map {
-                        android.graphics.Rect().also(it::getBoundsInScreen)
-                    }.filterNot { it.isEmpty }.sortedBy { it.top }
-                check(titles.size == if (MobileHomeLayout.chipHidden) 1 else 2)
-                val bounds = if (bottom) titles.last() else titles.first()
+                val titles = mutableListOf<android.graphics.Rect>()
+                instrumentation.runOnMainSync {
+                    fun collect(view: android.view.View) {
+                        if (!view.isShown) return
+                        if (view is android.widget.TextView && view.text.toString() == "Sub 3") {
+                            val bounds = android.graphics.Rect()
+                            if (view.getGlobalVisibleRect(bounds)) titles.add(bounds)
+                        }
+                        if (view is android.view.ViewGroup) for (i in 0 until view.childCount) collect(view.getChildAt(i))
+                    }
+                    collect(resumed().window.decorView)
+                }
+                check(titles.size == if (MobileHomeLayout.chipHidden) 1 else 2) {
+                    "visible subscription labels: ${titles.size}, picker block hidden: ${MobileHomeLayout.chipHidden}"
+                }
+                val bounds = if (bottom) titles.maxBy { it.top } else titles.minBy { it.top }
                 repeat(if (MobileHomeLayout.chipHidden) 3 else 1) {
                     val time = android.os.SystemClock.uptimeMillis()
                     touch(android.view.MotionEvent.ACTION_DOWN, bounds.exactCenterX(), bounds.exactCenterY(), time)
