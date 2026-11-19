@@ -1377,7 +1377,12 @@ class ConfigGenerator @JvmOverloads constructor(
         }
         val routeObj = JsonObject()
         routeObj["rules"] = if (settings.blockQuic && !state.forTest) guardQuic(rules, quicGuardFrom, finalTag != Tags.DIRECT) else rules
-        routeObj["rule_set"] = buildRuleSetArray(state)
+        val ruleSetDetour = when {
+            settings.deferRuleSets -> Tags.PROXY
+            settings.enableWarp && settings.warpMode == "masque" && finalTag == Tags.PROXY -> Tags.WARP_BYPASS
+            else -> ""
+        }
+        routeObj["rule_set"] = buildRuleSetArray(state, ruleSetDetour)
         routeObj["final"] = finalTag
         if (settings.trafficStats || (settings.blockUnownedTun && settings.vpnMode) ||
             state.prerequisites.perAppDns.isNotEmpty()) routeObj["find_process"] = true
@@ -1436,29 +1441,27 @@ class ConfigGenerator @JvmOverloads constructor(
     private fun adblockRule(): JsonObject = jsonObjectOf("action" to "reject", "rule_set" to JsonArray.of(RuleSets.ADBLOCK_TAG))
 
     /**
-     * buildRuleSetArray (:1916-1955): the profile's sets, then adblock; always present. No update_interval or
-     * http_client, so the core refreshes each set every 24 h through route.final, as on the desktop. A deferred start
-     * ([GeneratorSettings.deferRuleSets], Android-only) adds an empty initial_path and a download through `proxy`.
+     * MASQUE becomes ready after the router loads uncached rule sets, so initial downloads must use its upstream.
      */
-    private fun buildRuleSetArray(state: BuildState): JsonArray {
+    private fun buildRuleSetArray(state: BuildState, downloadDetour: String): JsonArray {
         val out = JsonArray()
         val sets = state.prerequisites.ruleSets
-        for ((tag, url) in sets) out.add(remoteRuleSet(tag, url))
+        for ((tag, url) in sets) out.add(remoteRuleSet(tag, url, downloadDetour))
         if (settings.adblockEnable && !sets.containsKey(RuleSets.ADBLOCK_TAG)) {
-            out.add(remoteRuleSet(RuleSets.ADBLOCK_TAG, RuleSets.mirrorLink(RuleSets.ADBLOCK_URL, settings.rulesetMirror)))
+            out.add(remoteRuleSet(RuleSets.ADBLOCK_TAG, RuleSets.mirrorLink(RuleSets.ADBLOCK_URL, settings.rulesetMirror), downloadDetour))
         }
         return out
     }
 
-    private fun remoteRuleSet(tag: String, url: String): JsonObject {
+    private fun remoteRuleSet(tag: String, url: String, downloadDetour: String): JsonObject {
         if (url.startsWith("file://")) return jsonObjectOf("type" to "local", "tag" to tag, "format" to "binary", "path" to url.removePrefix("file://"))
         val ruleSet = jsonObjectOf("type" to "remote", "tag" to tag, "format" to "binary", "url" to url)
         if (settings.deferRuleSets) {
             // StartContext reads initial_path only without a cached copy, instead of failing the start on a fetch
             // (rule_set_remote.go:97-140); the updater then fetches such a set right away (rule_set_updater.go:45-50).
             ruleSet["initial_path"] = EMPTY_RULE_SET_PATH
-            ruleSet["http_client"] = jsonObjectOf("detour" to Tags.PROXY)
         }
+        if (downloadDetour.isNotEmpty()) ruleSet["http_client"] = jsonObjectOf("detour" to downloadDetour)
         return ruleSet
     }
 

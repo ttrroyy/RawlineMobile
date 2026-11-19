@@ -6,6 +6,9 @@ import app.rawline.mobile.outbound.json.JsonInput
 import app.rawline.mobile.outbound.json.JsonObject
 import app.rawline.mobile.outbound.json.jsonObjectOf
 import app.rawline.mobile.outbound.types.OlcRtc
+import app.rawline.mobile.outbound.types.Socks
+import app.rawline.mobile.route.OutboundIds
+import app.rawline.mobile.route.RouteProfile
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -44,6 +47,29 @@ class NativeWarpChainTest {
         }
         assertEquals("xtls-rprx-vision-udp443",flow("masque"))
         assertEquals("xtls-rprx-vision",flow("wireguard"))
+    }
+
+    @Test fun coldMasqueRuleSetsUseTheUpstreamProfile() {
+        val profile = Socks().apply { server = "192.0.2.1"; serverPort = 1080 }
+        fun buildRoute(config: GeneratorSettings, final: Long = OutboundIds.PROXY): JsonObject {
+            val route = RouteProfile().apply { default_outbound_id = final }
+            val result = ConfigGenerator(ProfileProvider { if (it == 1L) profile else null }, config,
+                routing = RoutingInput(route, RoutingInput.DEFAULT.catalog)).build(1)
+            assertNull(result.error)
+            return JsonInput.parseObject(result.coreConfig).obj("route")
+        }
+        fun detour(route: JsonObject): String =
+            route.array("rule_set").filterIsInstance<JsonObject>().single().obj("http_client").string("detour")
+
+        val masque = settings.copy(warpMode = "masque", adblockEnable = true)
+        val route = buildRoute(masque)
+        assertEquals("proxy", route.string("final"))
+        assertEquals("warp-bypass", detour(route))
+        assertEquals("", detour(buildRoute(masque, OutboundIds.DIRECT)))
+        assertEquals("", detour(buildRoute(masque, OutboundIds.WARP_BYPASS)))
+        assertEquals("", detour(buildRoute(masque.copy(enableWarp = false))))
+        assertEquals("", detour(buildRoute(masque.copy(warpMode = "wireguard"))))
+        assertEquals("proxy", detour(buildRoute(masque.copy(deferRuleSets = true))))
     }
 
     @Test fun wireGuardAndMasqueKeepTheAuthenticatedNativeEntry() {
