@@ -359,9 +359,18 @@ class UiTourTest {
                 Thread.sleep(850)
                 touch(android.view.MotionEvent.ACTION_UP, switchX, switchY, swapAt)
                 check(MobileHomeLayout.proxySwitchFirst && DataStore.serviceMode == mode) { "holding a switch did not only change the layout" }
+                val originalChip = frameOf(R.string.qmobile_layout_chip)
+                val removeButton = frameOf(R.string.qmobile_layout_remove_subscription)
                 press(context.getString(R.string.qmobile_layout_remove_subscription))
                 check(MobileHomeLayout.chipHidden && centerOf(context.getString(R.string.qmobile_layout_chip)) != null) {
                     "the disabled subscription block lost its placeholder"
+                }
+                val hiddenChip = frameOf(R.string.qmobile_layout_chip)
+                val restoreButton = frameOf(R.string.qmobile_layout_restore_subscription)
+                check(kotlin.math.abs(originalChip.height() - hiddenChip.height()) <= 4 &&
+                    kotlin.math.abs(removeButton.centerX() - restoreButton.centerX()) <= 4 &&
+                    kotlin.math.abs(removeButton.centerY() - restoreButton.centerY()) <= 4) {
+                    "hiding the subscription changed the block size or moved its restore button"
                 }
                 press(context.getString(R.string.qmobile_layout_restore_subscription))
                 check(!MobileHomeLayout.chipHidden) { "the subscription block did not return" }
@@ -606,6 +615,20 @@ class UiTourTest {
                 check(fragments.findFragmentById(R.id.fragment_holder) === home && home.view === view && !home.isHidden)
             }
             Thread.sleep(450)
+        },
+        "layout-tutorial-frame-timing" to {
+            layout()
+            editor(tutorial = true)
+            fun graphicsStats(command: String): String =
+                android.os.ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand(
+                    "dumpsys gfxinfo ${context.packageName}$command",
+                )).bufferedReader().use { it.readText() }
+            graphicsStats(" reset")
+            Thread.sleep(4200)
+            val stats = graphicsStats("")
+            File(context.filesDir, "tour-tutorial-frames.txt").writeText(stats)
+            val rendered = Regex("Total frames rendered: (\\d+)").findAll(stats).sumOf { it.groupValues[1].toInt() }
+            check(rendered > 0) { "the tutorial produced no frames" }
         },
     )
 

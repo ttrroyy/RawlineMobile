@@ -120,12 +120,13 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     private fun showTutorial() {
         if (tutorial != null) return
         backToEditor?.isEnabled = true
-        // The editor's own button behind the tutorial need not move: its frames redrew the whole miniature and the
-        // tutorial stuttered.
-        MobileOrbArtwork.frozen = true
+        val editor = root.getChildAt(0)
+        editor.visibility = View.INVISIBLE
+        blink?.pause()
         tutorial = MobileLayoutTutorial(this) {
             tutorial = null; backToEditor?.isEnabled = false
-            MobileOrbArtwork.frozen = false
+            editor.visibility = View.VISIBLE
+            blink?.resume()
             DataStore.configurationStore.putBoolean(TUTORIAL_SEEN, true)
         }.also { root.addView(it, FrameLayout.LayoutParams(-1, -1)) }
     }
@@ -304,7 +305,6 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         MobileHomeLayout.chipHidden = hidden
         fill(Part.CHIP)
         fill(Part.GROUP_HEADER)
-        rearrange()
     }
 
     private fun setSwitches(switches: Boolean) {
@@ -331,7 +331,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     /** The parts that scroll with the list: they share one dashed outline with it (Miniature.dispatchDraw). */
     private fun isJoined(part: Part) = when (part) {
         Part.GROUP_HEADER -> MobileHomeLayout.groupHeaderJoined(landscape)
-        else -> !landscape && visible(part) && part.id in MobileHomeLayout.scrollParts && !isBottom(part)
+        else -> !landscape && part.id in MobileHomeLayout.scrollParts && !isBottom(part)
     }
 
     private fun joinedParts() = parts.keys.filter(::isJoined)
@@ -371,36 +371,34 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         val box = parts.getValue(part)
         box.removeAllViews()
         val items = mutableListOf<LayoutAction>()
-        if (part == Part.CHIP && MobileHomeLayout.chipHidden) {
-            shownJoined[part] = false
-            padFrame(box, false)
-            box.addView(removable(chip(), true, items) { setChipHidden(false) }, FrameLayout.LayoutParams(-1, dp(48)))
-            items.last().first.contentDescription = getString(R.string.qmobile_layout_restore_subscription)
-            actions[part] = items
-            return
-        }
+        val chipHidden = part == Part.CHIP && MobileHomeLayout.chipHidden
         box.addView(when (part) {
             Part.TILES -> tiles(items)
-            Part.CHIP -> chip()
+            Part.CHIP -> chip().apply { if (chipHidden) { alpha = .3f; isEnabled = false } }
             Part.CONTROL -> control(items)
             Part.GROUP_HEADER -> groupHeader()
         }, FrameLayout.LayoutParams(-1, -2))
         val strip = LinearLayout(this).apply { gravity = Gravity.END or Gravity.CENTER_VERTICAL }
         // Plain buttons are one quiet grey; only a setting that is on (the scrolling part) lights up.
-        fun button(icon: Int, description: Int, lit: Boolean = false, action: () -> Unit) {
+        fun button(icon: Int, description: Int, lit: Boolean = false, enabled: Boolean = true, action: () -> Unit) {
             val view = badge(icon, if (lit) accent else MobilePalette.badge, if (lit) contrastOn(accent) else MobilePalette.text, description)
+            view.isEnabled = enabled
+            if (!enabled) view.alpha = .3f
             strip.addView(view, LinearLayout.LayoutParams(dp(26), dp(26)).apply { marginStart = dp(8) })
             items.add(view to action)
         }
         shownJoined[part] = isJoined(part)
         if (part == Part.GROUP_HEADER || (!isBottom(part) && !landscape)) {
             val label = if (isJoined(part)) R.string.qmobile_layout_unjoin else R.string.qmobile_layout_scroll
-            button(R.drawable.ic_layout_scroll, label, isJoined(part)) { toggleScroll(part) }
+            button(R.drawable.ic_layout_scroll, label, isJoined(part), enabled = !chipHidden) { toggleScroll(part) }
         }
         when (part) {
             // The size is a pinch only.
             Part.TILES -> button(R.drawable.ic_layout_swap, R.string.qmobile_layout_swap) { setExtended(!MobileHomeLayout.extendedTiles) }
-            Part.CHIP -> button(R.drawable.ic_layout_remove, R.string.qmobile_layout_remove_subscription) { setChipHidden(true) }
+            Part.CHIP -> button(
+                if (chipHidden) R.drawable.ic_mobile_add else R.drawable.ic_layout_remove,
+                if (chipHidden) R.string.qmobile_layout_restore_subscription else R.string.qmobile_layout_remove_subscription,
+            ) { setChipHidden(!chipHidden) }
             Part.CONTROL -> button(R.drawable.ic_layout_swap, R.string.qmobile_layout_swap) { setSwitches(!MobileHomeLayout.controlSwitches) }
             Part.GROUP_HEADER -> Unit
         }
@@ -566,7 +564,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     private fun actionAt(x: Float, y: Float): (() -> Unit)? {
         val margin = dp(8)
         return actions.values.flatten().firstOrNull { (view, _) ->
-            view.isShown &&
+            view.isShown && view.isEnabled &&
                 boundsOf(view).apply { inset(-margin, -margin) }.contains(x.toInt(), y.toInt())
         }?.second
     }
