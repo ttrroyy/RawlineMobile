@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import app.rawline.mobile.R
 import java.util.Locale
+import kotlin.math.roundToInt
 
 /**
  * The layout editor's tutorial: each gesture played by a finger on a small home screen drawn with the app's own
@@ -231,8 +232,8 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
             paint.style = Paint.Style.STROKE; paint.strokeWidth = dp(2f)
             val alpha = if (held) 255 else (157 + 98 * kotlin.math.sin(t * 4200f / 1300f * 6.283f)).toInt()
             paint.color = ColorUtils.setAlphaComponent(MobilePalette.text, alpha)
-            val dash = dp(7f)
             val interval = dp(12f)
+            val dashFraction = 7f / 12f
             var count = 0
             fun line(x1: Float, y1: Float, x2: Float, y2: Float) {
                 if (count == dashLines.size) dashLines = dashLines.copyOf(count * 2)
@@ -241,28 +242,34 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                 dashLines[count++] = x2
                 dashLines[count++] = y2
             }
-            var x = left + radius
-            while (x < right - radius) {
-                val end = minOf(x + dash, right - radius)
-                line(x, top, end, top)
-                line(x, bottom, end, bottom)
-                x += interval
+            fun dashes(length: Float, draw: (Float, Float) -> Unit) {
+                val segments = (length / interval).roundToInt().coerceAtLeast(1)
+                val step = length / segments
+                val dash = step * dashFraction
+                for (i in 0 until segments) draw((i + .5f) * step - dash / 2, dash)
             }
-            var y = top + radius
-            while (y < bottom - radius) {
-                val end = minOf(y + dash, bottom - radius)
-                line(left, y, left, end)
-                line(right, y, right, end)
-                y += interval
+            dashes(right - left - 2 * radius) { start, length ->
+                val x = left + radius + start
+                line(x, top, x + length, top)
+                line(x, bottom, x + length, bottom)
             }
-            c.drawLines(dashLines, 0, count, paint)
-            // Short arcs retain the rounded corners without rasterizing a moving dashed path.
+            dashes(bottom - top - 2 * radius) { start, length ->
+                val y = top + radius + start
+                line(left, y, left, y + length)
+                line(right, y, right, y + length)
+            }
+            if (count > 0) c.drawLines(dashLines, 0, count, paint)
+            // Fill each curve with evenly spaced dashes while keeping the straight edges batched.
             val diameter = radius * 2
-            val arc = minOf(60f, Math.toDegrees((dash / radius).toDouble()).toFloat())
-            c.drawArc(left, top, left + diameter, top + diameter, 225f - arc / 2, arc, false, paint)
-            c.drawArc(right - diameter, top, right, top + diameter, 315f - arc / 2, arc, false, paint)
-            c.drawArc(right - diameter, bottom - diameter, right, bottom, 45f - arc / 2, arc, false, paint)
-            c.drawArc(left, bottom - diameter, left + diameter, bottom, 135f - arc / 2, arc, false, paint)
+            val arcLength = Math.PI.toFloat() * radius / 2
+            dashes(arcLength) { start, length ->
+                val angle = 90f * start / arcLength
+                val arc = 90f * length / arcLength
+                c.drawArc(left, top, left + diameter, top + diameter, 180f + angle, arc, false, paint)
+                c.drawArc(right - diameter, top, right, top + diameter, 270f + angle, arc, false, paint)
+                c.drawArc(right - diameter, bottom - diameter, right, bottom, angle, arc, false, paint)
+                c.drawArc(left, bottom - diameter, left + diameter, bottom, 90f + angle, arc, false, paint)
+            }
         }
 
         // Loaded once each: inflating every icon on every frame made the loop stutter.
@@ -389,20 +396,33 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                     }
                 }
             }
-            fun rows(top: Float, bottom: Float = h) {
-                // The list: 56 dp rows 6 dp apart, flag and country as the editor's list shows them.
+            fun rows(top: Float, bottom: Float = h, insideFrame: Boolean = false) {
                 if (top >= bottom) return
+                val rowLeft = if (insideFrame) left else side
+                val rowRight = w - rowLeft
                 c.save(); c.clipRect(0f, 0f, w, bottom)
-                layer("servers", 0f, top, w, h) {
+                layer(if (insideFrame) "servers-framed" else "servers", 0f, top, w, h) {
+                    val flagPath = android.graphics.Path()
                     var y = dp(6f)
                     var i = 0
                     while (y < h) {
-                        surface(side, y, w - side, y + dp(56f))
+                        surface(rowLeft, y, rowRight, y + dp(56f))
                         flagBitmaps[i % flags.size]?.let { flag ->
-                            box.set(side + dp(12f), y + dp(17f), side + dp(42f), y + dp(39f))
+                            val flagLeft = rowLeft + dp(10f)
+                            val flagTop = y + dp(14f)
+                            val size = dp(28f)
+                            val radius = dp(10f)
+                            box.set(flagLeft, flagTop, flagLeft + size, flagTop + size)
+                            flagPath.rewind()
+                            flagPath.addRoundRect(box, radius, radius, android.graphics.Path.Direction.CW)
+                            c.save(); c.clipPath(flagPath)
                             c.drawBitmap(flag, null, box, bitmapPaint)
+                            c.restore()
+                            paint.style = Paint.Style.STROKE; paint.strokeWidth = dp(1f)
+                            paint.color = ColorUtils.setAlphaComponent(MobilePalette.muted, if (MobilePalette.light) 70 else 110)
+                            c.drawRoundRect(box, radius, radius, paint)
                         }
-                        text(countries[i % flags.size], side + dp(54f), y + dp(33f), dp(15f))
+                        text(countries[i % flags.size], rowLeft + dp(48f), y + dp(33f), dp(15f), bold = true)
                         y += dp(62f); i++
                     }
                 }
@@ -535,12 +555,18 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                     block(body, orbHeight, grown = 1f) { drawOrb(it, orbSize) }
                     strip(body, 1f, false)
                     val top = listTop(orbHeight, 1f) + strip
-                    val limit = top - strip - frame
-                    c.save(); c.clipRect(0f, limit, w, h)
-                    groupHeader(top + if (joined) scroll else 0f, visibleTop = limit)
-                    rows(top + headingSpace + scroll)
-                    c.restore()
-                    outline(side, limit, w - side, if (joined) h - dp(10f) else top + headingSpace - frame)
+                    val limit = top - strip
+                    val frameBottom = if (joined) h - dp(10f) else top + headingSpace + frame
+                    if (joined) {
+                        c.save(); c.clipRect(left, top, right, frameBottom - frame)
+                        groupHeader(top + scroll, visibleTop = top)
+                        rows(top + headingSpace + scroll, frameBottom - frame, insideFrame = true)
+                        c.restore()
+                    } else {
+                        groupHeader(top)
+                        rows(frameBottom + gap)
+                    }
+                    outline(side, limit, w - side, frameBottom)
                     val x = w - side - dp(27f)
                     val y = limit + dp(19f)
                     badge(R.drawable.ic_layout_scroll, x, y, if (joined) accent else MobilePalette.badge, dp(26f), dp(5f))
