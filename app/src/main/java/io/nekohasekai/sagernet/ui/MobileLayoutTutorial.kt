@@ -369,24 +369,24 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                 surface(right - tile, 0f, right, tile)
                 icon(R.drawable.ic_mobile_add, right - tile / 2, tile / 2, dp(24f), MobilePalette.text)
             }
-            fun groupHeader(y: Float, chipHidden: Boolean = false) = layer(
-                if (chipHidden) "header-with-add" else "header", 0f, y, w, dp(49f),
-            ) {
-                val top = 0f
-                val button = dp(33f)
-                val count = headingIcons.size + if (chipHidden) 1 else 0
-                val first = right - button * count
-                text(subscription, left + dp(4f), top + dp(23f), dp(16f), bold = true)
-                if (chipHidden) {
-                    surface(first, top, first + button - dp(3f), top + button - dp(3f), Color.TRANSPARENT,
-                        radius = dp(MobilePalette.subscriptionActionDp.toFloat()))
-                    icon(R.drawable.ic_mobile_add, first + button / 2, top + button / 2, dp(18f), MobilePalette.text)
-                }
-                headingIcons.forEachIndexed { index, drawable ->
-                    val x = right - button * (headingIcons.size - index)
-                    surface(x, top, x + button - dp(3f), top + button - dp(3f), Color.TRANSPARENT,
-                        radius = dp(MobilePalette.subscriptionActionDp.toFloat()))
-                    icon(drawable, x + button / 2, top + button / 2, dp(18f), MobilePalette.text)
+            val headingSpace = dp(49f)
+            fun groupHeader(y: Float, chipHidden: Boolean = false, visibleTop: Float = 0f) {
+                if (y < visibleTop || y + headingSpace > h) return
+                layer(if (chipHidden) "header-with-add" else "header", 0f, y, w, headingSpace) {
+                    val slot = dp(33f)
+                    val button = dp(30f)
+                    val top = dp(2f)
+                    val count = headingIcons.size + if (chipHidden) 1 else 0
+                    val start = right - slot * count
+                    text(subscription, left + dp(4f), dp(23f), dp(16f), bold = true)
+                    text(context.getString(R.string.qmobile_layout_preview_routing), left + dp(4f), dp(44f), dp(11f), MobilePalette.muted)
+                    for (index in 0 until count) {
+                        val drawable = if (chipHidden && index == 0) R.drawable.ic_mobile_add else headingIcons[index - (count - headingIcons.size)]
+                        val x = start + index * slot + (slot - button) / 2
+                        surface(x, top, x + button, top + button, Color.TRANSPARENT,
+                            radius = dp(MobilePalette.subscriptionActionDp.toFloat()))
+                        icon(drawable, x + button / 2, top + button / 2, dp(18f), MobilePalette.text)
+                    }
                 }
             }
             fun rows(top: Float, bottom: Float = h) {
@@ -448,12 +448,19 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                 c.restore()
                 outlineAround(top, height, grown, held = lift > .5f)
             }
+            val chipActionX = w - side - dp(27f)
+            val chipActionY = chipTop - frame - strip + dp(19f)
+            fun chipControls(hidden: Boolean = false) {
+                outlineAround(chipTop, tile, 1f)
+                strip(chipTop, 1f, false, swap = false, scrollFade = if (hidden) .3f else 1f)
+                badge(if (hidden) R.drawable.ic_mobile_add else R.drawable.ic_layout_remove,
+                    chipActionX, chipActionY, if (hidden) accent else MobilePalette.badge, dp(26f), dp(5f))
+            }
             fun still() {
                 outlineAround(tilesTop, tile, 1f); strip(tilesTop, 1f, false)
-                outlineAround(chipTop, tile, 1f); strip(chipTop, 1f, false, swap = false)
+                chipControls()
             }
             val orbHeight = orbSize + dp(16f)
-            val headingSpace = dp(49f)
             fun listTop(controlHeight: Float, grown: Float = 0f) = controlTop + strip * grown + controlHeight + frame + gap
             when (step) {
                 Step.DRAG -> {
@@ -463,7 +470,9 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                     val swapped = ease(span(.47f, .513f))
                     tiles(tilesTop); chip(chipTop); still()
                     val headerTop = lerp(listTop(orbHeight, 1f), controlTop - frame, swapped)
-                    groupHeader(headerTop)
+                    if (headerTop + headingSpace <= top - frame - strip || headerTop >= top + orbHeight + frame) {
+                        groupHeader(headerTop)
+                    }
                     rows(headerTop + headingSpace, lerp(h, slot - frame - strip - gap, swapped))
                     val lift = span(.14f, .18f) * (1 - span(.72f, .76f))
                     block(top, orbHeight, lift = lift, grown = 1f) { drawOrb(it, orbSize) }
@@ -510,19 +519,14 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                 Step.REMOVE -> {
                     val hidden = t >= .27f && t < .71f
                     tiles(tilesTop); outlineAround(tilesTop, tile, 1f); strip(tilesTop, 1f, false)
-                    val bx = w - side - dp(27f)
-                    val by = chipTop - frame - strip + dp(19f)
                     chip(chipTop, if (hidden) .3f else 1f)
-                    outlineAround(chipTop, tile, 1f)
-                    strip(chipTop, 1f, false, swap = false, scrollFade = if (hidden) .3f else 1f)
-                    badge(if (hidden) R.drawable.ic_mobile_add else R.drawable.ic_layout_remove,
-                        bx, by, if (hidden) accent else MobilePalette.badge, dp(26f), dp(5f))
+                    chipControls(hidden)
                     val top = body
                     block(top, orbHeight, grown = 1f) { drawOrb(it, orbSize) }
                     strip(top, 1f, false)
                     val headerTop = listTop(orbHeight, 1f)
                     groupHeader(headerTop, hidden); rows(headerTop + headingSpace)
-                    finger(bx, by, pulse(.22f) + pulse(.66f), span(.12f, .2f) * (1 - span(.78f, .86f)))
+                    finger(chipActionX, chipActionY, pulse(.22f) + pulse(.66f), span(.12f, .2f) * (1 - span(.78f, .86f)))
                 }
                 Step.SCROLL -> {
                     val joined = t >= .25f && t < .77f
@@ -533,7 +537,7 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                     val top = listTop(orbHeight, 1f) + strip
                     val limit = top - strip - frame
                     c.save(); c.clipRect(0f, limit, w, h)
-                    groupHeader(top + if (joined) scroll else 0f)
+                    groupHeader(top + if (joined) scroll else 0f, visibleTop = limit)
                     rows(top + headingSpace + scroll)
                     c.restore()
                     outline(side, limit, w - side, if (joined) h - dp(10f) else top + headingSpace - frame)
