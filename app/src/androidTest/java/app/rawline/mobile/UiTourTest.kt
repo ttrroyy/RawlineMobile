@@ -494,9 +494,18 @@ class UiTourTest {
         // The tutorial turns its pages by a swipe as well as by its button.
         "layout-tutorial-swipe" to {
             layout(); editor(tutorial = true)
-            val width = context.resources.displayMetrics.widthPixels; val height = context.resources.displayMetrics.heightPixels
+            val caption = context.getString(R.string.qmobile_layout_step_drag)
+            val bounds = android.graphics.Rect()
+            for (attempt in 1..20) {
+                topmost(caption)?.getBoundsInScreen(bounds)
+                if (!bounds.isEmpty) break
+                Thread.sleep(100)
+            }
+            check(!bounds.isEmpty) { "the tutorial did not open" }
+            val width = context.resources.displayMetrics.widthPixels
+            val y = bounds.top - 20
             android.os.ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand(
-                "input swipe ${(width * .85f).toInt()} ${height / 2} ${(width * .15f).toInt()} ${height / 2} 200")).use { it.readBytes() }
+                "input swipe ${(width * .80f).toInt()} $y ${(width * .20f).toInt()} $y 350")).use { it.readBytes() }
             Thread.sleep(1500)
             check(topmost(context.getString(R.string.qmobile_layout_step_double)) != null) { "a swipe to the left did not open the second step" }
             // Back to the right, ending on "Next": one page back, and the button is not pressed as well.

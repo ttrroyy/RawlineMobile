@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
@@ -49,7 +48,6 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
         // Keep the editor hidden when the demo fades between loops.
         setBackgroundColor(Color.BLACK)
         isClickable = true; isFocusable = true
-        alpha = 0f; animate().alpha(1f).setDuration(220).start()
         val column = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL }
         val metrics = resources.displayMetrics
         // The whole screen at its own shape, as the editor's miniature shows it, in the room the caption and buttons leave.
@@ -136,7 +134,7 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
             set(value) { field = value; invalidate() }
         private var t = 0f
         private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-        private val dash = DashPathEffect(floatArrayOf(dp(7f), dp(5f)), 0f)
+        private var dashLines = FloatArray(160)
         private val backdrop = MobileHomeBackdrop()
         private var backdropBitmap: android.graphics.Bitmap? = null
         private val bitmapPaint = Paint(Paint.FILTER_BITMAP_FLAG)
@@ -228,13 +226,43 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
 
         /** A part's dashed outline, breathing as the editor's do. */
         private fun outline(left: Float, top: Float, right: Float, bottom: Float, held: Boolean = false) {
-            box.set(left, top, right, bottom)
-            paint.style = Paint.Style.STROKE; paint.strokeWidth = dp(2f); paint.pathEffect = dash
+            val radius = minOf(dp(MobilePalette.rowDp + 4f), (right - left) / 2, (bottom - top) / 2)
+            if (radius <= 0f) return
+            paint.style = Paint.Style.STROKE; paint.strokeWidth = dp(2f)
             val alpha = if (held) 255 else (157 + 98 * kotlin.math.sin(t * 4200f / 1300f * 6.283f)).toInt()
             paint.color = ColorUtils.setAlphaComponent(MobilePalette.text, alpha)
-            val radius = dp(MobilePalette.rowDp + 4f)
-            c.drawRoundRect(box, radius, radius, paint)
-            paint.pathEffect = null
+            val dash = dp(7f)
+            val interval = dp(12f)
+            var count = 0
+            fun line(x1: Float, y1: Float, x2: Float, y2: Float) {
+                if (count == dashLines.size) dashLines = dashLines.copyOf(count * 2)
+                dashLines[count++] = x1
+                dashLines[count++] = y1
+                dashLines[count++] = x2
+                dashLines[count++] = y2
+            }
+            var x = left + radius
+            while (x < right - radius) {
+                val end = minOf(x + dash, right - radius)
+                line(x, top, end, top)
+                line(x, bottom, end, bottom)
+                x += interval
+            }
+            var y = top + radius
+            while (y < bottom - radius) {
+                val end = minOf(y + dash, bottom - radius)
+                line(left, y, left, end)
+                line(right, y, right, end)
+                y += interval
+            }
+            c.drawLines(dashLines, 0, count, paint)
+            // Short arcs retain the rounded corners without rasterizing a moving dashed path.
+            val diameter = radius * 2
+            val arc = minOf(60f, Math.toDegrees((dash / radius).toDouble()).toFloat())
+            c.drawArc(left, top, left + diameter, top + diameter, 225f - arc / 2, arc, false, paint)
+            c.drawArc(right - diameter, top, right, top + diameter, 315f - arc / 2, arc, false, paint)
+            c.drawArc(right - diameter, bottom - diameter, right, bottom, 45f - arc / 2, arc, false, paint)
+            c.drawArc(left, bottom - diameter, left + diameter, bottom, 135f - arc / 2, arc, false, paint)
         }
 
         // Loaded once each: inflating every icon on every frame made the loop stutter.
