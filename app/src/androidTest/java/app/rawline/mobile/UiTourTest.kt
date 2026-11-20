@@ -630,6 +630,31 @@ class UiTourTest {
             val rendered = Regex("Total frames rendered: (\\d+)").findAll(stats).sumOf { it.groupValues[1].toInt() }
             check(rendered > 0) { "the tutorial produced no frames" }
         },
+        "subscription-action-pressed-shape" to {
+            home("groups")
+            instrumentation.runOnMainSync {
+                val density = context.resources.displayMetrics.density
+                fun px(dp: Int) = (dp * density).toInt()
+                val shape = MobilePalette.subscriptionActionShape(context)
+                shape.setBounds(0, 0, px(40), px(48))
+                val bitmap = Bitmap.createBitmap(px(40), px(48), Bitmap.Config.ARGB_8888)
+                val canvas = android.graphics.Canvas(bitmap)
+                shape.draw(canvas)
+                check(android.graphics.Color.alpha(bitmap.getPixel(px(20), px(24))) == 0)
+                bitmap.eraseColor(android.graphics.Color.TRANSPARENT)
+                shape.state = intArrayOf(android.R.attr.state_enabled, android.R.attr.state_pressed)
+                shape.jumpToCurrentState()
+                shape.draw(canvas)
+                val fill = bitmap.getPixel(px(20), px(24))
+                check(android.graphics.Color.alpha(fill) > 0)
+                check(listOf(6 to 24, 33 to 24, 20 to 10, 20 to 37).all { (x, y) ->
+                    bitmap.getPixel(px(x), px(y)) == fill
+                }) { "the press did not fill the whole rounded square" }
+                check(android.graphics.Color.alpha(bitmap.getPixel(px(3), px(7))) == 0) {
+                    "the press was drawn outside the rounded corner"
+                }
+            }
+        },
     )
 
     /** The editor's choices back to the defaults, then [hiddenSwitch], [hiddenTiles] and [compact]. */

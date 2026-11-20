@@ -401,17 +401,7 @@ class MobileHomeFragment : ToolbarFragment() {
     }
     private fun subscriptionAction(icon: Int, description: String, callback: () -> Unit) =
         iconAction(icon, description, callback = callback).apply {
-            val frame = GradientDrawable().apply {
-                cornerRadius = dp(18).toFloat()
-                setColor(Color.TRANSPARENT)
-                setStroke(dp(1).coerceAtLeast(1), MobilePalette.outline)
-            }
-            val mask = GradientDrawable().apply { cornerRadius = dp(18).toFloat(); setColor(Color.WHITE) }
-            fun inset(shape: GradientDrawable) = android.graphics.drawable.InsetDrawable(shape, dp(2), dp(6), dp(2), dp(6))
-            val press = Color.argb(42, Color.red(foregroundColor), Color.green(foregroundColor), Color.blue(foregroundColor))
-            background = android.graphics.drawable.RippleDrawable(
-                android.content.res.ColorStateList.valueOf(press), inset(frame), inset(mask),
-            )
+            background = MobilePalette.subscriptionActionShape(context)
             setPadding(dp(if (icon == R.drawable.ic_mobile_add) 11 else 9), dp(13), dp(if (icon == R.drawable.ic_mobile_add) 11 else 9), dp(13))
             if (icon == R.drawable.ic_mobile_refresh) {
                 val glyph = drawable

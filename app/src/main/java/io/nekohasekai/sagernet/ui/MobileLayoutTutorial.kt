@@ -350,12 +350,14 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                 val first = right - button * count
                 text(subscription, left + dp(4f), top + dp(23f), dp(16f), bold = true)
                 if (chipHidden) {
-                    surface(first, top, first + button - dp(3f), top + button - dp(3f), radius = dp(9f))
+                    surface(first, top, first + button - dp(3f), top + button - dp(3f), Color.TRANSPARENT,
+                        radius = dp(MobilePalette.subscriptionActionDp.toFloat()))
                     icon(R.drawable.ic_mobile_add, first + button / 2, top + button / 2, dp(18f), MobilePalette.text)
                 }
                 headingIcons.forEachIndexed { index, drawable ->
                     val x = right - button * (headingIcons.size - index)
-                    surface(x, top, x + button - dp(3f), top + button - dp(3f), radius = dp(9f))
+                    surface(x, top, x + button - dp(3f), top + button - dp(3f), Color.TRANSPARENT,
+                        radius = dp(MobilePalette.subscriptionActionDp.toFloat()))
                     icon(drawable, x + button / 2, top + button / 2, dp(18f), MobilePalette.text)
                 }
             }

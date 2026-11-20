@@ -64,6 +64,7 @@ object MobilePalette {
     const val rowDp = 20
     const val cardDp = 28
     const val wellDp = 18
+    const val subscriptionActionDp = 10
     /** A screen's own colour: the screens let the backdrop through. */
     val screen = Color.TRANSPARENT
     /** Over content that must stay readable: notices, dialogs, sheets. */
@@ -84,6 +85,23 @@ object MobilePalette {
     fun rowShape(context: Context): android.graphics.drawable.Drawable = shape(context, rowDp)
     /** A card that holds rows, fields or text: also the dialogs, notices and sheets. */
     fun cardShape(context: Context): android.graphics.drawable.Drawable = shape(context, cardDp)
+    fun subscriptionActionShape(context: Context, verticalInsetDp: Int = 6): android.graphics.drawable.Drawable {
+        val density = context.resources.displayMetrics.density
+        val press = androidx.core.graphics.ColorUtils.setAlphaComponent(text, 42)
+        val frame = android.graphics.drawable.GradientDrawable().apply {
+            cornerRadius = subscriptionActionDp * density
+            setStroke(density.toInt().coerceAtLeast(1), outline)
+            setColor(android.content.res.ColorStateList(
+                arrayOf(intArrayOf(android.R.attr.state_pressed), intArrayOf(android.R.attr.state_focused), intArrayOf()),
+                intArrayOf(press, press, Color.TRANSPARENT),
+            ))
+        }
+        val x = (2 * density).toInt()
+        val y = (verticalInsetDp * density).toInt()
+        // Treat the full-shape state fill as existing feedback so the window does not add a hotspot ripple.
+        return android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(Color.TRANSPARENT),
+            android.graphics.drawable.InsetDrawable(frame, x, y, x, y), null)
+    }
     /** The chosen row or the main action: a tint and an outline of [color], never a solid fill, the same on every theme. */
     fun selectedShape(context: Context, color: Int = accent(context)): android.graphics.drawable.Drawable {
         val density = context.resources.displayMetrics.density

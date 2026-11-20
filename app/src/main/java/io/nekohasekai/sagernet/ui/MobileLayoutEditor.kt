@@ -480,7 +480,10 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             }, LinearLayout.LayoutParams(0, -2, 1f))
             val icons = if (MobileHomeLayout.chipHidden) listOf(R.drawable.ic_mobile_add) else emptyList()
             (icons + listOf(R.drawable.ic_mobile_refresh, R.drawable.ic_mobile_test, R.drawable.ic_mobile_more)).forEach { id ->
-                addView(icon(id).apply { setPadding(dp(10), dp(10), dp(10), dp(10)) }, LinearLayout.LayoutParams(dp(36), dp(36)))
+                addView(icon(id).apply {
+                    background = MobilePalette.subscriptionActionShape(context, verticalInsetDp = 2)
+                    setPadding(dp(10), dp(10), dp(10), dp(10))
+                }, LinearLayout.LayoutParams(dp(36), dp(36)))
             }
         })
         addView(ui.text(getString(R.string.qmobile_layout_preview_routing), 11f, MobilePalette.muted).apply {
