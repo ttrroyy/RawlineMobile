@@ -139,12 +139,7 @@ class UiTourTest {
             return group
         }
         val gb = 1024L * 1024 * 1024
-        group("Sub 1", app.rawline.mobile.database.SubUserInfo(valid = true, hasQuota = true, download = 12 * gb + 400 * 1024 * 1024, total = 200 * gb), listOf(
-            Triple("🇩🇪 Германия", app.rawline.mobile.outbound.types.Vless(), 48),
-            Triple("🇵🇱 Польша", app.rawline.mobile.outbound.types.Hysteria(), 57),
-            Triple("🇱🇻 Латвия", app.rawline.mobile.outbound.types.Mrtt(), 92),
-        ))
-        return group("Sub 2", app.rawline.mobile.database.SubUserInfo(valid = true, hasQuota = true, download = 3 * gb + 800 * 1024 * 1024, total = 0, expire = 1798761600), listOf(
+        return group("Серверы", app.rawline.mobile.database.SubUserInfo(valid = true, hasQuota = true, download = 3 * gb + 800 * 1024 * 1024, total = 200 * gb), listOf(
             Triple("🇳🇱 Нидерланды", app.rawline.mobile.outbound.types.Vless(), 61),
             Triple("🇫🇮 Финляндия", app.rawline.mobile.outbound.types.Qwdtt(), 197),
             Triple("🇸🇪 Швеция", app.rawline.mobile.outbound.types.Csqtt(), 214),
@@ -152,7 +147,7 @@ class UiTourTest {
             Triple("🇱🇹 Литва", app.rawline.mobile.outbound.types.TrustTunnel(), 73),
             Triple("🇫🇷 Франция", app.rawline.mobile.outbound.types.WdttPlus(), 165),
             Triple("🇨🇿 Чехия", app.rawline.mobile.outbound.types.Freeturn(), 142),
-            Triple("S3 · запасной", app.rawline.mobile.outbound.types.S3Bypass(), 158),
+            Triple("🇳🇴 Норвегия", app.rawline.mobile.outbound.types.S3Bypass(), 158),
         ))
     }
     private fun home(mode: String, control: String = "button", bottom: Boolean = false, chip: String = "top", tiles: String = "off", readme: Boolean = false) {
@@ -170,6 +165,23 @@ class UiTourTest {
     }
     private fun orb(connected: Boolean, bottom: Boolean = false, control: String = "button", readme: Boolean = false, lines: Boolean = false) {
         home("groups", control, bottom = bottom, readme = readme)
+        if (readme) {
+            val connectedAt = android.os.SystemClock.elapsedRealtime() - 129_000
+            val host = resumed() as MainActivity
+            // Use the real connected-state rendering with a demo profile and no running VPN.
+            repeat(10) {
+                instrumentation.runOnMainSync {
+                    DataStore.serviceMode = Key.MODE_VPN
+                    DataStore.serviceState = app.rawline.mobile.bg.BaseService.State.Connected
+                    DataStore.mobileConnectedAt = connectedAt
+                    val fragment = host.supportFragmentManager.findFragmentById(R.id.fragment_holder)
+                    check(fragment is MobileHomeFragment)
+                    fragment.updateState()
+                }
+                Thread.sleep(100)
+            }
+            return
+        }
         // The home screen rewrites the state every second from the real service, so it is held here until the picture.
         repeat(24) {
             instrumentation.runOnMainSync {
@@ -182,9 +194,6 @@ class UiTourTest {
                     if (connected && view is android.widget.TextView) {
                         val label = view.text.toString()
                         if (label.startsWith("↓") || label.startsWith("↑")) (view.parent as android.view.View).visibility = android.view.View.VISIBLE
-                        if (readme && label.startsWith("↓")) view.text = "↓ 2,4 МБ/s"
-                        if (readme && label.startsWith("↑")) view.text = "↑ 312 КБ/s"
-                        if (readme && label.startsWith("Нажмите")) view.text = "Подключено · 00:12:49"
                         if (label == context.getString(R.string.qmobile_check_connection)) view.visibility = android.view.View.VISIBLE
                         // The three lines a live connection writes beside the switches, a long subscription name among them.
                         if (lines && view.tag == "switchCell") view.text = listOf("Подключено  00:12:49", "svc-cdn.cloud-node.uk подписка с длинным именем", "🇸🇪 se-tcp-reality-long-server-name")
