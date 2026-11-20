@@ -181,15 +181,25 @@ open class TunSettingsFragment : InboundSettingsFragment(R.xml.settings_tun_comb
         super.bind()
         LanSharingSettings.bind(this)
         reloadOn(
-            SettingsRegistry.VPN_MTU.key, SettingsRegistry.VPN_IPV6.key, SettingsRegistry.VPN_STACK.key,
+            SettingsRegistry.VPN_MTU.key, SettingsRegistry.VPN_IPV6.key,
             SettingsRegistry.ENABLE_TUN_ROUTING.key, SettingsRegistry.BLOCK_UNOWNED_TUN.key, SettingsRegistry.BLOCK_UNOWNED_TUN_STRICT.key, SettingsRegistry.BLOCK_QUIC.key,
             SettingsRegistry.SNIFF_ROUTE_ONLY.key, SettingsRegistry.HTTP_PROXY_AUTH.key,
         )
-        pref<SimpleMenuPreference>(SettingsRegistry.VPN_STACK.key).summaryProvider =
-            Preference.SummaryProvider<SimpleMenuPreference> { stack ->
-                val selected = stack.entry ?: getString(R.string.tun_stack_auto)
-                "$selected\n${getString(R.string.tun_stack_summary)}"
+        val stack = pref<SimpleMenuPreference>(SettingsRegistry.VPN_STACK.key)
+        stack.summaryProvider = Preference.SummaryProvider<SimpleMenuPreference> { preference ->
+            val selected = preference.entry ?: getString(R.string.tun_stack_auto)
+            val description = when (preference.value) {
+                "system" -> R.string.tun_stack_system_summary
+                "gvisor" -> R.string.tun_stack_gvisor_summary
+                "mixed" -> R.string.tun_stack_mixed_summary
+                else -> R.string.tun_stack_summary
             }
+            "$selected\n${getString(description)}"
+        }
+        stack.setOnPreferenceChangeListener { _, next ->
+            if (stack.value.orEmpty() != next) view?.post { needReload() }
+            true
+        }
         val mtu = pref<MTUPreference>(SettingsRegistry.VPN_MTU.key)
         val vpnIpv6 = pref<SwitchPreference>(SettingsRegistry.VPN_IPV6.key)
         validation.bind(mtu.key, Validation.Rules.int(MIN_MTU.toLong(), MAX_MTU.toLong(), Empty.Required)).gate()

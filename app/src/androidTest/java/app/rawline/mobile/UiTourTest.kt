@@ -664,6 +664,34 @@ class UiTourTest {
                 }
             }
         },
+        "tun-stack-help-and-reload" to {
+            val previous = DataStore.vpnStack
+            val state = DataStore.serviceState
+            try {
+                DataStore.vpnStack = ""
+                screen("app.rawline.mobile.ui.settings.TunSettingsFragment")
+                check(centerOf(context.getString(R.string.tun_stack_summary), exact = false) != null)
+                instrumentation.runOnMainSync {
+                    DataStore.serviceState = app.rawline.mobile.bg.BaseService.State.Connected
+                }
+                val title = context.getString(R.string.tun_stack)
+                for ((label, value, description) in listOf(
+                    Triple("System", "system", R.string.tun_stack_system_summary),
+                    Triple("gVisor", "gvisor", R.string.tun_stack_gvisor_summary),
+                    Triple("Mixed", "mixed", R.string.tun_stack_mixed_summary),
+                    Triple(context.getString(R.string.tun_stack_auto), "", R.string.tun_stack_summary),
+                )) {
+                    press(title)
+                    press(label)
+                    check(DataStore.vpnStack == value) { "the selected stack was not saved" }
+                    check(centerOf(context.getString(description), exact = false) != null) { "the selected stack has the wrong help text" }
+                    check(centerOf(context.getString(R.string.need_reload), exact = false) != null) { "no reconnect prompt after stack change" }
+                }
+            } finally {
+                DataStore.serviceState = state
+                DataStore.vpnStack = previous
+            }
+        },
     )
 
     /** The editor's choices back to the defaults, then [hiddenSwitch], [hiddenTiles] and [compact]. */
