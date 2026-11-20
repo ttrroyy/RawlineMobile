@@ -336,7 +336,7 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                 previewClip.addRoundRect(clipBounds, corner, corner, android.graphics.Path.Direction.CW)
             }
             canvas.clipPath(previewClip)
-            if (MobileStyle.pastel || MobilePalette.light) {
+            if (MobileStyle.pastel || MobileStyle.grey || MobilePalette.light) {
                 val bw = (w * k).toInt().coerceAtLeast(1)
                 val bh = (h * k).toInt().coerceAtLeast(1)
                 val texture = backdropBitmap?.takeIf { it.width == bw && it.height == bh }

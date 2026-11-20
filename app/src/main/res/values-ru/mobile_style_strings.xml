@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="qmobile_surface_themes_new"><item>OLED</item><item>Белая</item><item>Pastel</item></string-array>
     <string name="qmobile_quick_menu">Быстрые действия</string>
     <string name="qmobile_orb_idle">Нажмите для подключения</string>
     <string name="qmobile_edit_layout">Редактировать интерфейс</string>

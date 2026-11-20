@@ -10,6 +10,19 @@ class MobileHomeBackdrop : Drawable() {
         if(MobileStyle.pastel) { drawPastel(canvas); return }
         if(MobileStyle.new) {
             // Soft light for the glass to lie on: true black or white stays the base.
+            if (MobileStyle.grey) {
+                val w = bounds.width().toFloat().coerceAtLeast(1f)
+                val h = bounds.height().toFloat().coerceAtLeast(1f)
+                paint.shader = LinearGradient(0f, 0f, w, h,
+                    intArrayOf(Color.rgb(44, 46, 51), Color.rgb(35, 37, 41), Color.rgb(39, 41, 46)),
+                    floatArrayOf(0f, .54f, 1f), Shader.TileMode.CLAMP)
+                canvas.drawRect(bounds, paint)
+                paint.shader = RadialGradient(w * .88f, h * .08f, maxOf(w, h) * .7f,
+                    Color.argb(16, 185, 190, 200), Color.TRANSPARENT, Shader.TileMode.CLAMP)
+                canvas.drawRect(bounds, paint)
+                paint.shader = null
+                return
+            }
             canvas.drawColor(MobilePalette.background)
             if(!MobilePalette.light) return
             val w=bounds.width().toFloat(); val h=bounds.height().toFloat()

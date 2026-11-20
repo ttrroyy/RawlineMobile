@@ -106,6 +106,21 @@
         <item name="qtWellColor">#10000000</item>
         <item name="qtSheetColor">#F8FAFAFC</item>
     </style>
+    <style name="MobileSurfaceNewGrey" parent="MobileSurfaceNewOled">
+        <item name="android:windowBackground">#232529</item>
+        <item name="android:colorBackground">#232529</item>
+        <item name="colorPrimary">#232529</item>
+        <item name="colorPrimaryDark">#232529</item>
+        <item name="colorSurface">#2D3035</item>
+        <item name="colorOnSurface">#F1F2F4</item>
+        <item name="colorOnPrimary">#F1F2F4</item>
+        <item name="android:textColorPrimary">#F1F2F4</item>
+        <item name="android:textColorSecondary">#ADB1B8</item>
+        <item name="colorControlNormal">#ADB1B8</item>
+        <item name="colorAccent">#F1F2F4</item>
+        <item name="qtSheetColor">#F8232529</item>
+        <item name="elevationOverlayEnabled">false</item>
+    </style>
     <!-- Pastel keeps a light bar in the day and a dark one at night, so the status icons stay readable. -->
     <style name="MobileSurfacePastelLight" parent="MobileSurfaceNewWhite">
         <item name="android:windowBackground">#FFE4D6</item>

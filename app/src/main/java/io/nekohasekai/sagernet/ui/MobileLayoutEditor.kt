@@ -75,7 +75,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
-        window.setBackgroundDrawable(if (MobileStyle.pastel) MobileHomeBackdrop() else android.graphics.drawable.ColorDrawable(MobilePalette.background))
+        window.setBackgroundDrawable(if (MobileStyle.pastel || MobileStyle.grey) MobileHomeBackdrop() else android.graphics.drawable.ColorDrawable(MobilePalette.background))
         landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         root = FrameLayout(this)
         val page = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }

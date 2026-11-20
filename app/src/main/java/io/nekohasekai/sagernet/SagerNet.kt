@@ -95,7 +95,7 @@ class SagerNet : Application(),
             // 1.1.3 has one interface, Rawline, with three palettes: OLED, White and Pastel. The classic and the old
             // themes go; a palette that followed the system becomes the one in use now, Pastel stays as it was.
             if (!DataStore.configurationStore.getBoolean("rawline_only_113_migrated", false)) {
-                if (DataStore.uiStyle != "pastel") {
+                if (DataStore.uiStyle != "pastel" && DataStore.uiStyle != "grey") {
                     DataStore.uiStyle = "new"
                     if (DataStore.nightTheme == 0) DataStore.nightTheme = if (app.rawline.mobile.utils.Theme.usingNightMode()) 1 else 2
                 }

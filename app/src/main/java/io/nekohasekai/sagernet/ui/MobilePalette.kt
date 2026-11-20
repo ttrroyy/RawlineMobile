@@ -6,22 +6,23 @@ import app.rawline.mobile.database.DataStore
 import app.rawline.mobile.utils.Theme
 import com.google.android.material.color.MaterialColors
 
-/** One interface, Rawline's; Pastel is a palette of it, chosen with the theme. */
+/** Rawline's home layout with its selectable palettes. */
 object MobileStyle {
     val pastel get() = DataStore.uiStyle == "pastel"
-    /** Black or white (OLED / White); the stored "classic" of older versions reads as this too. */
+    val grey get() = DataStore.uiStyle == "grey"
+    /** The neutral palettes, including the stored "classic" from older versions. */
     val new get() = !pastel
     const val modern = true
 }
 
 object MobilePalette {
-    /** Every night is OLED black, except Pastel's, which stays plum. */
-    val oled get() = Theme.usingNightMode() && !MobileStyle.pastel
+    val oled get() = Theme.usingNightMode() && !MobileStyle.pastel && !MobileStyle.grey
     val light get() = !oled && !Theme.usingNightMode()
     private val lilac = Color.rgb(0x7C, 0x6B, 0xF2)
     val background get() = when {
         MobileStyle.pastel && light -> Color.rgb(255, 228, 214)
         MobileStyle.pastel -> Color.rgb(22, 20, 31)
+        MobileStyle.grey -> Color.rgb(35, 37, 41)
         light -> Color.WHITE
         else -> Color.BLACK
     }
@@ -35,6 +36,7 @@ object MobilePalette {
     val solid get() = when {
         MobileStyle.pastel && light -> Color.rgb(255, 247, 252)
         MobileStyle.pastel -> Color.rgb(36, 31, 51)
+        MobileStyle.grey -> Color.rgb(45, 48, 53)
         light -> Color.rgb(243, 243, 246)
         else -> Color.rgb(21, 21, 24)
     }
@@ -42,12 +44,14 @@ object MobilePalette {
     val text get() = when {
         MobileStyle.pastel && light -> Color.rgb(0x1B, 0x1C, 0x2A)
         MobileStyle.pastel -> Color.rgb(0xF4, 0xF2, 0xFA)
+        MobileStyle.grey -> Color.rgb(241, 242, 244)
         light -> Color.rgb(10, 10, 11)
         else -> Color.rgb(245, 245, 247)
     }
     val muted get() = when {
         MobileStyle.pastel && light -> Color.rgb(110, 108, 136)
         MobileStyle.pastel -> Color.rgb(176, 170, 198)
+        MobileStyle.grey -> Color.rgb(173, 177, 184)
         light -> Color.rgb(105, 105, 112)
         else -> Color.rgb(142, 142, 150)
     }
@@ -74,6 +78,7 @@ object MobilePalette {
     val frosted get() = when {
         MobileStyle.pastel && light -> Color.argb(248, 255, 250, 252)
         MobileStyle.pastel -> Color.argb(248, 24, 20, 36)
+        MobileStyle.grey -> Color.argb(248, 35, 37, 41)
         light -> Color.argb(248, 250, 250, 252)
         else -> Color.argb(248, 0, 0, 0)
     }

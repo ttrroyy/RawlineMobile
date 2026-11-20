@@ -134,11 +134,13 @@ class AppearanceSettingsFragment : SettingsScreenFragment(R.xml.settings_appeara
         pref<SimpleMenuPreference>("qmobileSurfaceTheme").apply {
             showSurfaceChoice(this)
             setOnPreferenceChangeListener { _, selected ->
-                // Pastel is a palette of its own, light by day and plum at night as the system has it; the others are
-                // black or white.
-                DataStore.uiStyle = if (selected == "pastel") "pastel" else "new"
+                DataStore.uiStyle = when (selected) {
+                    "pastel-dark", "pastel-light" -> "pastel"
+                    "grey" -> "grey"
+                    else -> "new"
+                }
                 DataStore.amoledTheme = false
-                DataStore.nightTheme = when (selected) { "pastel" -> 0; "light" -> 2; else -> 1 }
+                DataStore.nightTheme = if (selected == "light" || selected == "pastel-light") 2 else 1
                 Theme.currentNightMode = DataStore.nightTheme
                 // The recreated host applies night mode. Applying it here as well
                 // causes a second recreation while the old preference row is rebinding.
@@ -155,7 +157,9 @@ class AppearanceSettingsFragment : SettingsScreenFragment(R.xml.settings_appeara
 
     private fun showSurfaceChoice(preference: SimpleMenuPreference) {
         preference.value = when {
-            app.rawline.mobile.ui.MobileStyle.pastel -> "pastel"
+            app.rawline.mobile.ui.MobileStyle.pastel ->
+                if (app.rawline.mobile.ui.MobilePalette.light) "pastel-light" else "pastel-dark"
+            app.rawline.mobile.ui.MobileStyle.grey -> "grey"
             DataStore.nightTheme == 2 -> "light"
             else -> "oled"
         }

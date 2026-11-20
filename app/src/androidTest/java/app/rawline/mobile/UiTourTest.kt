@@ -701,6 +701,31 @@ class UiTourTest {
                 DataStore.vpnStack = previous
             }
         },
+        "appearance-palette-selection" to {
+            allowBatteryForTour()
+            screen("app.rawline.mobile.ui.settings.AppearanceSettingsFragment")
+            val title = context.getString(R.string.theme)
+            for ((name, style, night) in listOf(
+                Triple("Rawline Pastel Dark", "pastel", 1),
+                Triple("Rawline Pastel Light", "pastel", 2),
+                Triple("Rawline Grey", "grey", 1),
+                Triple("Rawline White", "new", 2),
+                Triple("Rawline OLED", "new", 1),
+            )) {
+                press(title)
+                if (centerOf(name, exact = false) == null) {
+                    val from = checkNotNull(centerOf("Rawline Pastel Dark", exact = false))
+                    val to = checkNotNull(centerOf("Rawline OLED", exact = false))
+                    android.os.ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand(
+                        "input swipe ${from[0]} ${from[1]} ${to[0]} ${to[1]} 350",
+                    )).use { it.readBytes() }
+                    Thread.sleep(600)
+                }
+                press(name, exact = false)
+                check(DataStore.uiStyle == style && DataStore.nightTheme == night) { "incorrect saved palette for $name" }
+                check(centerOf(name) != null) { "saved palette label $name is missing from settings" }
+            }
+        },
     )
 
     /** The editor's choices back to the defaults, then [hiddenSwitch], [hiddenTiles] and [compact]. */
