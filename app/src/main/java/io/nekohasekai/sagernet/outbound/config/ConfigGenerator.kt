@@ -813,6 +813,7 @@ class ConfigGenerator @JvmOverloads constructor(
         class PlannedMember(val member: SelectorMember, val hopIds: List<Long>, val bridges: MemberBridges, val origin: HopOrigin)
 
         // One member the core rejects fails the whole group's start, so drop it instead.
+        val existingCarrierIds = state.carrierPlans.keys.toSet()
         val rejected = rejectedMembers(chains, reads, plan.build)
         val plannedMembers = ArrayList<PlannedMember>()
         val qwdttSessions = mutableMapOf<List<String>, Long>()
@@ -841,6 +842,8 @@ class ConfigGenerator @JvmOverloads constructor(
             val origin = HopOrigin(selector, listOf(ChainGroup(memberGroup.name, memberGroup.landingProxyId, memberGroup.frontProxyId)))
             plannedMembers.add(PlannedMember(member, hopIds, bridges, origin))
         }
+        // Preliminary validation may have prepared bridges for candidates that will never be emitted.
+        state.carrierPlans.keys.retainAll(existingCarrierIds + plannedMembers.flatMap { it.hopIds })
         // One batch for every member: reserving per member can deal the same port twice.
         val bridgePorts = state.ports.reserve(bridgeCount)
         var portIdx = 0
