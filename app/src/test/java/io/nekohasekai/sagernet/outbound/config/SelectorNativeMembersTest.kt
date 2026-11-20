@@ -4,15 +4,17 @@ import app.rawline.mobile.outbound.`import`.ProfileImport
 import app.rawline.mobile.outbound.json.JsonInput
 import app.rawline.mobile.outbound.json.JsonObject
 import app.rawline.mobile.outbound.types.AutoSelector
+import app.rawline.mobile.outbound.types.Qwdtt
 import org.junit.Assert.*
 import org.junit.Test
 
 /** An auto-selector of VK-call servers alone builds: the core check never sees their bridgeless outbound. */
 class SelectorNativeMembersTest {
     @Test fun selectorKeepsThePinnedProfileWhenTwoQwdttProfilesShareTheSameSession() {
-        val link = "qwdtt://config?peer=192.0.2.1%3A56002&pass=fixture&hashes=demo_hash_123456789&device_id=fixture-device"
-        val first = ProfileImport.parse(link).outbounds.single()
-        val second = ProfileImport.parse(link + "&workers=4").outbounds.single()
+        val link = "qwdtt://config?peer=192.0.2.1%3A56002&pass=fixture&hashes=demo_hash_123456789"
+        val first = (ProfileImport.parse(link).outbounds.single() as Qwdtt).apply { deviceId = "fixture-device" }
+        val second = (ProfileImport.parse(link + "&workers=4").outbounds.single() as Qwdtt).apply { deviceId = first.deviceId }
+        assertEquals(first.probeSessionKey(), second.probeSessionKey())
         val members = listOf(SelectorMember(1, first, 0, 0, ""), SelectorMember(2, second, 0, 0, ""))
         val selector = AutoSelector().apply { gids = mutableListOf(5); pinnedID = 2L }
         val routing = RoutingInput(RoutingInput.DEFAULT.profile, RoutingInput.DEFAULT.catalog,
