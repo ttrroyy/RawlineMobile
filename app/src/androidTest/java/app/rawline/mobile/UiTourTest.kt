@@ -118,10 +118,15 @@ class UiTourTest {
         })
         return group to SagerDatabase.proxyDao.getByGroup(group.id).first()
     }
+    private fun allowBatteryForTour() {
+        android.os.ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand(
+            "cmd deviceidle whitelist +" + context.packageName,
+        )).use { it.readBytes() }
+    }
+
     /** Pictures for the README: made-up subscriptions and servers of the supported protocols, nothing private. */
     private fun demo(): ProxyGroup {
-        // No battery prompt over the picture.
-        android.os.ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand("cmd deviceidle whitelist +" + context.packageName)).use { it.readBytes() }
+        allowBatteryForTour()
         SagerDatabase.groupDao.allGroups().filter { it.name == "Sub 3" }.forEach { SagerDatabase.groupDao.deleteById(it.id) }
         val now = System.currentTimeMillis() / 1000
         fun group(name: String, info: app.rawline.mobile.database.SubUserInfo, servers: List<Triple<String, app.rawline.mobile.outbound.Outbound, Int>>): ProxyGroup {
@@ -449,7 +454,10 @@ class UiTourTest {
         "layout-tutorial-$step" to {
             layout()
             editor(tutorial = true)
-            repeat(step) { tap(R.string.qmobile_layout_tutorial_next) }
+            repeat(step) { press(context.getString(R.string.qmobile_layout_tutorial_next)) }
+            val captions = listOf(R.string.qmobile_layout_step_drag, R.string.qmobile_layout_step_double,
+                R.string.qmobile_layout_step_pinch, R.string.qmobile_layout_step_remove, R.string.qmobile_layout_step_scroll)
+            check(centerOf(context.getString(captions[step])) != null) { "the requested tutorial step was not shown" }
             Thread.sleep(2100L - if (step > 0) 2000L else 0L)
         }
     } + listOf(
@@ -669,6 +677,7 @@ class UiTourTest {
             val state = DataStore.serviceState
             try {
                 DataStore.vpnStack = ""
+                allowBatteryForTour()
                 screen("app.rawline.mobile.ui.settings.TunSettingsFragment")
                 check(centerOf(context.getString(R.string.tun_stack_summary), exact = false) != null)
                 instrumentation.runOnMainSync {

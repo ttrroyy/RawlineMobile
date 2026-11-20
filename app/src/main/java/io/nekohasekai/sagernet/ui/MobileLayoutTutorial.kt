@@ -540,13 +540,13 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                     val hidden = t >= .27f && t < .71f
                     tiles(tilesTop); outlineAround(tilesTop, tile, 1f); strip(tilesTop, 1f, false)
                     chip(chipTop, if (hidden) .3f else 1f)
+                    finger(chipActionX, chipActionY, pulse(.22f) + pulse(.66f), span(.12f, .2f) * (1 - span(.78f, .86f)))
                     chipControls(hidden)
                     val top = body
                     block(top, orbHeight, grown = 1f) { drawOrb(it, orbSize) }
                     strip(top, 1f, false)
                     val headerTop = listTop(orbHeight, 1f)
                     groupHeader(headerTop, hidden); rows(headerTop + headingSpace)
-                    finger(chipActionX, chipActionY, pulse(.22f) + pulse(.66f), span(.12f, .2f) * (1 - span(.78f, .86f)))
                 }
                 Step.SCROLL -> {
                     val joined = t >= .25f && t < .77f
