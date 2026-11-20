@@ -32,7 +32,7 @@ runs:
         java-version: '17'
     - name: RawlineCore AAR and schema
       uses: ./.github/actions/rawline-core
-    - name: Install Go for qWDTT 1.4.5
+    - name: Install Go for native transports
       uses: actions/setup-go@v7
       with:
         go-version: '1.27.0'
@@ -54,6 +54,29 @@ runs:
           test -s "deployment/qwdtt145/$ABI/libqwdtt.so"
           cp "deployment/qwdtt145/$ABI/libqwdtt.so" "deployment/carriers/$ABI/libqwdtt.so"
           cp "deployment/qwdtt145/$ABI/SOURCES.txt" "app/src/main/assets/carrier-licenses/$ABI/qWDTT-1.4.5-SOURCES.txt"
+        done
+    - name: Cache FreeTurn clients
+      id: freeturn-cache
+      uses: actions/cache@v6
+      with:
+        path: deployment/freeturn
+        key: freeturn-ndk28-${{ hashFiles('scripts/build_freeturn.sh', 'carriers/freeturn/*.go') }}
+    - name: Build FreeTurn clients from pinned source
+      if: steps.freeturn-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install 'ndk;28.2.13676358'
+        export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/28.2.13676358"
+        for ABI in arm64-v8a armeabi-v7a x86_64; do bash scripts/build_freeturn.sh "$ABI"; done
+    - name: Stage FreeTurn clients
+      shell: bash
+      run: |
+        for ABI in arm64-v8a armeabi-v7a x86_64; do
+          source="deployment/freeturn/$ABI"
+          (cd "$source"; sha256sum -c SHA256SUMS)
+          cp "$source/libfreeturn.so" "deployment/carriers/$ABI/"
+          cp "$source/FreeTurn-LICENSE" "app/src/main/assets/carrier-licenses/$ABI/"
+          cp "$source/SOURCES.txt" "app/src/main/assets/carrier-licenses/$ABI/FreeTurn-SOURCES.txt"
         done
     - name: Fetch routeprofiles snapshot
       uses: ./.github/actions/routeprofiles

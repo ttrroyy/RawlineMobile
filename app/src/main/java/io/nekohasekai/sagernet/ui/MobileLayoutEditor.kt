@@ -61,7 +61,6 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
     /** Where the parts stand: the column itself upright, a side column beside the list when the screen lies. */
     private lateinit var host: LinearLayout
     private lateinit var list: FrameLayout
-    private lateinit var restoreChip: android.view.MenuItem
     private val switchCells = mutableListOf<View>()
     private lateinit var root: FrameLayout
     private var landscape = false
@@ -84,11 +83,6 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             title = getString(R.string.qmobile_edit_layout)
             setTitleTextColor(MobilePalette.text)
             setNavigationIcon(R.drawable.baseline_arrow_back_24); setNavigationOnClickListener { onBackPressedDispatcher.onBackPressed() }
-            restoreChip = menu.add(R.string.qmobile_layout_restore_subscription).apply {
-                setIcon(R.drawable.ic_mobile_add)
-                setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS)
-                setOnMenuItemClickListener { setChipHidden(false); true }
-            }
         })
         column = LinearLayout(this).apply {
             orientation = if (landscape) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
@@ -201,7 +195,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             add(Part.CONTROL)
             if (tilesNear) add(Part.TILES)
             if (MobileHomeLayout.chipNearList) add(Part.CHIP)
-        }.filter(::visible)
+        }
         fun add(part: Part) = host.addView(parts.getValue(part), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         // As the home screen stacks them: the parts that stay on the screen first, then those that scroll with the list.
         val joined = joinedParts()
@@ -225,7 +219,6 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
             column.addView(list, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(8) })
             order.reversed().filter(::isBottom).forEach(::add)
         }
-        restoreChip.isVisible = MobileHomeLayout.chipHidden
         updateJoins()
     }
 
@@ -244,7 +237,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         // Touches go through the miniature; a remote, keyboard or screen reader gets the same choices as a menu.
         tag = MobileFeedback.NONE
         isFocusable = true
-        setOnClickListener { menu(part, it) }
+        setOnClickListener { if (part == Part.CHIP && MobileHomeLayout.chipHidden) setChipHidden(false) else menu(part, it) }
         setOnFocusChangeListener { view, focused -> view.animate().scaleX(if (focused) 1.02f else 1f).scaleY(if (focused) 1.02f else 1f).setDuration(120).start() }
         addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> if (dragged == part) follow() }
     }
@@ -309,6 +302,7 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
 
     private fun setChipHidden(hidden: Boolean) {
         MobileHomeLayout.chipHidden = hidden
+        fill(Part.CHIP)
         fill(Part.GROUP_HEADER)
         rearrange()
     }
@@ -377,6 +371,14 @@ class MobileLayoutEditorActivity : ServerScreenActivity() {
         val box = parts.getValue(part)
         box.removeAllViews()
         val items = mutableListOf<LayoutAction>()
+        if (part == Part.CHIP && MobileHomeLayout.chipHidden) {
+            shownJoined[part] = false
+            padFrame(box, false)
+            box.addView(removable(chip(), true, items) { setChipHidden(false) }, FrameLayout.LayoutParams(-1, dp(48)))
+            items.last().first.contentDescription = getString(R.string.qmobile_layout_restore_subscription)
+            actions[part] = items
+            return
+        }
         box.addView(when (part) {
             Part.TILES -> tiles(items)
             Part.CHIP -> chip()

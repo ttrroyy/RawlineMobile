@@ -6,9 +6,9 @@ import org.json.JSONObject
 
 /** The JSON RPC of FreeTurn's own install.sh, as its app runs it over SSH: one command, one answer line. */
 object FreeturnRpc {
-    const val VERSION = "v4.1.2"
-    const val INSTALLER = "https://github.com/hackdiaz-dev/free-turn-proxy/releases/download/v4.1.2/install.sh"
-    const val INSTALLER_SHA256 = "91fcea2aa5558d019431da31aa1f32baa0ffb943600529810e073ffa22f83100"
+    const val VERSION = "v4.2.1"
+    const val INSTALLER = "https://github.com/hackdiaz-dev/free-turn-proxy/releases/download/$VERSION/install.sh"
+    const val INSTALLER_SHA256 = "e17725c29237d344c1607d1391c91d977521834508640dc158f9b21c06414916"
     const val SCRIPT = "/opt/free-turn-proxy/install-rawline.sh"
     val METHODS = listOf("docker", "systemd")
     val BACKENDS = listOf("new", "external")

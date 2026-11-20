@@ -815,8 +815,9 @@ class ConfigGenerator @JvmOverloads constructor(
         // One member the core rejects fails the whole group's start, so drop it instead.
         val rejected = rejectedMembers(chains, reads, plan.build)
         val plannedMembers = ArrayList<PlannedMember>()
+        val qwdttSessions = mutableMapOf<List<String>, Long>()
         var bridgeCount = 0
-        for (id in plan.build) {
+        for (id in plan.build.sortedBy { it != selector.pinnedID }) {
             if (id in rejected) continue
             val member = plan.member(id) ?: continue
             // each member goes through the landing / front proxy of its own group
@@ -826,6 +827,15 @@ class ConfigGenerator @JvmOverloads constructor(
             if (memberGroup.landingProxyId > 0) hopIds.add(memberGroup.landingProxyId)
             hopIds.add(id)
             if (memberGroup.frontProxyId > 0) hopIds.add(memberGroup.frontProxyId)
+            // Separate profiles with the same qWDTT device and peer cannot run together.
+            val sessions = hopIds.mapNotNull { hop ->
+                val profile = reads.get(hop) as? app.rawline.mobile.outbound.types.Qwdtt
+                profile?.takeIf { it.carrierKind == app.rawline.mobile.bg.carrier.CarrierKind.QWDTT }
+                    ?.probeSessionKey()?.drop(1)?.let { it to hop }
+            }.distinct()
+            if (sessions.map { it.first }.toSet().size != sessions.size ||
+                sessions.any { (key, hop) -> qwdttSessions[key]?.let { it != hop } == true }) continue
+            qwdttSessions.putAll(sessions)
             val bridges = chains.bridgesFor(hopIds)
             bridgeCount += bridges.count
             val origin = HopOrigin(selector, listOf(ChainGroup(memberGroup.name, memberGroup.landingProxyId, memberGroup.frontProxyId)))

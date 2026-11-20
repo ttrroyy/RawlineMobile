@@ -66,7 +66,14 @@ internal object CarrierUiRequests {
     fun pending(): Intent? = locked { runCatching {
         val json=JSONObject(String(file().readFully(),Charsets.UTF_8))
         val owner=json.optInt("ownerPid")
-        if(json.getLong("expires")<=System.currentTimeMillis() || owner<=0 || !File("/proc/$owner").isDirectory) {
+        // Android may hide /proc entries of another process even for the app's own service.
+        val ownerAlive = owner > 0 && try {
+            android.system.Os.kill(owner, 0)
+            true
+        } catch (error: android.system.ErrnoException) {
+            error.errno == android.system.OsConstants.EPERM
+        }
+        if(json.getLong("expires")<=System.currentTimeMillis() || !ownerAlive) {
             file().delete();app.getSystemService(android.app.NotificationManager::class.java).cancel(notificationId)
             return@runCatching null
         }

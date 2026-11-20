@@ -402,11 +402,11 @@ class MobileHomeFragment : ToolbarFragment() {
     private fun subscriptionAction(icon: Int, description: String, callback: () -> Unit) =
         iconAction(icon, description, callback = callback).apply {
             val frame = GradientDrawable().apply {
-                cornerRadius = dp(10).toFloat()
+                cornerRadius = dp(18).toFloat()
                 setColor(Color.TRANSPARENT)
                 setStroke(dp(1).coerceAtLeast(1), MobilePalette.outline)
             }
-            val mask = GradientDrawable().apply { cornerRadius = dp(10).toFloat(); setColor(Color.WHITE) }
+            val mask = GradientDrawable().apply { cornerRadius = dp(18).toFloat(); setColor(Color.WHITE) }
             fun inset(shape: GradientDrawable) = android.graphics.drawable.InsetDrawable(shape, dp(2), dp(6), dp(2), dp(6))
             val press = Color.argb(42, Color.red(foregroundColor), Color.green(foregroundColor), Color.blue(foregroundColor))
             background = android.graphics.drawable.RippleDrawable(
@@ -944,7 +944,8 @@ class MobileHomeFragment : ToolbarFragment() {
                     val pair=LinearLayout(requireContext()).apply { isBaselineAligned=false;if(landscape) orientation=LinearLayout.VERTICAL }
                     val hiddenSwitch=MobileHomeLayout.hiddenSwitch
                     val switchHeight=dp(if(MobileHomeLayout.compactControl) 44 else 52)
-                    val switches=MobileHomeLayout.modeSwitches().filter { it.first!=hiddenSwitch }.mapIndexed { index,(mode,label) ->
+                    val orderedSwitches = MobileHomeLayout.modeSwitches()
+                    val switches=orderedSwitches.filter { it.first!=hiddenSwitch }.mapIndexed { index,(mode,label) ->
                         // The switch only shows the state of the service, so a declined VPN request leaves it off.
                         val switch=androidx.appcompat.widget.SwitchCompat(requireContext()).apply {
                             isClickable=false;isFocusable=false
@@ -975,9 +976,14 @@ class MobileHomeFragment : ToolbarFragment() {
                         // The removed switch's half shows the state and the server in use, so no gap is left.
                         power?.let { cell ->
                             cell.tag=SWITCH_CELL;cell.gravity=Gravity.START or Gravity.CENTER_VERTICAL;cell.setPadding(dp(10),dp(2),dp(6),dp(2));cell.minimumHeight=switchHeight
+                            cell.maxLines=4;cell.ellipsize=android.text.TextUtils.TruncateAt.END
                             // Free room, not a button: the text sits on the screen beside the remaining switch.
                             cell.background=null
-                            pair.addView(cell,if(landscape) LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(6) } else LinearLayout.LayoutParams(0,-1,1f).apply { marginStart=dp(8) })
+                            val slot = orderedSwitches.indexOfFirst { it.first == hiddenSwitch }
+                            if (slot == 0) (pair.getChildAt(0).layoutParams as LinearLayout.LayoutParams).apply {
+                                if (landscape) topMargin = dp(6) else marginStart = dp(8)
+                            }
+                            pair.addView(cell, slot, if(landscape) LinearLayout.LayoutParams(-1,-2).apply { if(slot>0) topMargin=dp(6) } else LinearLayout.LayoutParams(0,-1,1f).apply { if(slot>0) marginStart=dp(8) })
                         }
                     }
                     // Docked at the bottom, the state and the server in use sit above the switches, read first.
@@ -1547,7 +1553,7 @@ class MobileHomeFragment : ToolbarFragment() {
         }
     }
     private fun checkCurrentConnection() {
-        if(!DataStore.serviceState.connected) return
+        if(!DataStore.serviceState.connected || currentTestArmed) return
         val session=TestSessionClient.state.value
         val accepted=if(session.running) session.testCurrent && session.kind==TestSpec.KIND_URL
             else TestSessionClient.startCurrent(TestSpec.KIND_URL)
@@ -1618,7 +1624,7 @@ class MobileHomeFragment : ToolbarFragment() {
                 // Half a row is narrow for the state and the time: the time alone then, it says connected by itself.
                 val label=listOf(if(state.connected && room>0f && paint.measureText(first)>room) elapsed+workers else first,group,server)
                     .filter { it.isNotEmpty() }
-                    .joinToString("\n") { if(room>0f) android.text.TextUtils.ellipsize(it,paint,room,android.text.TextUtils.TruncateAt.END).toString() else it }
+                    .joinToString("\n") { if(room>0f && tag != SWITCH_CELL) android.text.TextUtils.ellipsize(it,paint,room,android.text.TextUtils.TruncateAt.END).toString() else it }
                 if(text.toString()!=label) text=label
             }
             val fontSize=textSize

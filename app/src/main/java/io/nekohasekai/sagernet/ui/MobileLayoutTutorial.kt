@@ -180,8 +180,6 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
             duration = 4200; repeatCount = ValueAnimator.INFINITE; interpolator = LinearInterpolator()
             addUpdateListener {
                 t = it.animatedValue as Float
-                // The loop fades out and back in, so it never jumps back to its start: the view's alpha, no offscreen layer.
-                alpha = span(0f, .04f) * (1 - span(.95f, 1f))
                 invalidate()
             }
         }
@@ -311,11 +309,12 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                     icon(res, x + each / 2, y + tile / 2, dp(24f), MobilePalette.text)
                 }
             }
-            fun chip(y: Float) {
-                surface(left, y, right - tile - gap, y + tile)
-                text(subscription, left + dp(16f), y + tile / 2 + dp(6f), dp(16f), bold = true)
-                surface(right - tile, y, right, y + tile)
-                icon(R.drawable.ic_mobile_add, right - tile / 2, y + tile / 2, dp(24f), MobilePalette.text)
+            fun chip(y: Float, fade: Float = 1f) {
+                surface(left, y, right - tile - gap, y + tile, fade = fade)
+                text(subscription, left + dp(16f), y + tile / 2 + dp(6f), dp(16f),
+                    ColorUtils.setAlphaComponent(MobilePalette.text, (255 * fade).toInt()), bold = true)
+                surface(right - tile, y, right, y + tile, fade = fade)
+                icon(R.drawable.ic_mobile_add, right - tile / 2, y + tile / 2, dp(24f), MobilePalette.text, fade)
             }
             fun groupHeader(top: Float, chipHidden: Boolean = false) {
                 val button = dp(33f)
@@ -447,14 +446,13 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                 }
                 Step.REMOVE -> {
                     val hidden = t >= .27f && t < .71f
-                    val shift = if (hidden) tile + strip + frame * 2 + gap else 0f
+                    val shift = if (hidden) strip else 0f
                     tiles(tilesTop); outlineAround(tilesTop, tile, 1f); strip(tilesTop, 1f, false)
-                    val bx = w - side - dp(27f)
-                    val by = if (hidden) dp(18f) else chipTop - frame - strip + dp(19f)
-                    if (!hidden) {
-                        chip(chipTop); outlineAround(chipTop, tile, 1f)
-                        strip(chipTop, 1f, false, swap = false)
-                    }
+                    val bx = if (hidden) right - dp(13f) else w - side - dp(27f)
+                    val by = if (hidden) chipTop - shift + dp(13f) else chipTop - frame - strip + dp(19f)
+                    chip(chipTop - shift, if (hidden) .3f else 1f)
+                    outlineAround(chipTop - shift, tile, if (hidden) 0f else 1f)
+                    if (!hidden) strip(chipTop, 1f, false, swap = false)
                     badge(if (hidden) R.drawable.ic_mobile_add else R.drawable.ic_layout_remove,
                         bx, by, if (hidden) accent else MobilePalette.badge, dp(26f), dp(5f))
                     val top = body - shift
@@ -486,6 +484,9 @@ class MobileLayoutTutorial(context: Context, private val onClose: () -> Unit) : 
                         span(.08f, .16f) * (1 - span(.8f, .88f)))
                 }
             }
+            // Fade inside the clipped card to avoid compositing a translucent layer for the entire demo.
+            val fade = span(0f, .04f) * (1 - span(.95f, 1f))
+            if (fade < 1f) canvas.drawColor(Color.argb((255 * (1 - fade)).toInt(), 0, 0, 0))
             canvas.restore()
         }
     }

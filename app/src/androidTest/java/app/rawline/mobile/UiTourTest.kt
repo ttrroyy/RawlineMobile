@@ -360,8 +360,8 @@ class UiTourTest {
                 touch(android.view.MotionEvent.ACTION_UP, switchX, switchY, swapAt)
                 check(MobileHomeLayout.proxySwitchFirst && DataStore.serviceMode == mode) { "holding a switch did not only change the layout" }
                 press(context.getString(R.string.qmobile_layout_remove_subscription))
-                check(MobileHomeLayout.chipHidden && centerOf(context.getString(R.string.qmobile_layout_chip)) == null) {
-                    "the removed subscription block is still in the editor"
+                check(MobileHomeLayout.chipHidden && centerOf(context.getString(R.string.qmobile_layout_chip)) != null) {
+                    "the disabled subscription block lost its placeholder"
                 }
                 press(context.getString(R.string.qmobile_layout_restore_subscription))
                 check(!MobileHomeLayout.chipHidden) { "the subscription block did not return" }

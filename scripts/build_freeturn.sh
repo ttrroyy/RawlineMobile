@@ -2,7 +2,7 @@
 set -euo pipefail
 ABI=${1:?Android ABI is required}
 ROOT=$(pwd)
-FREETURN=6d857e1e847a38fdee3e150314fb37009e3c37a6
+FREETURN=11f81346cb398b157975107872aad5d6a4143149
 GVISOR=v0.0.0-20260906120324-45bde0d1defa
 case "$ABI" in
   arm64-v8a) ARCH=arm64; CLANG=aarch64-linux-android ;;
@@ -11,6 +11,7 @@ case "$ABI" in
   *) exit 2 ;;
 esac
 SOURCE=$(mktemp -d)
+trap 'rm -rf -- "$SOURCE"' EXIT
 git init -q "$SOURCE"
 git -C "$SOURCE" fetch -q --depth=1 https://github.com/hackdiaz-dev/free-turn-proxy.git "$FREETURN"
 git -C "$SOURCE" checkout -q FETCH_HEAD
