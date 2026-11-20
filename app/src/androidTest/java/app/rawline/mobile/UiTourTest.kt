@@ -233,9 +233,26 @@ class UiTourTest {
         if (reset) { MobileHomeLayout.tilesNearList = false; MobileHomeLayout.tilesBottom = false; MobileHomeLayout.controlBottom = false; MobileHomeLayout.chipBottom = false; MobileHomeLayout.chipNearList = false; MobileHomeLayout.extendedTiles = false; MobileHomeLayout.controlSwitches = false }
         open(MobileLayoutEditorActivity::class.java)
     }
-    private fun shot(name: String) {
-        val bitmap = requireNotNull(instrumentation.uiAutomation.takeScreenshot())
-        try { File(context.filesDir, "tour-$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 90, it) } } finally { bitmap.recycle() }
+    private fun shot(name: String, contentOnly: Boolean = false) {
+        val screenshot = requireNotNull(instrumentation.uiAutomation.takeScreenshot())
+        try {
+            var top = 0
+            if (contentOnly) instrumentation.runOnMainSync {
+                val decor = resumed().window.decorView
+                val insets = androidx.core.view.ViewCompat.getRootWindowInsets(decor)
+                top = insets?.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())?.top ?: 0
+            }
+            val bitmap = if (top in 1 until screenshot.height) {
+                Bitmap.createBitmap(screenshot, 0, top, screenshot.width, screenshot.height - top)
+            } else screenshot
+            try {
+                File(context.filesDir, "tour-$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 90, it) }
+            } finally {
+                if (bitmap !== screenshot) bitmap.recycle()
+            }
+        } finally {
+            screenshot.recycle()
+        }
     }
 
     private val screens: List<Pair<String, () -> Unit>> = listOf(
@@ -759,6 +776,6 @@ class UiTourTest {
         DataStore.selectedProxy = fixtures().second.id
         // A failing step leaves its picture: the instrumentation output does not reach the job log.
         runCatching(go).onFailure { shot("$style$night-%02d-%s-failed".format(index, name)); throw it }
-        shot("$style$night-%02d-%s".format(index, name))
+        shot("$style$night-%02d-%s".format(index, name), contentOnly = name.startsWith("readme-"))
     }
 }
