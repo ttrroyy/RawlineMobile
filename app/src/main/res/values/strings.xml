@@ -971,8 +971,8 @@
     <string name="grp_state_queued">Queued</string>
     <string name="grp_state_running">Updating…</string>
     <string name="grp_share_subscription">Share subscription link</string>
-    <string name="grp_copy_links">Copy profile share links</string>
-    <string name="grp_copy_deep_links">Copy profile share links (deep links)</string>
+    <string name="grp_copy_links">Copy profile links</string>
+    <string name="grp_copy_deep_links">Copy deep links</string>
     <string name="grp_copied">Copied</string>
     <string name="grp_clear_profiles">Clear profiles</string>
     <string name="grp_running_kept">The running profile was kept.</string>

@@ -576,7 +576,15 @@ class MobileCaptchaController(private val host: FragmentActivity): AutoCloseable
         web.loadUrl(url)
         web.postDelayed(polling,700)
     }
-    override fun close() { val sheet=dialog;cleanupWeb?.invoke();sheet?.dismiss();host.lifecycle.removeObserver(lifecycleObserver);runCatching { host.unregisterReceiver(receiver) } }
+    override fun close() {
+        val sheet = dialog
+        // A recreated activity can show the pending request again.
+        currentId = null
+        cleanupWeb?.invoke()
+        sheet?.dismiss()
+        host.lifecycle.removeObserver(lifecycleObserver)
+        runCatching { host.unregisterReceiver(receiver) }
+    }
     /** The original's touch: a random point in the label, pressure 0.5-0.9, held 80-180 ms, released with a slight drift. */
     private fun touch(web: WebView,label: org.json.JSONArray) {
         val random=kotlin.random.Random

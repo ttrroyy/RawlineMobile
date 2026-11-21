@@ -597,6 +597,7 @@ class MobileHomeFragment : ToolbarFragment() {
                         sheet.dismiss()
                         viewLifecycleOwner.lifecycleScope.launch {
                             val kept=app.rawline.mobile.ui.route.RouteQuickSwitch.switchTo(route.id)
+                            refresh()
                             snackbar(app.rawline.mobile.ui.route.RouteQuickSwitch.switchedMessage(this@MobileHomeFragment,route.name,kept)).show()
                         }
                     }
@@ -1917,6 +1918,7 @@ class MobileHomeFragment : ToolbarFragment() {
                         if(locked) { Toast.makeText(requireContext(),R.string.qmobile_route_locked_short,Toast.LENGTH_SHORT).show();return@setOnMenuItemClickListener true }
                         viewLifecycleOwner.lifecycleScope.launch {
                             val kept=app.rawline.mobile.ui.route.RouteQuickSwitch.switchTo(route.id)
+                            refresh()
                             snackbar(app.rawline.mobile.ui.route.RouteQuickSwitch.switchedMessage(this@MobileHomeFragment,route.name,kept)).show()
                         };true
                     }

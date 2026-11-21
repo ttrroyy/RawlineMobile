@@ -34,6 +34,19 @@ class NativeTransportHealthTest {
         now=121_000;assertTrue("no statistics for over 90 s",health.needsRestart(false,false))
         assertFalse("never during startup",health.needsRestart(false,true))
     }
+    @Test fun freeturnOnlyChangesWorkersOnPhaseEvents() {
+        var now = 0L
+        val health = NativeTransportHealth(freeTurn = true) { now }
+        health.accept("[FreeTurn] phase=connected active=10 total=10")
+        health.accept("TCP close #7 active=0")
+        now = 180_000L
+        assertEquals(10, health.activeWorkers())
+        assertFalse(health.needsRestart(false, false))
+        health.accept("[FreeTurn] phase=reconnecting active=0 total=10")
+        now += 90_000L
+        assertFalse(health.needsRestart(false, false))
+    }
+
     @Test fun csqttEventsRestartAfterFourSeconds() {
         var now=1_000L
         val health=NativeTransportHealth { now }

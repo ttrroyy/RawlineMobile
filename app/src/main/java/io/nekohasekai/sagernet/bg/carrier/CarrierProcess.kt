@@ -33,6 +33,8 @@ enum class CarrierKind(val executable: String, val configFlag: String, val minim
     // TCP mode forwards streams to the server's backend: nothing else can reach it through this hop.
     FREETURN_TCP("libfreeturn.so", "--rawline-config", 24);
 
+    val isFreeTurn get() = this == FREETURN || this == FREETURN_TCP
+
     // SOCKS payload capability: TURN over TCP still carries inner UDP in qWDTT, CSQTT and WDTT Plus.
     val tcpOnly: Boolean get() = this in listOf(OLCRTC, DNSTT, VAYDNS, SLIPSTREAM, MASTERDNS, COTTENDNS, SOAR, FREETURN_TCP)
 }
@@ -57,7 +59,10 @@ class CarrierProcess private constructor(private val process: Process, private v
     private class UnavailableCall:IllegalStateException("VK: выбранный хеш недоступен; звонок не найден")
     private class TransientStartup:IllegalStateException("Временная ошибка авторизации VK; повторите подключение")
     private val captcha=CarrierCaptchaBridge(process,allowUi=allowInteractions,client=when(kind) { CarrierKind.CSQTT,CarrierKind.MRTT -> "csqtt"; CarrierKind.WDTTPLUS -> "wdttplus"; CarrierKind.OPENFLUX -> "openflux"; CarrierKind.OPENFLUXKEY -> "openfluxkey"; CarrierKind.FREETURN,CarrierKind.FREETURN_TCP -> "freeturn"; else -> "qwdtt" })
-    private val health=NativeTransportHealth(minimumRecoveryPeak=if(kind==CarrierKind.CSQTT) 10 else if(kind==CarrierKind.MRTT) 3 else 9)
+    private val health=NativeTransportHealth(
+        minimumRecoveryPeak=if(kind==CarrierKind.CSQTT) 10 else if(kind==CarrierKind.MRTT) 3 else 9,
+        freeTurn=kind.isFreeTurn,
+    )
     private var wdttLifecycle: WdttPlusLifecycle? = null
     private var wdttBootstrap: WdttPlusBootstrapRelay? = null
     private var wdttDeadSince=0L
@@ -264,7 +269,7 @@ class CarrierProcess private constructor(private val process: Process, private v
                                 } }
                             } }
                         }
-                        if (kind == CarrierKind.FREETURN || kind == CarrierKind.FREETURN_TCP) {
+                        if (kind.isFreeTurn) {
                             val send = { command: String -> synchronized(child) { runCatching { child.outputStream.write((command+'\n').toByteArray(Charsets.UTF_8)); child.outputStream.flush() } }; Unit }
                             // The original's "operator DNS": without own servers the network's resolvers answer what the operator lets through.
                             val ownDns = org.json.JSONObject(privateJson).getJSONObject("core").getJSONObject("dns").getJSONArray("servers").length() > 0

@@ -3,7 +3,11 @@ package app.rawline.mobile.bg.carrier
 enum class NativeConnectionStage { PREPARING, AUTHORIZING, CAPTCHA, WAITING_VK, CONNECTING, CONNECTED, RECONNECTING }
 
 /** Only public lifecycle markers are kept; URLs, hashes and captcha tokens are never status text. */
-internal class NativeTransportHealth(private val minimumRecoveryPeak: Int = 9, private val clock: () -> Long = { System.nanoTime() / 1_000_000 }) {
+internal class NativeTransportHealth(
+    private val minimumRecoveryPeak: Int = 9,
+    private val freeTurn: Boolean = false,
+    private val clock: () -> Long = { System.nanoTime() / 1_000_000 },
+) {
     private val startedAt = clock()
     private var zeroSince = startedAt
     private var lastStats = startedAt
@@ -24,7 +28,8 @@ internal class NativeTransportHealth(private val minimumRecoveryPeak: Int = 9, p
     private val active = Regex("(?:Активных:\\s*|\\bactive=)([0-9]+)", RegexOption.IGNORE_CASE)
 
     @Synchronized fun accept(line: String): NativeConnectionStage {
-        active.find(line)?.groupValues?.get(1)?.toIntOrNull()?.let { count ->
+        val workerReport = !freeTurn || line.startsWith("[FreeTurn] phase=")
+        (if (workerReport) active.find(line)?.groupValues?.get(1)?.toIntOrNull() else null)?.let { count ->
             if (count == 0 && workers != 0) zeroSince = clock()
             workers = count
             lastStats = clock()
@@ -67,6 +72,8 @@ internal class NativeTransportHealth(private val minimumRecoveryPeak: Int = 9, p
         !captchaWaiting && !everActive && wrapTimeouts >= 3 && clock() - startedAt > 30_000
 
     @Synchronized fun needsRestart(captchaWaiting: Boolean, starting: Boolean): Boolean {
+        // FreeTurn's session owns recovery while its process is alive, including zero active streams.
+        if (freeTurn) return false
         if (captchaWaiting) { zeroSince = clock(); lastStats = clock(); return false }
         if (!starting) {
             // Original CSQTT: a panel restart of the server, or streams dropped from their peak, after 4 s.

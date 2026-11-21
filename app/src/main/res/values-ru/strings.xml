@@ -715,8 +715,8 @@
     <string name="grp_clear_profiles">Очистить профили</string>
     <string name="grp_common">Общие</string>
     <string name="grp_copied">Скопировано</string>
-    <string name="grp_copy_deep_links">Копировать ссылки для обмена профилями (deep link)</string>
-    <string name="grp_copy_links">Копировать ссылки для обмена профилями</string>
+    <string name="grp_copy_deep_links">Копировать диплинки</string>
+    <string name="grp_copy_links">Копировать ссылки профилей</string>
     <string name="grp_create_subscription_group">Создать новую группу подписок</string>
     <string name="grp_device_model">Модель устройства</string>
     <string name="grp_edit_group">Редактировать группу</string>
