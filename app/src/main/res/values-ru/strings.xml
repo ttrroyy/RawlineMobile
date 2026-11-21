@@ -3,6 +3,8 @@
 <string name="action_export_clipboard">Экспорт в буфер обмена</string>
 <string name="action_export_err">Не удалось экспортировать.</string>
 <string name="action_export_file">Экспорт в файл</string>
+<string name="wireguard_export">Экспорт WireGuard (.conf)</string>
+<string name="wireguard_export_failed">Не удалось сохранить конфигурацию WireGuard.</string>
 <string name="action_export_msg">Успешно экспортировано!</string>
 <string name="action_import">Импорт из буфера обмена</string>
 <string name="action_import_err">Не удалось импортировать.</string>

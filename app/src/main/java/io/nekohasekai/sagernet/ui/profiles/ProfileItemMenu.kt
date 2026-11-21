@@ -187,6 +187,8 @@ class ProfileItemMenu(private val host: ConfigurationFragment) {
         if (host.select) return
         val popup = PopupMenu(anchor.context, anchor)
         popup.menuInflater.inflate(R.menu.profile_share_menu, popup.menu)
+        popup.menu.findItem(R.id.action_wireguard_export).isVisible =
+            (profile.outbound as? app.rawline.mobile.outbound.types.WireGuard)?.exportWireGuardConf() != null
         // a chain has no link of its own, only the config it starts (bf89f273)
         if (profile.isChain()) {
             popup.menu.removeItem(R.id.action_group_qr)
@@ -204,6 +206,7 @@ class ProfileItemMenu(private val host: ConfigurationFragment) {
                     R.id.action_universal_clipboard -> copy(profile.exportJsonLink())
                     R.id.action_config_export_clipboard -> exportConfiguration(profile, toFile = false)
                     R.id.action_config_export_file -> exportConfiguration(profile, toFile = true)
+                    R.id.action_wireguard_export -> (host.requireActivity() as app.rawline.mobile.ui.MainActivity).exportWireGuard(profile.id)
                     else -> return@setOnMenuItemClickListener false
                 }
             } catch (e: Exception) {

@@ -172,6 +172,8 @@
     <string name="circular_reference">Circular reference</string>
     <string name="circular_reference_sum">The route cannot contain itself.</string>
     <string name="action_export_file">Export to file</string>
+    <string name="wireguard_export">Export WireGuard (.conf)</string>
+    <string name="wireguard_export_failed">Could not save the WireGuard configuration.</string>
     <string name="action_export_clipboard">Export to clipboard</string>
     <string name="action_import">Import from clipboard</string>
     <string name="action_import_file">Import from file</string>

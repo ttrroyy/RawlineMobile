@@ -49,17 +49,6 @@ private fun wireguardDropBadAddresses(addresses: MutableList<String>): MutableLi
     return addresses.filterTo(ArrayList()) { acceptOptional("address", Validation.cidr(it), it) }
 }
 
-/** wireguardFullTunnel (wireguard.cpp): full tunnels also come as halves (0.0.0.0/1 + 128.0.0.0/1) or as "everything but the LAN" lists. */
-private fun wireguardFullTunnel(allowedIps: List<String>): Boolean {
-    var v4 = 0.0
-    var v6 = 0.0
-    for (cidr in allowedIps) {
-        val (network, prefix) = VpnFileImport.parseSubnet(cidr) ?: continue
-        if (network.contains(':')) v6 += Math.scalb(1.0, -prefix) else v4 += Math.scalb(1.0, -prefix)
-    }
-    return v4 >= 0.5 || v6 >= 0.5
-}
-
 /** The Checks of wireguard.h, shared by the WireGuard editors (field text) and [WireGuard.validate] (profile fields). */
 object WireGuardChecks {
 
@@ -184,6 +173,19 @@ class WireGuardPeer {
     @JvmField var public_key: String = ""
     @JvmField var pre_shared_key: String = ""
     @JvmField var reserved: MutableList<Int> = ArrayList()
+    var allowedIps: List<String>? = null
+        private set
+
+    fun setAllowedNetworks(networks: List<String>): Boolean {
+        if (networks.isEmpty() || networks.any { Validation.cidr(it).isNotEmpty() }) {
+            ParseDiag.error("AllowedIPs", "Expected a non-empty list of IPv4 or IPv6 CIDRs")
+            return false
+        }
+        allowedIps = networks
+        return true
+    }
+
+    fun allowedNetworks() = allowedIps ?: listOf("0.0.0.0/0", "::/0")
 
     /** Seconds, or an AmneziaWG 3.0 range such as "22-30". */
     @JvmField var persistent_keepalive: String = ""
@@ -194,6 +196,7 @@ class WireGuardPeer {
     fun parseFromLink(url: ParsedLink): Boolean {
         if (!url.isValid) return false
         val q = url.query
+        if (q.has("allowed_ips") && !setAllowedNetworks(q.valueFully("allowed_ips").split(',').map(String::trim))) return false
         address = url.host
         port = url.port(51820)
         when {
@@ -225,6 +228,15 @@ class WireGuardPeer {
     /** Peer::ParseFromJson: the keepalive accepts a number or a range string, reserved a base64 string or a byte list. */
     fun parseFromJson(obj: JsonObject): Boolean {
         if (obj.isEmpty()) return false
+        if (obj.contains("allowed_ips")) {
+            val value = obj["allowed_ips"]
+            val networks = when (value) {
+                is String -> listOf(value)
+                is JsonArray -> value.map { it as? String ?: return false }
+                else -> return false
+            }
+            if (!setAllowedNetworks(networks)) return false
+        }
         if (obj.contains("address")) address = obj.string("address")
         if (obj.contains("port")) port = obj.int("port")
         if (obj.contains("public_key")) public_key = obj.string("public_key")
@@ -262,6 +274,7 @@ class WireGuardPeer {
         val q = ArrayList<Pair<String, String>>()
         if (public_key.isNotEmpty()) q.add("public_key" to public_key)
         if (pre_shared_key.isNotEmpty()) q.add("pre_shared_key" to pre_shared_key)
+        allowedIps?.let { q.add("allowed_ips" to it.joinToString(",")) }
         if (reserved.isNotEmpty()) q.add("reserved" to reserved.joinToString("-"))
         if (persistent_keepalive.isNotEmpty()) q.add("persistent_keepalive_interval" to persistent_keepalive)
         return q
@@ -274,15 +287,15 @@ class WireGuardPeer {
         if (port > 0) obj["port"] = port
         if (public_key.isNotEmpty()) obj["public_key"] = public_key
         if (pre_shared_key.isNotEmpty()) obj["pre_shared_key"] = pre_shared_key
+        allowedIps?.let { obj["allowed_ips"] = JsonValues.stringArray(it) }
         if (reserved.isNotEmpty()) obj["reserved"] = reservedArray()
         writeKeepalive(obj)
         return obj
     }
 
-    /** Peer::Build: ExportToJson plus the catch-all allowed_ips. */
     fun build(ctx: BuildContext): JsonObject {
         val obj = exportToJson()
-        obj["allowed_ips"] = JsonValues.stringArray(listOf("0.0.0.0/0", "::/0"))
+        obj["allowed_ips"] = JsonValues.stringArray(allowedNetworks())
         return obj
     }
 
@@ -389,7 +402,7 @@ class WireGuard : Outbound("wireguard") {
             url.userName.isNotEmpty() -> private_key = url.userName
         }
 
-        peer.parseFromLink(url)
+        if (!peer.parseFromLink(url)) return false
         server = peer.address
         serverPort = peer.port
 
@@ -482,7 +495,14 @@ class WireGuard : Outbound("wireguard") {
             if (trimmed.isEmpty() || trimmed.startsWith(';')) continue
             if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
                 section = trimmed.substring(1, trimmed.length - 1).trim().lowercase()
-                if (section == "peer") peers++
+                if (section == "peer") {
+                    if (peers++ > 0) {
+                        peer = WireGuardPeer()
+                        server = ""
+                        serverPort = 0
+                        allowedIps.clear()
+                    }
+                }
                 continue
             }
             val eqIdx = trimmed.indexOf('=')
@@ -490,6 +510,10 @@ class WireGuard : Outbound("wireguard") {
             val rawKey = trimmed.substring(0, eqIdx).trim()
             val key = rawKey.lowercase()
             val value = trimmed.substring(eqIdx + 1).trim()
+            if (section == "peer" && key == "allowedips") {
+                allowedIps.addAll(value.split(',').map(String::trim))
+                continue
+            }
             // Phobos links write "none" for every field the panel left unset.
             if (value.equals("none", ignoreCase = true)) continue
             // The [instance] section of a Phobos .conf is the wg-obfuscator client in front of the server.
@@ -560,7 +584,6 @@ class WireGuard : Outbound("wireguard") {
                 "maxhandshakeattempts", "max_handshake_attempts" -> { max_handshake_attempts = value; enable_amnezia = true }
                 "randomtrailers", "random_trailers" -> { random_trailers = parseAmneziaBool(value); enable_amnezia = true }
                 "disablecookies", "disable_cookies" -> { disable_cookies = parseAmneziaBool(value); enable_amnezia = true }
-                "allowedips" -> allowedIps.addAll(QtStrings.splitSkipEmpty(value.replace(" ", ""), ","))
                 // wg-quick's host-side settings: Rawline owns routing.
                 "listenport", "table", "fwmark", "saveconfig", "preup", "postup", "predown", "postdown" -> {}
                 else -> ParseDiag.warn(rawKey, vtr(R.string.validation_wg_unknown_setting))
@@ -577,9 +600,7 @@ class WireGuard : Outbound("wireguard") {
             serverPort = peer.port
         }
         if (peers > 1) ParseDiag.warn("[Peer]", vtr(R.string.validation_wg_peer_sections, peers.toString()))
-        if (allowedIps.isNotEmpty() && !wireguardFullTunnel(allowedIps)) {
-            ParseDiag.warn("AllowedIPs", vtr(R.string.validation_wg_allowed_ips_ignored), allowedIps.joinToString(", "))
-        }
+        if (allowedIps.isNotEmpty() && !peer.setAllowedNetworks(allowedIps)) return false
         // Without an MTU line the official WireGuard and AmneziaWG Android apps run at 1280; 1420 loses big packets on many paths.
         if (!Regex("""(?im)^\s*MTU\s*=""").containsMatchIn(text)) mtu = 1280
         fixAddress()
@@ -631,7 +652,7 @@ class WireGuard : Outbound("wireguard") {
         if (obj.contains("peers") && obj.isArray("peers")) {
             val peers = obj.array("peers")
             if (peers.isNotEmpty()) {
-                peer.parseFromJson(peers[0] as? JsonObject ?: JsonObject())
+                if (!peer.parseFromJson(peers[0] as? JsonObject ?: return false)) return false
                 if (peers.size > 1 && ParseDiag.active()) {
                     ParseDiag.warn("peers", vtr(R.string.validation_wg_peers, peers.size.toString()))
                 }
@@ -789,13 +810,36 @@ class WireGuard : Outbound("wireguard") {
         obfs_media_clock = obj.int("media_clock")
     }
 
+    fun exportWireGuardConf(): String? {
+        if (enable_amnezia || obfsType().isNotEmpty() || peer.reserved.isNotEmpty()) return null
+        val keepalive = peer.persistent_keepalive
+        if (keepalive.isNotEmpty() && keepalive.toIntOrNull() == null) return null
+        val endpoint = Hosts.displayAddress(peer.address, peer.port)
+        val values = listOf(private_key, peer.public_key, peer.pre_shared_key, address.joinToString(), dns.joinToString(), endpoint)
+        if (values.any { '\r' in it || '\n' in it }) return null
+        return buildString {
+            appendLine("[Interface]")
+            appendLine("PrivateKey = $private_key")
+            appendLine("Address = ${address.joinToString()}")
+            if (dns.isNotEmpty()) appendLine("DNS = ${dns.joinToString()}")
+            if (mtu > 0) appendLine("MTU = $mtu")
+            appendLine()
+            appendLine("[Peer]")
+            appendLine("PublicKey = ${peer.public_key}")
+            if (peer.pre_shared_key.isNotEmpty()) appendLine("PresharedKey = ${peer.pre_shared_key}")
+            appendLine("AllowedIPs = ${peer.allowedNetworks().joinToString()}")
+            appendLine("Endpoint = $endpoint")
+            if (keepalive.isNotEmpty()) appendLine("PersistentKeepalive = $keepalive")
+        }
+    }
+
     /** The Phobos client .conf: [Interface], [Peer] and the obfuscator's [instance]. */
     fun exportPhobosConf(): String {
         val conf = arrayListOf("[Interface]", "PrivateKey = $private_key", "Address = " + address.joinToString(", "))
         if (mtu > 0) conf += "MTU = $mtu"
         conf += listOf("", "[Peer]", "PublicKey = " + peer.public_key)
         if (peer.pre_shared_key.isNotEmpty()) conf += "PresharedKey = " + peer.pre_shared_key
-        conf += "AllowedIPs = 0.0.0.0/0, ::/0"
+        conf += "AllowedIPs = " + peer.allowedNetworks().joinToString(", ")
         if (peer.persistent_keepalive.isNotEmpty()) conf += "PersistentKeepalive = " + peer.persistent_keepalive
         conf += listOf("Endpoint = 127.0.0.1:13255", "", "[instance]", "source-if = 127.0.0.1", "source-lport = 13255",
             "target = " + Hosts.displayAddress(peer.address, peer.port), "key = $obfs_key", "masking = " + obfs_masking.ifEmpty { "NONE" })

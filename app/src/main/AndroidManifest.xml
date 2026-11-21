@@ -329,8 +329,8 @@
             android:name="app.rawline.mobile.LauncherLight"
             android:enabled="false"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher_light"
-            android:roundIcon="@mipmap/ic_launcher_light"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher"
             android:targetActivity="app.rawline.mobile.ui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

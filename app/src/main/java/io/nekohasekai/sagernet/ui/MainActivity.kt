@@ -96,6 +96,38 @@ class MainActivity : ThemedActivity(),
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString("pendingServiceMode", modeSwitch.pendingMode)
+        outState.putLong("wireGuardExportProfile", wireGuardExportProfile)
+    }
+
+    private var wireGuardExportProfile = 0L
+    private val wireGuardDocument = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/octet-stream"),
+    ) { uri ->
+        val id = wireGuardExportProfile
+        wireGuardExportProfile = 0L
+        if (uri == null || id == 0L) return@registerForActivityResult
+        lifecycleScope.launch {
+            val saved = withContext(Dispatchers.IO) {
+                runCatching {
+                    val profile = app.rawline.mobile.database.SagerDatabase.proxyDao.getById(id)
+                    val config = (profile?.outbound as? app.rawline.mobile.outbound.types.WireGuard)?.exportWireGuardConf()
+                    checkNotNull(config)
+                    checkNotNull(contentResolver.openOutputStream(uri)).bufferedWriter().use { it.write(config) }
+                }.isSuccess
+            }
+            snackbar(if (saved) R.string.action_export_msg else R.string.wireguard_export_failed).show()
+        }
+    }
+
+    fun exportWireGuard(profileId: Long) {
+        if (wireGuardExportProfile != 0L) return
+        wireGuardExportProfile = profileId
+        try {
+            wireGuardDocument.launch("wireguard.conf")
+        } catch (_: ActivityNotFoundException) {
+            wireGuardExportProfile = 0L
+            snackbar(R.string.wireguard_export_failed).show()
+        }
     }
 
     override fun onPause() {
@@ -105,6 +137,8 @@ class MainActivity : ThemedActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        LauncherIcon.sync(this)
+        wireGuardExportProfile = savedInstanceState?.getLong("wireGuardExportProfile") ?: 0L
         modeSwitch = MobileModeSwitch(savedInstanceState?.getString("pendingServiceMode"))
         captchaController=MobileCaptchaController(this)
         MessageStore.setCurrentActivity(this)
@@ -240,7 +274,6 @@ class MainActivity : ThemedActivity(),
         modeSwitchForeground = true
         finishModeSwitch(DataStore.serviceState)
         MessageStore.setCurrentActivity(this)
-        LauncherIcon.sync(this)
         DataStore.serviceError.takeIf { it.isNotEmpty() }?.let(::showServiceError)
 
         if (DataStore.hideFromRecentApps) {

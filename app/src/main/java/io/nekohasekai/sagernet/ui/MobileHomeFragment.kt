@@ -1737,11 +1737,14 @@ class MobileHomeFragment : ToolbarFragment() {
         fun option(label:String,icon:Int,callback:()->Unit)=shareChoice(swipe,label,icon,callback)
         fun copy(value:String) { Toast.makeText(requireContext(),if(SagerNet.trySetPrimaryClip(value)) R.string.action_export_msg else R.string.action_export_err,Toast.LENGTH_SHORT).show() }
         val link=profile.exportLink().ifBlank { profile.exportJsonLink() }
-        swipe.showShareChoices(
+        val options = mutableListOf(
             option("URL",R.drawable.ic_mobile_link) { copy(link) },
             option(getString(R.string.qmobile_qr),R.drawable.ic_mobile_qr) { app.rawline.mobile.widget.QRCodeDialog(link,profile.displayName()).show(parentFragmentManager,"profile-qr") },
             option("JSON",R.drawable.ic_mobile_json) { copy(org.json.JSONObject(profile.outbound.exportToJson().toCompact()).toString(2)) },
         )
+        if ((profile.outbound as? app.rawline.mobile.outbound.types.WireGuard)?.exportWireGuardConf() != null)
+            options += option(getString(R.string.wireguard_export), R.drawable.ic_mobile_json) { host().exportWireGuard(profile.id) }
+        swipe.showShareChoices(*options.toTypedArray())
     }
     private fun groupMenu(group: ProxyGroup, anchor: View) {
         val dialog=MobileSheetDialog(requireContext())

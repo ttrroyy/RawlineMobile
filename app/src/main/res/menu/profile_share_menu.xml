@@ -37,4 +37,5 @@
                 android:title="@string/action_export_file" />
         </menu>
     </item>
+    <item android:id="@+id/action_wireguard_export" android:title="@string/wireguard_export" />
 </menu>

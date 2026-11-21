@@ -13,6 +13,29 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class RemoteLanAndSharingTest {
+    @Test fun wireGuardAllowedNetworksSurviveImportAndExport() {
+        val config = """
+            [Interface]
+            PrivateKey = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+            Address = 10.0.0.2/32
+            [Peer]
+            PublicKey = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=
+            AllowedIPs = 10.8.0.0/24, fd00:800::/64
+            Endpoint = [2001:db8::8]:51820
+        """.trimIndent()
+        val profile = app.rawline.mobile.outbound.types.WireGuard()
+        assertTrue(profile.parseFromLink(config))
+        val networks = listOf("10.8.0.0/24", "fd00:800::/64")
+        assertEquals(networks, profile.peer.build(BuildContext()).array("allowed_ips").toList())
+        val restored = app.rawline.mobile.outbound.types.WireGuard()
+        assertTrue(restored.parseFromJson(profile.exportToJson()))
+        assertEquals(networks, restored.peer.allowedNetworks())
+        assertTrue(restored.parseFromLink(profile.exportToLink()))
+        assertEquals(networks, restored.peer.allowedNetworks())
+        assertTrue(profile.exportWireGuardConf()!!.contains("AllowedIPs = 10.8.0.0/24, fd00:800::/64"))
+        assertFalse(app.rawline.mobile.outbound.types.WireGuard().parseFromLink(config.replace("10.8.0.0/24", "invalid")))
+    }
+
     @Test fun sstpServerDnsUsesItsAuthenticatedBridgeAndLeavesSavedDnsAlone() {
         val profile=app.rawline.mobile.outbound.types.Sstp().apply { server="vpn.example.org";username="user";password="secret" }
         val settings=GeneratorSettings(vpnMode=true,remoteDns="https://cloudflare-dns.com/dns-query")
