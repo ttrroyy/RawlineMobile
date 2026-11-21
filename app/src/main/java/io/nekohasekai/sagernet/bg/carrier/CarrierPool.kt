@@ -50,7 +50,7 @@ object CarrierPool {
             val choice=synchronized(entries) {
                 val existing=entries[plan.key]
                 val waiting=existing?.takeIf { it.closing || (interactive && !it.interactive) || (!latencyProbe && it.latencyProbe) }
-                    ?: entries.values.firstOrNull { it.closing &&
+                    ?: entries.values.firstOrNull { (it.closing || (!latencyProbe && it.latencyProbe)) &&
                         NativeSessionPolicy.sharesRemoteSession(it.plan.kind,it.plan.privateJson,plan.kind,plan.privateJson) }
                 if(waiting!=null) Acquisition(wait=waiting.closed)
                 else {
