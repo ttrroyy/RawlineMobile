@@ -49,6 +49,16 @@ class UiTourTest {
         instrumentation.runOnMainSync { (resumed() as MainActivity).openSettingsScreen(fragment, "") }
         Thread.sleep(2500)
     }
+    private fun appearance() {
+        main(R.id.nav_settings)
+        val title = resumed().getString(R.string.settings_appearance)
+        press(title)
+        instrumentation.runOnMainSync {
+            val toolbar = resumed().findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
+            check(toolbar?.title?.toString() == title) { "The Appearance toolbar has no title" }
+        }
+    }
+
     /** Taps by the label a person sees, in any window, popups included. */
     private fun tap(label: String) {
         val nodes = instrumentation.uiAutomation.rootInActiveWindow?.findAccessibilityNodeInfosByText(label).orEmpty()
@@ -291,9 +301,9 @@ class UiTourTest {
         "general" to { main(R.id.nav_settings); tap(R.string.qmobile_general) },
         "dns" to { screen("app.rawline.mobile.ui.settings.DnsSettingsFragment") },
         "subscription-settings" to { screen("app.rawline.mobile.ui.settings.SubscriptionSettingsFragment") },
-        "appearance" to { screen("app.rawline.mobile.ui.settings.AppearanceSettingsFragment") },
+        "appearance" to { appearance() },
         "style-menu" to {
-            screen("app.rawline.mobile.ui.settings.AppearanceSettingsFragment")
+            appearance()
             press(resumed().getString(R.string.theme))
             check(centerOf("Rawline OLED", exact = false) != null && centerOf("Rawline White", exact = false) != null) {
                 "The theme selector did not open"
@@ -735,7 +745,7 @@ class UiTourTest {
         },
         "appearance-palette-selection" to {
             allowBatteryForTour()
-            screen("app.rawline.mobile.ui.settings.AppearanceSettingsFragment")
+            appearance()
             val title = context.getString(R.string.theme)
             for ((name, style, night) in listOf(
                 Triple("Rawline Pastel Dark", "pastel", 1),
