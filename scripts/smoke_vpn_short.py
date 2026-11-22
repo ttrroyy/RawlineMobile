@@ -26,6 +26,18 @@ for _ in range(20):
     time.sleep(1)
 else:
     raise AssertionError('Current connection HTTP probe failed')
+# The subscription and profile are painted near the bottom of the connect control.
+# Tap that caption rather than the center of its Android accessibility bounds.
+connected_label = 'Connect or disconnect VPN, Connected'
+orb = next((node for node in ET.fromstring(xml()).iter('node')
+            if node.get('content-desc') == connected_label), None)
+assert orb is not None, 'Connected control is missing'
+left, top, right, bottom = map(int, re.findall(r'\d+', orb.attrib['bounds']))
+caption_y = top + round((bottom - top) * 0.93)
+shell('input', 'tap', str((left + right) // 2), str(caption_y))
+wait_for('Connections')
+shell('input', 'keyevent', '4')
+wait_for(connected_label)
 # An unsigned command from the shell must not silently stop a connected VPN.
 shell('am', 'start', '-n', package + '/app.rawline.mobile.ui.QuickDisableShortcut')
 time.sleep(2)
@@ -37,4 +49,4 @@ wait_for('Connect or disconnect VPN, Connected')
 tap('Connect or disconnect VPN, Connected')
 wait_for('Connect or disconnect VPN, Not connected')
 server.shutdown()
-print('VPN connect, HTTP latency, unsigned disable protection and disconnect passed')
+print('VPN connect, HTTP latency, connections navigation, unsigned disable protection and disconnect passed')
