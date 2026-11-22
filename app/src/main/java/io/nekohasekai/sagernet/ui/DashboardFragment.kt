@@ -44,13 +44,7 @@ import org.json.JSONObject
  * The page is the copy the app bundles ([SingBoxDashboard]): a 404 means the build has none, or unpacking it failed.
  */
 class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard), Toolbar.OnMenuItemClickListener {
-    companion object {
-        fun connections() = DashboardFragment().apply {
-            arguments = Bundle().apply { putBoolean("connections", true) }
-        }
-    }
-
-    private val openConnections get() = arguments?.getBoolean("connections") == true
+    private val openConnections get() = arguments?.getBoolean(ARG_CONNECTIONS) == true
 
     private var binding: LayoutDashboardBinding? = null
     private var webView: WebView? = null
@@ -425,20 +419,26 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard), Toolbar.On
         }
     }
 
-    private companion object {
+    companion object {
+        private const val ARG_CONNECTIONS = "connections"
+
+        fun connections() = DashboardFragment().apply {
+            arguments = Bundle().apply { putBoolean(ARG_CONNECTIONS, true) }
+        }
+
         /**
          * The bundle's build target (Vite's default, Chromium 111, which color-mix() also needs); its :has(), dvh and
          * script features are older. dashboard_css.py lowers the media ranges (Chromium 104) at build time.
          */
-        const val MIN_CHROMIUM = 111
+        private const val MIN_CHROMIUM = 111
 
-        const val CHROME_PACKAGE = "com.android.chrome"
+        private const val CHROME_PACKAGE = "com.android.chrome"
 
         /** "Open anyway" on an older WebView, for the rest of the process. */
-        var oldWebViewAccepted = false
+        private var oldWebViewAccepted = false
 
         /** The Chromium major version of the WebView's user agent, 0 when it names none. */
-        fun chromiumVersion(webView: WebView): Int {
+        private fun chromiumVersion(webView: WebView): Int {
             val agent = webView.settings.userAgentString.orEmpty()
             return Regex("""Chrome/(\d+)""").find(agent)?.groupValues?.get(1)?.toIntOrNull() ?: 0
         }
@@ -448,7 +448,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard), Toolbar.On
          * this core's address and secret, other servers stay. Answers "ok" when nothing had to change, "seeded" after
          * a write and "error" when the storage is unusable. [activate] also makes it the active server.
          */
-        fun seedScript(url: String, secret: String, activate: Boolean): String = """
+        private fun seedScript(url: String, secret: String, activate: Boolean): String = """
             (function () {
               var KEY = "sing-box-dashboard.servers", ID = "rawline";
               var url = ${JSONObject.quote(url)}, secret = ${JSONObject.quote(secret)};
