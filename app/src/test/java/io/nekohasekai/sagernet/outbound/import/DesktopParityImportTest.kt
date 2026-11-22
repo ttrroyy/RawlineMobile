@@ -1,5 +1,7 @@
 package app.rawline.mobile.outbound.`import`
 
+import app.rawline.mobile.outbound.common.Tls
+import app.rawline.mobile.outbound.common.XrayTls
 import app.rawline.mobile.outbound.types.Csqtt
 import app.rawline.mobile.outbound.types.Custom
 import app.rawline.mobile.outbound.types.Qwdtt
@@ -15,6 +17,19 @@ class DesktopParityImportTest {
         assertTrue(csqtt.messages.toString(), csqtt.outbounds.single() is Csqtt)
         val bot = ProfileImport.parse("`qwdtt://config?peer=192.0.2.1%3A56000&pass=secret&hashes=exampleHash123456789`")
         assertEquals("192.0.2.1", (bot.outbounds.single() as Qwdtt).server)
+    }
+
+    @Test fun certificatePinAliasMatchesPcsInBothTlsParsers() {
+        val endpoint = "trojan://password@example.test:443?security=tls"
+        val primary = "ab".repeat(32)
+        val alias = "cd".repeat(32)
+        val expected = Tls().apply { assertTrue(parseFromLink("$endpoint&pcs=$primary")) }.certificate_sha256
+        assertEquals(1, expected.size)
+        assertEquals(expected, Tls().apply { assertTrue(parseFromLink("$endpoint&pinSHA256=$primary")) }.certificate_sha256)
+        val both = "$endpoint&pinSHA256=$alias&pcs=$primary"
+        assertEquals(expected, Tls().apply { assertTrue(parseFromLink(both)) }.certificate_sha256)
+        assertEquals(primary, XrayTls().apply { assertTrue(parseFromLink(both)) }.pinnedPeerCertSha256)
+        assertEquals(alias, XrayTls().apply { assertTrue(parseFromLink("$endpoint&pinSHA256=$alias")) }.pinnedPeerCertSha256)
     }
 
     @Test fun xrayOutboundListSplitsAndRoutedConfigStaysWhole() {

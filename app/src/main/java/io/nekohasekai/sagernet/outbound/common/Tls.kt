@@ -763,6 +763,10 @@ class Tls {
         if (q.has("tls_certificate")) certificate = QtStrings.split(q.value("tls_certificate"), ",")
         if (q.has("tls_certificate_path")) certificate_path = q.value("tls_certificate_path")
         if (q.has("pcs")) certificate_sha256 = certificateSha256FromPcs(q.valueFully("pcs"), "pcs")
+        else if (q.has("pinSHA256") && url.scheme.lowercase() !in listOf("hysteria", "hysteria2", "hy2")) {
+            // Hysteria parses its own pin formats.
+            certificate_sha256 = certificateSha256FromPcs(q.valueFully("pinSHA256"), "pinSHA256")
+        }
         if (q.has("tls_certificate_public_key_sha256")) certificate_public_key_sha256 = tlsLinkList(q.value("tls_certificate_public_key_sha256"))
         if (q.has("tls_client_certificate")) client_certificate = QtStrings.split(q.value("tls_client_certificate"), ",")
         if (q.has("tls_client_certificate_path")) client_certificate_path = q.value("tls_client_certificate_path")
