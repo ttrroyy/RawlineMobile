@@ -292,7 +292,13 @@ class UiTourTest {
         "dns" to { screen("app.rawline.mobile.ui.settings.DnsSettingsFragment") },
         "subscription-settings" to { screen("app.rawline.mobile.ui.settings.SubscriptionSettingsFragment") },
         "appearance" to { screen("app.rawline.mobile.ui.settings.AppearanceSettingsFragment") },
-        "style-menu" to { screen("app.rawline.mobile.ui.settings.AppearanceSettingsFragment"); tap(R.string.theme) },
+        "style-menu" to {
+            screen("app.rawline.mobile.ui.settings.AppearanceSettingsFragment")
+            press(resumed().getString(R.string.theme))
+            check(centerOf("Rawline OLED", exact = false) != null && centerOf("Rawline White", exact = false) != null) {
+                "The theme selector did not open"
+            }
+        },
         "routing-settings" to { screen("app.rawline.mobile.ui.settings.RoutingSettingsFragment") },
         "logs" to { main(R.id.nav_settings); tap(R.string.qmobile_logs) },
         "vk" to { open(VkRelayActivity::class.java) },
