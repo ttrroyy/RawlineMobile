@@ -5,6 +5,10 @@ on:
       build_run:
         description: Successful CI build to test
         required: true
+      system_tun:
+        description: Test the explicit System TUN stack
+        type: boolean
+        default: false
 permissions:
   contents: read
   actions: read
@@ -80,6 +84,8 @@ jobs:
             case "$file" in core.log|core.log.prev|home-*.png) "$ADB" exec-out run-as "$PACKAGE" cat "files/$file" > "security-results/$file";; esac
           done
       - name: Short VPN and unauthorized command check
+        env:
+          TEST_SYSTEM_TUN: ${{ inputs.system_tun }}
         run: |
           python3 scripts/test_smoke_vpn_network.py
           python3 scripts/smoke_vpn_short.py
