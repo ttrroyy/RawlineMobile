@@ -102,7 +102,7 @@ object MobilePalette {
         }
     }
 
-    internal const val popupScrollVerticalInsetDp = 14
+    internal const val popupScrollVerticalInsetDp = 11
 
     internal fun insetPopupScroller(scroller: android.view.View): android.widget.FrameLayout =
         android.widget.FrameLayout(scroller.context).apply {
