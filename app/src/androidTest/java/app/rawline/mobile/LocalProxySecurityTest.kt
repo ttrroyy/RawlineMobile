@@ -1,11 +1,19 @@
 package app.rawline.mobile
 
 import android.app.Application
+import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import app.rawline.core.mobile.Mobile
 import app.rawline.core.mobile.StartOptions
 import app.rawline.mobile.bg.CoreRuntime
+import app.rawline.mobile.database.DataStore
+import app.rawline.mobile.database.ProxyEntity
+import app.rawline.mobile.database.ProxyGroup
+import app.rawline.mobile.database.SagerDatabase
+import app.rawline.mobile.database.SettingsRegistry
+import app.rawline.mobile.outbound.types.Socks
+import app.rawline.mobile.ui.MainActivity
 import org.junit.Assert.assertArrayEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,6 +53,71 @@ class LocalProxySecurityTest {
                     assertArrayEquals("Authenticated bridge cannot connect", byteArrayOf(1, 0), read(socket, 2))
                 }
             } finally { instance.close() }
+        }
+    }
+
+    @Test fun firstProxyStartCreatesCredentialsWithoutOpeningSettings() {
+        val store = DataStore.configurationStore
+        val localPort = ServerSocket(0, 1, InetAddress.getByName("127.0.0.1")).use { it.localPort }
+        val settings = mapOf(
+            Key.SERVICE_MODE to Key.MODE_PROXY,
+            SettingsRegistry.INBOUND_ADDRESS.key to "127.0.0.1",
+            SettingsRegistry.INBOUND_SOCKS_PORT.key to localPort.toString(),
+            SettingsRegistry.RANDOM_INBOUND_PORT.key to "false",
+            SettingsRegistry.EXIT_COUNTRY_LOOKUP.key to "false",
+        )
+        val credentials = listOf(SettingsRegistry.INBOUND_AUTH.key, SettingsRegistry.INBOUND_USER.key, SettingsRegistry.INBOUND_PASS.key)
+        val previous = (settings.keys + credentials + Key.PROFILE_ID).associateWith(store::getRaw)
+        val group = ProxyGroup(name = "Local proxy security test")
+        val groupId = SagerDatabase.groupDao.insert(group)
+        val profileId = SagerDatabase.proxyDao.insert(listOf(ProxyEntity(groupId = groupId).putOutbound(Socks().apply {
+            name = "Loopback handshake test"
+            server = "192.0.2.1"
+            serverPort = 1080
+        }))).single()
+        try {
+            store.putAll(settings)
+            credentials.forEach(store::remove)
+            DataStore.selectedProxy = profileId
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                scenario.onActivity { SagerNet.startService() }
+                try {
+                    val deadline = android.os.SystemClock.elapsedRealtime() + 20_000
+                    var listening = false
+                    while (!listening && android.os.SystemClock.elapsedRealtime() < deadline) {
+                        listening = runCatching { connect(localPort) {} }.isSuccess
+                        if (!listening) Thread.sleep(100)
+                    }
+                    check(listening) { "The proxy-only service did not open the configured port" }
+                    val testUser = DataStore.inboundUser
+                    val testPassword = DataStore.inboundPass
+                    check(DataStore.inboundAuth && testUser.isNotEmpty() && testPassword.length >= 32) {
+                        "The proxy started without initializing credentials"
+                    }
+                    connect(localPort) { socket ->
+                        socket.getOutputStream().write(byteArrayOf(5, 1, 0))
+                        assertArrayEquals(byteArrayOf(5, -1), read(socket, 2))
+                    }
+                    connect(localPort) { socket ->
+                        socket.getOutputStream().write(byteArrayOf(5, 1, 2))
+                        assertArrayEquals(byteArrayOf(5, 2), read(socket, 2))
+                        val user = testUser.toByteArray(Charsets.UTF_8)
+                        val pass = testPassword.toByteArray(Charsets.UTF_8)
+                        socket.getOutputStream().write(byteArrayOf(1, user.size.toByte()) + user + byteArrayOf(pass.size.toByte()) + pass)
+                        assertArrayEquals(byteArrayOf(1, 0), read(socket, 2))
+                    }
+                } finally {
+                    scenario.onActivity { SagerNet.stopService() }
+                    val deadline = android.os.SystemClock.elapsedRealtime() + 5000
+                    while (android.os.SystemClock.elapsedRealtime() < deadline && runCatching { connect(localPort) {} }.isSuccess) {
+                        Thread.sleep(100)
+                    }
+                }
+            }
+        } finally {
+            previous.forEach { (key, value) -> store.putString(key, value) }
+            SagerDatabase.proxyDao.deleteById(profileId)
+            SagerDatabase.groupDao.deleteById(groupId)
         }
     }
 
