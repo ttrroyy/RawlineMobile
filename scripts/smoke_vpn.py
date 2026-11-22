@@ -38,14 +38,23 @@ if int(shell('getprop', 'ro.build.version.sdk').strip()) == 29:
     ui_dump_command = ['CLASSPATH=/data/local/tmp/rawline-ui-dump.zip:/system/framework/uiautomator.jar', 'app_process', '/system/bin', 'SmokeUiDump', '/sdcard/vpn-smoke.xml', width, height]
 
 def xml():
-    try:
-        dumped = shell(*ui_dump_command)
-    except subprocess.CalledProcessError as error:
-        if error.returncode != 137 or ui_dump_command[0] == 'uiautomator':
-            raise
-        # Android 10 can kill the standalone helper while the emulator is under pressure.
-        dumped = shell('uiautomator', 'dump', '/sdcard/vpn-smoke.xml')
-    if 'dumped to' not in dumped:
+    standard_dump = ['uiautomator', 'dump', '/sdcard/vpn-smoke.xml']
+    dump_command = ui_dump_command
+    for _ in range(4):
+        shell('rm', '-f', '/sdcard/vpn-smoke.xml')
+        try:
+            dumped = shell(*dump_command)
+        except subprocess.CalledProcessError as error:
+            if error.returncode != 137 or dump_command == standard_dump:
+                raise
+            # Android 10 can kill the standalone helper while the emulator is under pressure.
+            dump_command = standard_dump
+            dumped = ''
+        if 'dumped to' in dumped:
+            break
+        # The launcher can show only the splash while the new activity has no accessibility tree.
+        time.sleep(1)
+    else:
         (out/'idle-failed.png').write_bytes(subprocess.check_output([adb,'exec-out','screencap','-p']))
         (out/'idle-failed-window.txt').write_text(shell('dumpsys','window'))
         raise AssertionError('UIAutomator could not obtain a fresh tree: '+dumped.strip())

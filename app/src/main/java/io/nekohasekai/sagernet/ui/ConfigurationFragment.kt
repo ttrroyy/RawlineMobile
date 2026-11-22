@@ -304,6 +304,7 @@ class ConfigurationFragment : ToolbarFragment(R.layout.layout_group_list),
         if (!select) {
             testPanel = TestPanelController(this, panelContainer, side = sidePanel).apply {
                 onSelectProfile = { id -> selectProfile(id, toggleOnTv = false) }
+                onSorted = ::revealSortedProfile
                 onHeightChanged = { height ->
                     if (height != panelHeight) {
                         panelHeight = height
@@ -411,6 +412,15 @@ class ConfigurationFragment : ToolbarFragment(R.layout.layout_group_list),
             if (pager.currentItem != index) pager.setCurrentItem(index, false)
             val list = listFor(groupId)
             if (list != null && list.adapter.loaded) list.revealProfile(id) else pendingReveal = groupId to id
+        }
+    }
+
+    private fun revealSortedProfile(groupId: Long, profileId: Long) {
+        val owner = viewLifecycleOwnerLiveData.value ?: return
+        val list = currentList()?.takeIf { it.groupId == groupId } ?: return
+        owner.lifecycleScope.launch {
+            list.adapter.reload()?.join()
+            if (currentList() === list && query.isEmpty() && !selection.active) list.revealProfile(profileId)
         }
     }
 
