@@ -773,7 +773,10 @@ class BaseService {
                     }
                     preInit()
                     moe.matsuri.nb4a.utils.CoreLog.write("[Info] Preparing profile ${profile.id}; protocol=${profile.type}; mode=${DataStore.serviceMode}")
-                    withContext(coreDispatcher) { proxy.init() }
+                    withContext(coreDispatcher) {
+                        DataStore.initGlobal()
+                        proxy.init()
+                    }
                     moe.matsuri.nb4a.utils.CoreLog.write("[Info] Profile ${profile.id} configuration and assets ready; starting core")
                     DataStore.currentProfile = profile.id
                     DataStore.runningProfiles = proxy.config.involvedProfileIds.map { it.toString() }
