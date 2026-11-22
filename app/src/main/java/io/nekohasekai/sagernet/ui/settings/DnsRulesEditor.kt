@@ -42,7 +42,7 @@ internal object DnsRulesEditor {
                 LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(8) })
         }
         render()
-        dialog.setContentView(ScrollView(context).apply { addView(body) })
+        dialog.setContentView(ScrollView(MobilePalette.scrollContext(context)).apply { addView(body) })
         dialog.show()
     }
 
@@ -80,7 +80,7 @@ internal object DnsRulesEditor {
                 .setPositiveButton(R.string.delete) { _, _ -> rules.removeAt(index); store(rules) }
                 .show()
         }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(8) })
-        dialog.setContentView(ScrollView(context).apply { addView(body) })
+        dialog.setContentView(ScrollView(MobilePalette.scrollContext(context)).apply { addView(body) })
         dialog.show()
     }
 }

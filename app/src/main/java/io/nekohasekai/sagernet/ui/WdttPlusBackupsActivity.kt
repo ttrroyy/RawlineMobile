@@ -156,7 +156,7 @@ class WdttPlusBackupsActivity : ServerScreenActivity() {
             val count = retention.text.toString().toIntOrNull()?.takeIf { it in 2..90 } ?: return@button Toast.makeText(this, "Количество: от 2 до 90", Toast.LENGTH_SHORT).show()
             sheet.dismiss(); request({ admin.configureBackups(enabled.isChecked, hours, count) }) { info = it; render() }
         })
-        sheet.setContentView(ScrollView(this).apply { addView(form) }); sheet.show()
+        sheet.setContentView(ScrollView(MobilePalette.scrollContext(this)).apply { addView(form) }); sheet.show()
     }
 
     /** As WDTT Plus downloads a copy: its portable backup file, encrypted with a password of at least 8 characters. */

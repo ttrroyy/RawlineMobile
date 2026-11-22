@@ -1,27 +1,11 @@
 package app.rawline.mobile.ui
 
 import android.content.Context
-import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
-import android.view.View
 import android.widget.*
 import androidx.preference.ListPreference
 
 object MobileSelector {
-    private fun showScrollIndicator(view: View) = with(view) {
-        isVerticalScrollBarEnabled = true
-        isScrollbarFadingEnabled = false
-        scrollBarStyle = View.SCROLLBARS_INSIDE_INSET
-        if (android.os.Build.VERSION.SDK_INT >= 29) {
-            val density = resources.displayMetrics.density
-            setVerticalScrollbarThumbDrawable(GradientDrawable().apply {
-                setColor(MobilePalette.muted)
-                cornerRadius = 2 * density
-                setSize((4 * density).toInt(), 1)
-            })
-        }
-    }
-
     private val anchors = java.util.WeakHashMap<androidx.preference.Preference,java.lang.ref.WeakReference<android.view.View>>()
     fun bind(preference: androidx.preference.Preference, view: android.view.View) { anchors[preference] = java.lang.ref.WeakReference(view) }
     fun show(preference: androidx.preference.Preference, labels: List<CharSequence>, selected: Int, onSelect: (Int) -> Unit) {
@@ -32,9 +16,9 @@ object MobileSelector {
     fun showAt(anchor: android.view.View, labels: List<CharSequence>, selected: Int, enabled: (Int) -> Boolean = { true }, onSelect: (Int) -> Unit) {
         val context = anchor.context
         fun dp(n: Int) = (n * context.resources.displayMetrics.density).toInt()
-        val list = ListView(context).apply {
+        val list = ListView(MobilePalette.scrollContext(context)).apply {
             divider = null
-            showScrollIndicator(this)
+            MobilePalette.showScrollIndicator(this)
             setPadding(0,dp(10),dp(8),dp(10))
             clipToPadding = true
             adapter = object : ArrayAdapter<CharSequence>(context, android.R.layout.simple_list_item_1, labels) {
@@ -97,8 +81,7 @@ object MobileSelector {
                 MobileFeedback.apply(this);setOnClickListener { dialog.dismiss();onSelect(index) }
             },LinearLayout.LayoutParams(-1,dp(48)))
         }
-        body.addView(ScrollView(context).apply {
-            showScrollIndicator(this)
+        body.addView(ScrollView(MobilePalette.scrollContext(context)).apply {
             addView(choices)
         }, LinearLayout.LayoutParams(-1, minOf(labels.size * dp(48), (context.resources.displayMetrics.heightPixels * .55).toInt())))
         dialog.setContentView(body);dialog.show()

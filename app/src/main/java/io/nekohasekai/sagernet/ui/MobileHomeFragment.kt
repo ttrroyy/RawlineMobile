@@ -498,7 +498,7 @@ class MobileHomeFragment : ToolbarFragment() {
         val handle=View(requireContext()).apply { background=GradientDrawable().apply { setColor(muted);cornerRadius=dp(2).toFloat() } }
         body.addView(handle,LinearLayout.LayoutParams(dp(36),dp(4)).apply { gravity=Gravity.CENTER_HORIZONTAL;bottomMargin=dp(14) })
         val list=LinearLayout(requireContext()).apply { orientation=LinearLayout.VERTICAL }
-        val scroller=androidx.core.widget.NestedScrollView(requireContext()).apply { isVerticalScrollBarEnabled=false;addView(list) }
+        val scroller=androidx.core.widget.NestedScrollView(MobilePalette.scrollContext(requireContext())).apply { addView(list) }
         val drag=MobileReorder(list,scroller,{ reorderActive(it) },{ saveReorder(null,it) },{ first,second -> (first in pinnedGroups())==(second in pinnedGroups()) })
         var opened: MobileSwipeTile?=null
         pickerGroups.forEachIndexed { index,group ->
@@ -573,7 +573,7 @@ class MobileHomeFragment : ToolbarFragment() {
             val handle=View(requireContext()).apply { background=GradientDrawable().apply { setColor(muted);cornerRadius=dp(2).toFloat() } }
             body.addView(handle,LinearLayout.LayoutParams(dp(36),dp(4)).apply { gravity=Gravity.CENTER_HORIZONTAL;bottomMargin=dp(14) })
             val list=LinearLayout(requireContext()).apply { orientation=LinearLayout.VERTICAL }
-            val scroller=androidx.core.widget.NestedScrollView(requireContext()).apply { isVerticalScrollBarEnabled=false;addView(list) }
+            val scroller=androidx.core.widget.NestedScrollView(MobilePalette.scrollContext(requireContext())).apply { addView(list) }
             if(source!=null && source.kind!=app.rawline.mobile.route.RouteSource.Kind.CLIENT) body.addView(routeSourceNotice(source) { sheet.dismiss() },LinearLayout.LayoutParams(-1,-2).apply { bottomMargin=dp(12) })
             val drag=MobileReorder(list,scroller,{},{ ids ->
                 viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
@@ -1836,8 +1836,8 @@ class MobileHomeFragment : ToolbarFragment() {
                 if(!deleted) Toast.makeText(requireContext(),R.string.qmobile_delete_failed,Toast.LENGTH_LONG).show()
             }
         }
-        dialog.setContentView(androidx.core.widget.NestedScrollView(requireContext()).apply {
-            isVerticalScrollBarEnabled=false; isHorizontalScrollBarEnabled=false
+        dialog.setContentView(androidx.core.widget.NestedScrollView(MobilePalette.scrollContext(requireContext())).apply {
+            isHorizontalScrollBarEnabled=false
             clipToPadding=false
             addView(body,FrameLayout.LayoutParams(-1,-2))
         })
@@ -1892,7 +1892,11 @@ class MobileHomeFragment : ToolbarFragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
             override fun afterTextChanged(s: android.text.Editable?) = show()
         })
-        dialog.setContentView(androidx.core.widget.NestedScrollView(requireContext()).apply { isVerticalScrollBarEnabled=false; isHorizontalScrollBarEnabled=false; clipToPadding=false; addView(body,FrameLayout.LayoutParams(-1,-2)) })
+        dialog.setContentView(androidx.core.widget.NestedScrollView(MobilePalette.scrollContext(requireContext())).apply {
+            isHorizontalScrollBarEnabled=false
+            clipToPadding=false
+            addView(body,FrameLayout.LayoutParams(-1,-2))
+        })
         dialog.behavior.state=com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
         dialog.show()
         viewLifecycleOwner.lifecycleScope.launch {
@@ -2061,8 +2065,8 @@ class MobileHomeFragment : ToolbarFragment() {
         }
         // Nested scrolling lets the sheet consume a downward drag only at the top of the list.
         // The handle and title stay outside the scrolling content.
-        body.addView(androidx.core.widget.NestedScrollView(requireContext()).apply {
-            isFillViewport=true;isVerticalScrollBarEnabled=false
+        body.addView(androidx.core.widget.NestedScrollView(MobilePalette.scrollContext(requireContext())).apply {
+            isFillViewport=true
             addView(protocols,ViewGroup.LayoutParams(-1,-2))
         },LinearLayout.LayoutParams(-1,0,1f))
         val nativeTypes = listOf("qwdtt" to "qWDTT", "csqtt" to "CSQTT", "mrtt" to "MRTT", "wdttplus" to "WDTT Plus", "freeturn" to "FreeTurn", "openflux" to "OpenFlux", "openfluxkey" to "OpenFlux Key", "olcrtc" to "olcRTC",

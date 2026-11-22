@@ -200,7 +200,7 @@ internal class ServerUi(private val context: Context) {
         fill(body, sheet)
         if (action != null) body.addView(button(action, primary = true) { if (apply()) sheet.dismiss() },
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(16) })
-        sheet.setContentView(android.widget.ScrollView(context).apply { addView(body) }); sheet.show()
+        sheet.setContentView(android.widget.ScrollView(MobilePalette.scrollContext(context)).apply { addView(body) }); sheet.show()
         return sheet
     }
 

@@ -152,7 +152,7 @@ class WdttPlusExitActivity : ServerScreenActivity() {
         val content = ui.column(20).apply { setBackgroundColor(MobilePalette.surface) }
         content.addView(ui.text(title, 22f, bold = true))
         fill(content, sheet)
-        sheet.setContentView(ScrollView(this).apply { addView(content) }); sheet.show()
+        sheet.setContentView(ScrollView(MobilePalette.scrollContext(this)).apply { addView(content) }); sheet.show()
     }
 
     private fun field(parent: LinearLayout, label: String, value: String, number: Boolean = false, secret: Boolean = false): EditText {

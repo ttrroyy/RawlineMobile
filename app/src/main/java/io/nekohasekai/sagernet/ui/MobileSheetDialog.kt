@@ -20,7 +20,10 @@ class MobileSheetDialog(context: Context) : BottomSheetDialog(context) {
     }
 
     private fun scrollWithSheet(view: View) {
-        if (view is android.widget.ScrollView) view.isNestedScrollingEnabled = true
+        if (view is android.widget.ScrollView || view is androidx.core.widget.NestedScrollView) {
+            view.isNestedScrollingEnabled = true
+            MobilePalette.showScrollIndicator(view)
+        }
         if (view is android.view.ViewGroup) for (index in 0 until view.childCount) scrollWithSheet(view.getChildAt(index))
     }
 

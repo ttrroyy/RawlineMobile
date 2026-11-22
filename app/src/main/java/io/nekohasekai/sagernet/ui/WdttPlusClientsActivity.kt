@@ -175,7 +175,7 @@ class WdttPlusClientsActivity : ServerScreenActivity() {
         val body = ui.column(20).apply { setBackgroundColor(MobilePalette.surface) }
         body.addView(ui.text(title, 22f, bold = true))
         fill(body, sheet)
-        sheet.setContentView(ScrollView(this).apply { addView(body) }); sheet.show()
+        sheet.setContentView(ScrollView(MobilePalette.scrollContext(this)).apply { addView(body) }); sheet.show()
     }
 
     private fun hashFields(body: LinearLayout, initial: List<String>): () -> List<String> {

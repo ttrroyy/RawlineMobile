@@ -83,6 +83,25 @@ object MobilePalette {
         else -> Color.argb(248, 0, 0, 0)
     }
     val outline get() = androidx.core.graphics.ColorUtils.setAlphaComponent(muted,55)
+
+    internal fun scrollContext(context: Context): Context =
+        if (android.os.Build.VERSION.SDK_INT >= 29) context
+        else android.view.ContextThemeWrapper(context, app.rawline.mobile.R.style.MobileScrollbars)
+
+    internal fun showScrollIndicator(view: android.view.View) = with(view) {
+        isVerticalScrollBarEnabled = true
+        isScrollbarFadingEnabled = false
+        scrollBarStyle = android.view.View.SCROLLBARS_INSIDE_INSET
+        if (android.os.Build.VERSION.SDK_INT >= 29) {
+            val density = resources.displayMetrics.density
+            setVerticalScrollbarThumbDrawable(android.graphics.drawable.GradientDrawable().apply {
+                setColor(muted)
+                cornerRadius = 2 * density
+                setSize((4 * density).toInt().coerceAtLeast(1), 1)
+            })
+        }
+    }
+
     @Suppress("UNUSED_PARAMETER")
     fun accent(context: Context) = if (MobileStyle.pastel) lilac else text
 

@@ -191,7 +191,7 @@ class QwdttAccessActivity : ServerScreenActivity() {
             if (existing == null) request(null, { admin.create(label.text.toString().trim(), hashes, dayCount!!, maxDevices) }) { refresh(); details(it) }
             else request(existing.password, { admin.update(existing.password, label.text.toString().trim(), hashes, maxDevices, dayCount) }) { refresh(); details(it) }
         })
-        sheet.setContentView(ScrollView(this).apply { addView(body) }); sheet.show()
+        sheet.setContentView(ScrollView(MobilePalette.scrollContext(this)).apply { addView(body) }); sheet.show()
     }
 
     /** The access with its QR code, both share links, password and bound devices. */
@@ -226,6 +226,6 @@ class QwdttAccessActivity : ServerScreenActivity() {
                 })
             }
         }
-        sheet.setContentView(ScrollView(this).apply { addView(body) }); sheet.show()
+        sheet.setContentView(ScrollView(MobilePalette.scrollContext(this)).apply { addView(body) }); sheet.show()
     }
 }
