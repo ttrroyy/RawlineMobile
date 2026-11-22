@@ -2004,7 +2004,11 @@ class MobileHomeFragment : ToolbarFragment() {
     private fun updatesMenu(anchor: View) {
         val context=requireContext()
         val rows=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL;setPadding(0,dp(6),0,dp(6)) }
-        val window=android.widget.PopupWindow(rows,minOf(resources.displayMetrics.widthPixels-dp(32),dp(340)),ViewGroup.LayoutParams.WRAP_CONTENT,true).apply {
+        val content = ScrollView(MobilePalette.scrollContext(context)).apply {
+            MobilePalette.showScrollIndicator(this)
+            addView(rows)
+        }
+        val window=android.widget.PopupWindow(content,minOf(resources.displayMetrics.widthPixels-dp(32),dp(340)),ViewGroup.LayoutParams.WRAP_CONTENT,true).apply {
             setBackgroundDrawable(androidx.core.content.ContextCompat.getDrawable(context,R.drawable.bg_popup_menu))
             animationStyle=R.style.PopupMenuAnimation
             elevation=dp(8).toFloat()
@@ -2031,10 +2035,16 @@ class MobileHomeFragment : ToolbarFragment() {
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,maxOf(1,dp(1)/2)).apply { setMargins(dp(16),dp(4),dp(16),dp(4)) })
         row(getString(R.string.update_current_version,BuildConfig.VERSION_NAME),enabled=false)
         // With the tiles at the bottom there is no room below: open upwards, as the PopupMenus there do.
-        if(tilesAtBottom()) {
-            rows.measure(View.MeasureSpec.makeMeasureSpec(window.width,View.MeasureSpec.EXACTLY),View.MeasureSpec.UNSPECIFIED)
-            window.showAsDropDown(anchor,0,-anchor.height-rows.measuredHeight)
-        } else window.showAsDropDown(anchor)
+        val above = tilesAtBottom()
+        val maxHeight = if (above) {
+            val position = IntArray(2).also { anchor.getLocationOnScreen(it) }
+            val frame = android.graphics.Rect().also { anchor.getWindowVisibleDisplayFrame(it) }
+            (position[1] - frame.top).coerceAtLeast(1)
+        } else window.getMaxAvailableHeight(anchor).coerceAtLeast(1)
+        content.measure(View.MeasureSpec.makeMeasureSpec(window.width, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(maxHeight, View.MeasureSpec.AT_MOST))
+        window.height = content.measuredHeight
+        window.showAsDropDown(anchor, 0, if (above) -anchor.height - window.height else 0)
     }
     private fun subscriptionsMenu(anchor: View) {
         val popup=androidx.appcompat.widget.PopupMenu(requireContext(),anchor)
