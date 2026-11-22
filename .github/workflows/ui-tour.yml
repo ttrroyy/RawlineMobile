@@ -101,6 +101,7 @@ jobs:
           "$ADB" shell settings put global hide_error_dialogs 1 || true
           "$ADB" shell pm disable-user --user 0 com.google.android.apps.nexuslauncher || true
           "$ADB" shell pm grant "$PACKAGE" android.permission.POST_NOTIFICATIONS || true
+          "$ADB" shell dumpsys deviceidle whitelist +"$PACKAGE"
           for VARIANT in ${{ inputs.variants }}; do
             for N in ${{ inputs.numbers }}; do
               "$ADB" shell am instrument -w -e class app.rawline.mobile.UiTourTest -e screen "$N" -e style "${VARIANT%:*}" -e night "${VARIANT#*:}" "$TEST_PACKAGE/androidx.test.runner.AndroidJUnitRunner" | grep -E 'OK \(|Failures|Exception|Error' | head -4 | tr -d '\r' | sed "s/^/$VARIANT $N: /" >> ui-tour/results.txt || true
