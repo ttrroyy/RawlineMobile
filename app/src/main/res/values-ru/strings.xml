@@ -2698,6 +2698,7 @@
     <string name="http_proxy_auth">Авторизация HTTP-прокси</string>
     <string name="http_proxy_auth_sum">Защищать HTTP-прокси тем же логином и паролем. Действует только при включённом доступе с других устройств</string>
     <string name="tun_stack">Сетевой стек</string>
+    <string name="home_connections">Соединения</string>
     <string name="tun_stack_auto">Авто (выбор ядра)</string>
     <string name="tun_stack_summary">Сетевой стек выбирает ядро.</string>
     <string name="tun_stack_system_summary">Использует сетевой стек Android.</string>

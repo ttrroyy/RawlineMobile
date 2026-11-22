@@ -963,6 +963,7 @@ class MobileHomeFragment : ToolbarFragment() {
                     modeSwitches=switches.toMap()
                     // The state, the subscription and the server, a line each in one size (updateState trims each line).
                     power=text("",12f,muted).apply { gravity=Gravity.CENTER;maxLines=3;includeFontPadding=false }
+                    power?.setOnClickListener { openConnections() }
                     if(switches.size==1) {
                         // The removed switch's half shows the state and the server in use, so no gap is left.
                         power?.let { cell ->
@@ -988,7 +989,18 @@ class MobileHomeFragment : ToolbarFragment() {
                     // A remote or keyboard has no ripple to show where it stands.
                     setOnFocusChangeListener { button,focused -> (button.background as? MobilePowerArtwork)?.focused=focused }
                     var pressAnimator: android.animation.ValueAnimator? = null
+                    var serverTouch = false
                     setOnTouchListener { _, event ->
+                        val orb = background as? MobileOrbArtwork
+                        if (event.actionMasked == android.view.MotionEvent.ACTION_DOWN)
+                            serverTouch = orb?.hitsServer(event.x, event.y) == true
+                        if (serverTouch) {
+                            if (event.actionMasked == android.view.MotionEvent.ACTION_UP && orb?.hitsServer(event.x, event.y) == true)
+                                openConnections()
+                            if (event.actionMasked == android.view.MotionEvent.ACTION_UP ||
+                                event.actionMasked == android.view.MotionEvent.ACTION_CANCEL) serverTouch = false
+                            return@setOnTouchListener true
+                        }
                         // The new button spans its row for the line under it: only a touch on the disc presses it.
                         if(event.actionMasked==android.view.MotionEvent.ACTION_DOWN) {
                             val disc=dp(MobileHomeLayout.orbSize(true))
@@ -1417,9 +1429,10 @@ class MobileHomeFragment : ToolbarFragment() {
                         gravity = Gravity.CENTER_VERTICAL; background = tile(profile.id == selected)
                         isFocusable = true
                         setOnClickListener {
+                            val previous = DataStore.selectedProxy
+                            if (previous == profile.id) return@setOnClickListener
                             DataStore.selectedProxy = profile.id
                             if (DataStore.serviceState.canStop) requireContext().sendBroadcast(Intent(Action.SWITCH_PROFILE).setPackage(requireContext().packageName).putExtra(Action.EXTRA_PROFILE_ID, profile.id))
-                            this@MobileHomeFragment.profileRows.forEach { (id,view) -> view.background=tile(id==profile.id); MobileFeedback.apply(view) }
                             updateState()
                         }
                     }
@@ -1558,8 +1571,12 @@ class MobileHomeFragment : ToolbarFragment() {
     fun updateState() {
         if(!isAdded || !isResumed || isHidden || power==null) return
         if(renderedSelectedProxy != DataStore.selectedProxy) {
+            val previous = renderedSelectedProxy
             renderedSelectedProxy=DataStore.selectedProxy
-            profileRows.forEach { (id, row) -> row.background=tile(id==renderedSelectedProxy); MobileFeedback.apply(row) }
+            for (id in listOf(previous, renderedSelectedProxy)) profileRows[id]?.let { row ->
+                row.background = tile(id == renderedSelectedProxy)
+                MobileFeedback.apply(row)
+            }
         }
         val state = DataStore.serviceState
         if(!state.connected || currentPingConnectionAt != DataStore.mobileConnectedAt || lastSubscriptionRefresh != SubscriptionReportDialog.refreshEpoch) {
@@ -1596,12 +1613,22 @@ class MobileHomeFragment : ToolbarFragment() {
             else -> if(testing || currentTestArmed) R.string.qmobile_ping_checking else if(state.connected) R.string.qmobile_connected else R.string.qmobile_connecting
         }) else ""
         val description=getString(R.string.qmobile_connect) + ", " + caption.ifEmpty { getString(R.string.qmobile_disconnected) }
-        if(power?.contentDescription != description) power?.contentDescription=description
         power?.setTextColor(muted)
-        (power?.background as? MobilePowerArtwork)?.connected=state.connected
         (power?.background as? MobilePowerArtwork)?.connecting=state==app.rawline.mobile.bg.BaseService.State.Connecting
         currentCheck?.visibility=if(state.connected) View.VISIBLE else View.INVISIBLE
         power?.apply {
+            val artwork = background as? MobilePowerArtwork
+            val accessibleLabel = if (artwork == null && state.connected) getString(R.string.home_connections) else description
+            if (contentDescription != accessibleLabel) contentDescription = accessibleLabel
+            if (artwork == null) {
+                isClickable = state.connected
+                isFocusable = state.connected
+            } else if (artwork.connected != state.connected) {
+                artwork.connected = state.connected
+                val action = androidx.core.view.accessibility.AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_CONTEXT_CLICK
+                if (state.connected) androidx.core.view.ViewCompat.replaceAccessibilityAction(this, action, getString(R.string.home_connections)) { _, _ -> openConnections(); true }
+                else androidx.core.view.ViewCompat.removeAccessibilityAction(this, action.id)
+            }
             // The cell in a removed switch's place keeps its own alignment.
             if(tag!=SWITCH_CELL) { textSize=13f;gravity=Gravity.CENTER;setPadding(0,if(background is MobilePowerArtwork) dp(75*MobileHomeLayout.orbSize(false)/188) else dp(8),0,0) }
             val seconds=((android.os.SystemClock.elapsedRealtime()-DataStore.mobileConnectedAt)/1000).coerceAtLeast(0)
@@ -1634,6 +1661,10 @@ class MobileHomeFragment : ToolbarFragment() {
         }
     }
     private var runningServerCache: Pair<Pair<Long,Long>,Pair<String,String>>?=null
+    private fun openConnections() {
+        if (DataStore.serviceState.connected && !powerCovered())
+            host().displayFragment(DashboardFragment.connections())
+    }
     /** The subscription and the server in use, looked up once per selection. */
     private fun runningServer(): Pair<String,String> {
         // The choice first: the running profile changes only once the service has reloaded, a second later.

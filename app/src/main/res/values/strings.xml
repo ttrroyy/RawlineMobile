@@ -2825,6 +2825,7 @@
     <string name="http_proxy_auth">HTTP proxy authentication</string>
     <string name="http_proxy_auth_sum">Protect the HTTP proxy with the same login and password. Applies only while access from other devices is on</string>
     <string name="tun_stack">TCP/IP stack</string>
+    <string name="home_connections">Connections</string>
     <string name="tun_stack_auto">Auto (core default)</string>
     <string name="tun_stack_summary">Lets the core choose the network stack.</string>
     <string name="tun_stack_system_summary">Uses the system network stack.</string>

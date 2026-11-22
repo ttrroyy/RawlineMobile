@@ -37,6 +37,8 @@ class MobileOrbArtwork(context: Context, private val idleText: String) : MobileP
     /** Told when the subscription and server take two lines or go back to one: the view grows by a line for them. */
     var linesChanged: ((Int) -> Unit)? = null
     private var serverLines = 1
+    private val serverHitArea = RectF()
+    fun hitsServer(x: Float, y: Float) = connected && serverHitArea.contains(x, y)
     override var connected = false
         set(value) { if (field != value) { field = value; invalidateSelf() } }
     override var focused = false
@@ -200,7 +202,14 @@ class MobileOrbArtwork(context: Context, private val idleText: String) : MobileP
             line(workersText, 13f, top + 22f * density * fit)
         }
         // The subscription and the server in use, under the time, or under the caption while idle.
-        if (withServer) serverLine(canvas, cx, top + (if (connected || workersText.isNotEmpty()) 44f else 22f) * density * fit, 12f * density * fit, wide, ink)
+        serverHitArea.setEmpty()
+        if (withServer) {
+            val baseline = top + (if (connected || workersText.isNotEmpty()) 44f else 22f) * density * fit
+            val size = 12f * density * fit
+            serverLine(canvas, cx, baseline, size, wide, ink)
+            serverHitArea.set(cx - wide / 2, baseline - size * 1.2f, cx + wide / 2,
+                minOf(bounds.bottom.toFloat(), baseline + size * (if (serverLines == 2) 1.9f else .7f)))
+        }
         // The wave moves at the screen's own rate, as the list scrolling beside it does (at 60 a second it looked
         // jerky next to a 120 Hz scroll); a window over it or a screen change pauses it.
         if (animated) {

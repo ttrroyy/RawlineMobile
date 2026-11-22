@@ -44,6 +44,13 @@ import org.json.JSONObject
  * The page is the copy the app bundles ([SingBoxDashboard]): a 404 means the build has none, or unpacking it failed.
  */
 class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard), Toolbar.OnMenuItemClickListener {
+    companion object {
+        fun connections() = DashboardFragment().apply {
+            arguments = Bundle().apply { putBoolean("connections", true) }
+        }
+    }
+
+    private val openConnections get() = arguments?.getBoolean("connections") == true
 
     private var binding: LayoutDashboardBinding? = null
     private var webView: WebView? = null
@@ -82,7 +89,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard), Toolbar.On
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        toolbar?.setTitle(R.string.menu_dashboard)
+        toolbar?.setTitle(if (openConnections) R.string.home_connections else R.string.menu_dashboard)
         toolbar?.inflateMenu(R.menu.dashboard_menu)
         toolbar?.setOnMenuItemClickListener(this)
         val binding = LayoutDashboardBinding.bind(view)
@@ -196,7 +203,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard), Toolbar.On
         mainFrameStatus = 0
         clearHistory = true
         showProgress(R.string.dashboard_loading)
-        webView.loadUrl("$origin/dashboard/")
+        webView.loadUrl(if (openConnections) "$origin/dashboard/#/connections" else "$origin/dashboard/")
     }
 
     /** Stops the page, whose streams would otherwise keep knocking on a port nothing serves. */
