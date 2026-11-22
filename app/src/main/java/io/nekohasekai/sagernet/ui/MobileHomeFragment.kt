@@ -2003,12 +2003,12 @@ class MobileHomeFragment : ToolbarFragment() {
     /** Its own popup: PopupMenu cuts long rows at half the screen, these wrap instead. */
     private fun updatesMenu(anchor: View) {
         val context=requireContext()
-        val rows=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL;setPadding(0,dp(6),0,dp(6)) }
+        val rows=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL }
         val content = ScrollView(MobilePalette.scrollContext(context)).apply {
             MobilePalette.showScrollIndicator(this)
             addView(rows)
         }
-        val window=android.widget.PopupWindow(content,minOf(resources.displayMetrics.widthPixels-dp(32),dp(340)),ViewGroup.LayoutParams.WRAP_CONTENT,true).apply {
+        val window=android.widget.PopupWindow(MobilePalette.insetPopupScroller(content),minOf(resources.displayMetrics.widthPixels-dp(32),dp(340)),ViewGroup.LayoutParams.WRAP_CONTENT,true).apply {
             setBackgroundDrawable(androidx.core.content.ContextCompat.getDrawable(context,R.drawable.bg_popup_menu))
             animationStyle=R.style.PopupMenuAnimation
             elevation=dp(8).toFloat()

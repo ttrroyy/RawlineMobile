@@ -102,6 +102,18 @@ object MobilePalette {
         }
     }
 
+    internal const val popupScrollVerticalInsetDp = 14
+
+    internal fun insetPopupScroller(scroller: android.view.View): android.widget.FrameLayout =
+        android.widget.FrameLayout(scroller.context).apply {
+            val density = resources.displayMetrics.density
+            val x = (8 * density).toInt()
+            val y = (popupScrollVerticalInsetDp * density).toInt()
+            // Keep the scrollbar's entire travel inside the popup's rounded corners.
+            setPadding(x, y, x, y)
+            addView(scroller, android.widget.FrameLayout.LayoutParams(-1, -1))
+        }
+
     @Suppress("UNUSED_PARAMETER")
     fun accent(context: Context) = if (MobileStyle.pastel) lilac else text
 

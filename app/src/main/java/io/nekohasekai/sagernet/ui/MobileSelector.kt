@@ -19,8 +19,6 @@ object MobileSelector {
         val list = ListView(MobilePalette.scrollContext(context)).apply {
             divider = null
             MobilePalette.showScrollIndicator(this)
-            setPadding(0,dp(10),dp(8),dp(10))
-            clipToPadding = true
             adapter = object : ArrayAdapter<CharSequence>(context, android.R.layout.simple_list_item_1, labels) {
                 override fun isEnabled(position: Int) = enabled(position)
                 override fun areAllItemsEnabled() = false
@@ -41,12 +39,15 @@ object MobileSelector {
                 setColor(MobilePalette.solid); cornerRadius = dp(MobilePalette.cardDp).toFloat()
                 setStroke(1, MobilePalette.outline)
         }
-        list.background = background
-        list.clipToOutline = true
         // A rounded pill inside the rounded list, as the menus light their rows; the stock selector is a square.
         list.selector = androidx.core.content.ContextCompat.getDrawable(anchor.context, app.rawline.mobile.R.drawable.bg_popup_item)
         list.setDrawSelectorOnTop(false)
-        val popup = PopupWindow(list, minOf((anchor.width - dp(24)).coerceAtLeast(dp(120)), dp(300)), minOf(labels.size,4) * dp(48) + dp(20), true).apply {
+        val popup = PopupWindow(
+            MobilePalette.insetPopupScroller(list),
+            minOf((anchor.width - dp(24)).coerceAtLeast(dp(120)), dp(300)),
+            minOf(labels.size, 4) * dp(48) + dp(2 * MobilePalette.popupScrollVerticalInsetDp),
+            true,
+        ).apply {
             setBackgroundDrawable(background)
             elevation = dp(8).toFloat()
             isOutsideTouchable = true
