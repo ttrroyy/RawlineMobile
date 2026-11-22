@@ -6,9 +6,11 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.view.View
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import androidx.appcompat.widget.AppCompatCheckBox
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.preference.MultiSelectListPreference
 import androidx.preference.Preference
 import androidx.preference.SwitchPreference
 import app.rawline.mobile.BootReceiver
@@ -16,11 +18,13 @@ import app.rawline.mobile.BuildConfig
 import app.rawline.mobile.Key
 import app.rawline.mobile.R
 import app.rawline.mobile.SagerNet
+import app.rawline.mobile.bg.ServiceNotification
 import app.rawline.mobile.database.DataStore
 import app.rawline.mobile.database.SettingsRegistry
-import app.rawline.mobile.ktx.needReload
 import app.rawline.mobile.ktx.remove
 import app.rawline.mobile.ui.MainActivity
+import app.rawline.mobile.ui.MobileAlertDialogBuilder
+import app.rawline.mobile.ui.MobilePalette
 import app.rawline.mobile.utils.AlwaysOnVpn
 import app.rawline.mobile.utils.AppLocale
 import app.rawline.mobile.utils.BatteryOptimizations
@@ -152,7 +156,61 @@ class AppearanceSettingsFragment : SettingsScreenFragment(R.xml.settings_appeara
             AppLocale.apply(newValue as String)
             true
         }
-        reloadOn("qmobileNotificationSpeed")
+        for (key in listOf("qmobileNotificationSpeed", Key.SHOW_DIRECT_SPEED, Key.SHOW_GROUP_IN_NOTIFICATION)) {
+            pref<SwitchPreference>(key).setOnPreferenceChangeListener { _, _ ->
+                view?.post { SagerNet.refreshNotification() }
+                true
+            }
+        }
+        pref<Preference>(Key.NOTIFICATION_ACTIONS).apply {
+            summary = notificationActionsSummary()
+            setOnPreferenceClickListener {
+                pickNotificationActions(this)
+                true
+            }
+        }
+    }
+
+    private fun notificationActionsSummary(): String {
+        val names = resources.getStringArray(R.array.notification_action_entries)
+        val values = resources.getStringArray(R.array.notification_action_values)
+        return ServiceNotification.notificationActions().mapNotNull { value -> names.getOrNull(values.indexOf(value)) }
+            .joinToString(", ").ifEmpty { getString(androidx.preference.R.string.not_set) }
+    }
+
+    private fun pickNotificationActions(preference: Preference) {
+        val builder = MobileAlertDialogBuilder(requireContext())
+        val dialogContext = builder.context
+        val values = resources.getStringArray(R.array.notification_action_values)
+        val chosen = ServiceNotification.notificationActions()
+        val padding = (20 * resources.displayMetrics.density).toInt()
+        val rows = LinearLayout(dialogContext).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(padding, 0, padding, 0)
+        }
+        val checkboxes = resources.getStringArray(R.array.notification_action_entries).mapIndexed { i, label ->
+            AppCompatCheckBox(dialogContext).apply {
+                text = label
+                isChecked = values[i] in chosen
+                rows.addView(this, LinearLayout.LayoutParams(-1, -2))
+            }
+        }
+        fun updateEnabled() {
+            val full = checkboxes.count { it.isChecked } >= ServiceNotification.MAX_ACTIONS
+            checkboxes.forEach { it.isEnabled = it.isChecked || !full }
+        }
+        checkboxes.forEach { it.setOnCheckedChangeListener { _, _ -> updateEnabled() } }
+        updateEnabled()
+        val scroller = ScrollView(MobilePalette.scrollContext(dialogContext)).apply { addView(rows) }
+        builder.setTitle(preference.title)
+            .setView(scroller)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                DataStore.configurationStore.putStringList(Key.NOTIFICATION_ACTIONS, values.filterIndexed { i, _ -> checkboxes[i].isChecked })
+                preference.summary = notificationActionsSummary()
+                SagerNet.refreshNotification()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun showSurfaceChoice(preference: SimpleMenuPreference) {

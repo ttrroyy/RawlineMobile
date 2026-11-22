@@ -95,6 +95,7 @@ object Action {
     const val SWITCH_PREVIOUS = "app.rawline.mobile.SWITCH_PREVIOUS"
     const val SWITCH_PROFILE = "app.rawline.mobile.SWITCH_PROFILE"
     const val REFRESH_WIFI_STATE = "app.rawline.mobile.REFRESH_WIFI_STATE"
+    const val REFRESH_NOTIFICATION = "app.rawline.mobile.REFRESH_NOTIFICATION"
 
     /** The auto-selector [EXTRA_PROFILE_ID] goes back to automatic in the running core. */
     const val AUTO_SELECTOR_AUTOMATIC = "app.rawline.mobile.AUTO_SELECTOR_AUTOMATIC"

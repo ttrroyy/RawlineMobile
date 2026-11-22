@@ -45,9 +45,9 @@ def xml():
         try:
             dumped = shell(*dump_command)
         except subprocess.CalledProcessError as error:
-            if error.returncode != 137 or dump_command == standard_dump:
+            if error.returncode != 137:
                 raise
-            # Android 10 can kill the standalone helper while the emulator is under pressure.
+            # Under memory pressure, the emulator can kill either accessibility dumper.
             dump_command = standard_dump
             dumped = ''
         if 'dumped to' in dumped:

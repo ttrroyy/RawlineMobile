@@ -54,6 +54,7 @@ class ServiceNotification(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
 
         // notificationActions entries; the template shows at most three buttons, in this order.
+        const val MAX_ACTIONS = 3
         const val ACTION_STOP = "stop"
         const val ACTION_PREVIOUS = "previous"
         const val ACTION_NEXT = "next"
@@ -63,11 +64,13 @@ class ServiceNotification(
         private val ACTION_ORDER = listOf(ACTION_STOP, ACTION_PREVIOUS, ACTION_NEXT, ACTION_SWITCH, ACTION_RESET)
 
         fun notificationActions(): List<String> {
-            return DEFAULT_ACTIONS
+            val chosen = DataStore.configurationStore.getStringList(Key.NOTIFICATION_ACTIONS, DEFAULT_ACTIONS)
+            return ACTION_ORDER.filter { it in chosen }.take(MAX_ACTIONS)
         }
 
         fun genTitle(ent: ProxyEntity): String {
-            return ent.displayName()
+            val group = if (DataStore.showGroupInNotification) SagerDatabase.groupDao.getById(ent.groupId)?.displayName() else null
+            return if (group.isNullOrBlank()) ent.displayName() else "[$group] ${ent.displayName()}"
         }
     }
 
@@ -105,7 +108,8 @@ class ServiceNotification(
     suspend fun postNotificationSpeedUpdate(stats: SpeedDisplayData) {
         if (!DataStore.configurationStore.getBoolean("qmobileNotificationSpeed", false)) return
         useBuilder {
-            if (showDirectSpeed) {
+            if (!DataStore.configurationStore.getBoolean("qmobileNotificationSpeed", false)) return@useBuilder
+            if (DataStore.showDirectSpeed) {
                 val speedDetail = (service as Context).getString(
                     R.string.speed_detail, service.getString(
                         R.string.speed, Formatter.formatFileSize(service, stats.txRateProxy)
@@ -144,6 +148,7 @@ class ServiceNotification(
 
     suspend fun postNotificationTitle(newTitle: String) {
         useBuilder {
+            shownTitle = newTitle
             it.setContentTitle(newTitle)
         }
         update()
@@ -156,6 +161,7 @@ class ServiceNotification(
         location = null
         speedText = null
         useBuilder {
+            shownTitle = newTitle
             it.setContentTitle(newTitle)
             it.setContentText(null)
             it.setSubText(null)
@@ -190,7 +196,23 @@ class ServiceNotification(
         }
     }
 
-    private val showDirectSpeed = DataStore.showDirectSpeed
+    suspend fun reloadSettings(oldTitle: String, newTitle: String) {
+        updateActions()
+        useBuilder {
+            if (shownTitle == oldTitle) {
+                shownTitle = newTitle
+                it.setContentTitle(newTitle)
+            }
+            if (speedText != null && !DataStore.configurationStore.getBoolean("qmobileNotificationSpeed", false)) {
+                speedText = null
+                applyBody(it)
+                it.setSubText(null)
+            }
+        }
+        update()
+    }
+
+    private var shownTitle = title
 
     private val builder = NotificationCompat.Builder(service as Context, channel)
         .setWhen(0)
