@@ -103,10 +103,14 @@ func entries(path string, visit func(string, *io.SectionReader) (bool, error)) e
 	if err != nil {
 		return err
 	}
-	if st.Size() > MaxFileSize {
+	return readEntries(io.NewSectionReader(f, 0, st.Size()), visit)
+}
+
+func readEntries(source *io.SectionReader, visit func(string, *io.SectionReader) (bool, error)) error {
+	if source.Size() > MaxFileSize {
 		return fmt.Errorf("geo file too large")
 	}
-	r := newGeoReader(io.NewSectionReader(f, 0, st.Size()))
+	r := newGeoReader(source)
 	count := 0
 	for {
 		tag, entry, err := field(r)

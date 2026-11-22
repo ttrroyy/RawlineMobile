@@ -12,8 +12,8 @@ from pathlib import Path
 
 MODULE = "github.com/sagernet/sing"
 SOURCE = "github.com/throneproj/sing"
-VERSION = "v0.9.4-0.20261024082846-e3e392877db8"
-SUM = "h1:V3PK33YPQX6LACVpQ05UFTUKou6jm6bMUJ+sY/otZis="
+VERSION = "v0.9.4-0.20261113121621-2ce66de7d09b"
+SUM = "h1:GAgVstp+5opgbk0ADLwxREJEdqLoHyAAIRSJjYY9Du0="
 MOD_SUM = "h1:K3Owt3xPhHugvlnlPPxZJ/exXdaJfEPOTNorGk4AXjo="
 
 
@@ -71,10 +71,11 @@ def patch(core: Path):
         "\t\t\t\tauthenticatedSource, err = authenticatedLoopbackUDPSource(conn, request.Destination)\n"
         "\t\t\t\tif err != nil { return err }\n"
         "\t\t\t}\n\t\t\tvar (")
-    replace_once(handshake, "\t\t\tserverConn := bufio.NewServerPacketConn(udpConn)",
+    packet_conn = "\t\t\tserverConn := bufio.NewServerPacketConn(udpConn, M.SocksaddrFromNet(conn.RemoteAddr()).Unwrap().Addr)"
+    replace_once(handshake, packet_conn,
         "\t\t\tif authenticatedSource.IsValid() {\n"
         "\t\t\t\tudpConn = &sourceBoundPacketConn{PacketConn: udpConn, source: authenticatedSource}\n"
-        "\t\t\t}\n\t\t\tserverConn := bufio.NewServerPacketConn(udpConn)")
+        "\t\t\t}\n" + packet_conn)
     helper_dir = target / "protocol" / "socks"
     helper_dir.chmod(helper_dir.stat().st_mode | stat.S_IWUSR)
     for source in (Path(__file__).resolve().parents[1] / "core-patches" / "socks").glob("*.go"):
