@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto" app:title="@string/settings_appearance">
  <PreferenceCategory app:title="@string/settings_appearance">
   <moe.matsuri.nb4a.ui.SimpleMenuPreference app:key="qmobileSurfaceTheme" app:icon="@drawable/ic_mobile_theme" app:title="@string/theme" app:persistent="false" app:entries="@array/qmobile_surface_themes_new" app:entryValues="@array/qmobile_surface_values_new" app:useSimpleSummaryProvider="true" />
   <Preference app:key="qmobileEditLayout" app:icon="@drawable/ic_mobile_dock_bottom" app:title="@string/qmobile_edit_layout" app:persistent="false" />

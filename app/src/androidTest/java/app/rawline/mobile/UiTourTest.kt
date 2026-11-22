@@ -51,12 +51,19 @@ class UiTourTest {
     }
     private fun appearance() {
         main(R.id.nav_settings)
-        val title = resumed().getString(R.string.settings_appearance)
-        press(title)
+        val activity = resumed() as MainActivity
+        val title = activity.getString(R.string.settings_appearance)
         instrumentation.runOnMainSync {
-            val toolbar = resumed().findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
-            check(toolbar?.title?.toString() == title) { "The Appearance toolbar has no title" }
+            val settings = activity.supportFragmentManager.findFragmentById(R.id.fragment_holder) as SettingsFragment
+            val root = settings.childFragmentManager.findFragmentById(R.id.settings) as SettingsPreferenceFragment
+            val row = requireNotNull(root.findPreference<androidx.preference.Preference>("qmobileAppearance"))
+            check(settings.onPreferenceStartFragment(root, row)) { "The Appearance row does not open a screen" }
+            settings.childFragmentManager.executePendingTransactions()
+            val current = settings.childFragmentManager.findFragmentById(R.id.settings)
+            check(current is app.rawline.mobile.ui.settings.AppearanceSettingsFragment) { "Appearance did not open" }
+            check(settings.toolbar?.title?.toString() == title) { "Expected title '$title', got '${settings.toolbar?.title}'" }
         }
+        Thread.sleep(700)
     }
 
     /** Taps by the label a person sees, in any window, popups included. */

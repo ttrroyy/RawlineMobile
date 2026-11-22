@@ -121,8 +121,12 @@ class SettingsFragment : ToolbarFragment(R.layout.layout_config_settings),
         val nested = childFragmentManager.backStackEntryCount > 0
         backCallback.isEnabled = nested
         val current = childFragmentManager.findFragmentById(R.id.settings)
-        toolbar.title = current?.arguments?.getCharSequence(SettingsScreenFragment.ARG_TITLE)
-            ?.takeIf { nested } ?: getString(R.string.settings)
+        val screenTitle = current?.arguments?.getCharSequence(SettingsScreenFragment.ARG_TITLE)
+        toolbar.title = when {
+            !nested -> getString(R.string.settings)
+            !screenTitle.isNullOrBlank() -> screenTitle
+            else -> (current as? PreferenceFragmentCompat)?.preferenceScreen?.title ?: getString(R.string.settings)
+        }
         if (nested) {
             toolbar.setNavigationIcon(R.drawable.baseline_arrow_back_24)
             toolbar.setNavigationContentDescription(R.string.navigation_back)

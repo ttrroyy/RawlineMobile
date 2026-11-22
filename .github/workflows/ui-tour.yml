@@ -102,15 +102,26 @@ jobs:
           "$ADB" shell pm disable-user --user 0 com.google.android.apps.nexuslauncher || true
           "$ADB" shell pm grant "$PACKAGE" android.permission.POST_NOTIFICATIONS || true
           "$ADB" shell dumpsys deviceidle whitelist +"$PACKAGE"
+          failed=0
           for VARIANT in ${{ inputs.variants }}; do
             for N in ${{ inputs.numbers }}; do
-              "$ADB" shell am instrument -w -e class app.rawline.mobile.UiTourTest -e screen "$N" -e style "${VARIANT%:*}" -e night "${VARIANT#*:}" "$TEST_PACKAGE/androidx.test.runner.AndroidJUnitRunner" | grep -E 'OK \(|Failures|Exception|Error' | head -4 | tr -d '\r' | sed "s/^/$VARIANT $N: /" >> ui-tour/results.txt || true
+              result="ui-tour/${VARIANT/:/-}-$N.txt"
+              if ! "$ADB" shell am instrument -w -e class app.rawline.mobile.UiTourTest -e screen "$N" -e style "${VARIANT%:*}" -e night "${VARIANT#*:}" "$TEST_PACKAGE/androidx.test.runner.AndroidJUnitRunner" > "$result"; then
+                failed=1
+              fi
+              if grep -Fq 'OK (1 test)' "$result"; then
+                echo "$VARIANT $N: OK (1 test)" >> ui-tour/results.txt
+              else
+                echo "$VARIANT $N: failed" >> ui-tour/results.txt
+                failed=1
+              fi
             done
           done
           for IMAGE in $("$ADB" shell run-as "$PACKAGE" ls files | tr -d '\r' | grep '^tour-'); do
             "$ADB" exec-out run-as "$PACKAGE" cat "files/$IMAGE" > "ui-tour/$IMAGE"
           done
           "$ADB" logcat -d -b crash > ui-tour/crashes.txt || true
+          exit "$failed"
       - uses: actions/upload-artifact@v7
         if: always()
         with:
