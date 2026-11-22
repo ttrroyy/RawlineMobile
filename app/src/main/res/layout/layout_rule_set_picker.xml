@@ -102,10 +102,10 @@
         android:clipToPadding="false"
         android:scrollbarSize="0dp"
         android:visibility="gone"
-        app:fastScrollAutoHide="true"
+        app:fastScrollAutoHide="false"
         app:fastScrollPopupTextColor="?colorPrimary"
-        app:fastScrollThumbColor="?colorPrimary"
-        app:fastScrollThumbInactiveColor="?colorPrimary"
+        app:fastScrollThumbColor="?android:attr/textColorPrimary"
+        app:fastScrollThumbInactiveColor="?android:attr/textColorSecondary"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:listitem="@layout/layout_rule_set_item" />
 

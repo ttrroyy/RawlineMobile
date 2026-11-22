@@ -16,9 +16,9 @@
         android:paddingRight="4dp"
         android:paddingBottom="80dp"
         android:scrollbarSize="0dp"
-        app:fastScrollAutoHide="true"
-        app:fastScrollThumbColor="?colorPrimary"
-        app:fastScrollThumbInactiveColor="?colorPrimary"
+        app:fastScrollAutoHide="false"
+        app:fastScrollThumbColor="?android:attr/textColorPrimary"
+        app:fastScrollThumbInactiveColor="?android:attr/textColorSecondary"
         tools:listitem="@layout/layout_profile" />
 
     <!-- fillViewport lets gravity="center" centre the block; taller content stays scrollable. -->
