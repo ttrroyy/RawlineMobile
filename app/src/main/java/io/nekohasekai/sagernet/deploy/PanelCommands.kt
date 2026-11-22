@@ -26,12 +26,13 @@ object PanelCommands {
         Protocol("wdtt", "WDTT", 0), Protocol("qwdtt", "qWDTT", 0), Protocol("wdtt-plus", "WDTT Plus", 0),
         Protocol("csqtt-2.1.9", "CSQTT 2.1.9", 0), Protocol("csqtt-2.5.0", "CSQTT 2.5.0", 0),
         Protocol("csqtt-2.5.3-community", "CSQTT 2.5.3 (community)", 0), Protocol("freeturn", "FreeTurn", 0),
+        Protocol("mrtt", "MRTT", 0),
         Protocol("dnstt", "DNSTT", 1), Protocol("vaydns", "VayDNS", 1), Protocol("slipstream", "Slipstream", 1),
         Protocol("masterdns", "MasterDNS / StormDNS", 1), Protocol("cottendns", "CottenDNS", 1), Protocol("soar", "Soar", 1),
         Protocol("openflux", "OpenFlux Direct", 2),
     )
     val groups = listOf("VPN через звонки", "DNS-туннели (нужна делегированная зона)", "Прямое подключение")
-    val defaultProtocols = protocols.filter { it.group == 0 }.map { it.id }
+    val defaultProtocols = protocols.filter { it.group == 0 && it.id != "mrtt" }.map { it.id }
 
     private val hostname = Regex("^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$")
     private val email = Regex("^[^\\s@'\"\\\\]+@[^\\s@'\"\\\\]+\\.[^\\s@'\"\\\\]+$")

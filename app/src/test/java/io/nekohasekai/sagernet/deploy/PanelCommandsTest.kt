@@ -15,8 +15,8 @@ class PanelCommandsTest {
     private fun plain(command: String) = command.replace("'\"'\"'", "'")
 
     @Test fun envAnswersEveryInstallerQuestion() {
-        val env = PanelCommands.env(server("protocols" to "wdtt,dnstt", "access" to "nginx", "domain" to "Panel.Example.org", "dnsZone" to "t.example.org", "dnsNs" to "ns.example.org"))
-        assertEquals("WDTT_PROTOCOLS='wdtt,dnstt' WDTT_FRONTEND=nginx WDTT_DOMAIN='panel.example.org' WDTT_CERT_EMAIL='' WDTT_DNS_ZONE='t.example.org' WDTT_DNS_NS='ns.example.org'", env)
+        val env = PanelCommands.env(server("protocols" to "wdtt,mrtt,dnstt", "access" to "nginx", "domain" to "Panel.Example.org", "dnsZone" to "t.example.org", "dnsNs" to "ns.example.org"))
+        assertEquals("WDTT_PROTOCOLS='wdtt,mrtt,dnstt' WDTT_FRONTEND=nginx WDTT_DOMAIN='panel.example.org' WDTT_CERT_EMAIL='' WDTT_DNS_ZONE='t.example.org' WDTT_DNS_NS='ns.example.org'", env)
         val local = PanelCommands.env(server("access" to "local"))
         for (name in listOf("WDTT_PROTOCOLS=''", "WDTT_FRONTEND=local", "WDTT_DNS_ZONE=''", "WDTT_DNS_NS=''")) assertTrue(name, local.contains(name))
         assertFalse(local.contains("WDTT_DOMAIN"))
