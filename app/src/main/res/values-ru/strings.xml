@@ -2707,4 +2707,8 @@
     <string name="tun_stack_mixed_summary">Использует System для TCP и gVisor для UDP.</string>
     <string name="xray_geo_auto_update">Обновлять геоданные автоматически</string>
     <string name="xray_geo_auto_update_sum">Проверять раз в сутки и загружать geoip.dat и geosite.dat старше суток. При ошибке загрузки сохраняются прежние файлы.</string>
+    <string name="juicity_pinned_certchain_sha256">SHA256 цепочки сертификатов</string>
+    <string name="juicity_pinned_certchain_sha256_hint">Хеш цепочки сертификатов, который выводит juicity-server; заменяет проверку по CA, даже при «Разрешить небезопасное подключение»</string>
+    <string name="validation_juicity_certchain">Укажите 32-байтовый хеш цепочки сертификатов в base64 (44 символа, в конце =), как его выводит juicity-server.</string>
+    <string name="validation_juicity_certchain_conflict">Хеш цепочки сертификатов заменяет проверку сертификата; очистите сертификат TLS и закрепление сертификатов.</string>
 </resources>
