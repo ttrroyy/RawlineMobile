@@ -12,8 +12,10 @@ import app.rawline.mobile.database.ProfileManager
 import app.rawline.mobile.database.ProxyEntity
 import app.rawline.mobile.ktx.confirmAction
 import app.rawline.mobile.ktx.nameList
+import app.rawline.mobile.ktx.showAllowingStateLoss
 import app.rawline.mobile.ktx.snackbar
 import app.rawline.mobile.ui.ConfigurationFragment
+import app.rawline.mobile.widget.QRCodeDialog
 
 /**
  * Multi-selection in the current tab (the desktop's selected rows): long press starts it, taps toggle, the toolbar
@@ -130,6 +132,8 @@ class SelectionMode(private val host: ConfigurationFragment) {
             R.id.action_selection_move -> moveToGroup(ids)
             R.id.action_selection_copy_links -> copyLinks(ids, rawline = false)
             R.id.action_selection_copy_rawline -> copyLinks(ids, rawline = true)
+            R.id.action_selection_qr_links -> showQr(ids, rawline = false)
+            R.id.action_selection_qr_rawline -> showQr(ids, rawline = true)
             else -> return false
         }
         return true
@@ -209,19 +213,45 @@ class SelectionMode(private val host: ConfigurationFragment) {
     private fun copyLinks(ids: List<Long>, rawline: Boolean) {
         finish()
         host.launchIo {
-            val position = ids.withIndex().associate { it.value to it.index }
-            val links = ProfileManager.getProfiles(ids).sortedBy { position[it.id] }.mapNotNull { profile ->
-                val link = if (rawline) profile.exportJsonLink() else profile.exportLink().ifEmpty { profile.exportJsonLink() }
-                link.takeIf { it.isNotEmpty() }
-            }
+            val links = exportLinks(ids, rawline).map { it.first }
             if (links.isEmpty()) return@launchIo
+            host.onUi { copyLinksToClipboard(links) }
+        }
+    }
+
+    private fun showQr(ids: List<Long>, rawline: Boolean) {
+        finish()
+        host.launchIo {
+            val exported = exportLinks(ids, rawline)
+            if (exported.isEmpty()) return@launchIo
+            val links = exported.map { it.first }
+            val payload = links.joinToString("\n")
+            val fits = QRCodeDialog.fits(payload)
             host.onUi {
-                val copied = SagerNet.trySetPrimaryClip(links.joinToString("\n"))
-                snackbar(
-                    if (copied) resources.getQuantityString(R.plurals.profiles_copied, links.size, links.size)
-                    else getString(R.string.action_export_err)
-                ).show()
+                if (fits) {
+                    val names = requireContext().nameList(exported.map { it.second }, limit = 3)
+                    QRCodeDialog(payload, names).showAllowingStateLoss(parentFragmentManager)
+                } else {
+                    snackbar(R.string.qr_too_large)
+                        .setAction(R.string.profiles_copy_links) { copyLinksToClipboard(links) }.show()
+                }
             }
         }
+    }
+
+    private fun exportLinks(ids: List<Long>, rawline: Boolean): List<Pair<String, String>> {
+        val position = ids.withIndex().associate { it.value to it.index }
+        return ProfileManager.getProfiles(ids).sortedBy { position[it.id] }.mapNotNull { profile ->
+            val link = if (rawline) profile.exportJsonLink() else profile.exportLink().ifEmpty { profile.exportJsonLink() }
+            link.takeIf { it.isNotEmpty() }?.let { it to profile.displayName() }
+        }
+    }
+
+    private fun ConfigurationFragment.copyLinksToClipboard(links: List<String>) {
+        val copied = SagerNet.trySetPrimaryClip(links.joinToString("\n"))
+        snackbar(
+            if (copied) resources.getQuantityString(R.plurals.profiles_copied, links.size, links.size)
+            else getString(R.string.action_export_err)
+        ).show()
     }
 }

@@ -17,6 +17,8 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
+import com.google.zxing.qrcode.encoder.Encoder
 import app.rawline.mobile.R
 import app.rawline.mobile.ktx.Logs
 import app.rawline.mobile.ktx.dp2px
@@ -30,7 +32,16 @@ class QRCodeDialog() : DialogFragment() {
     companion object {
         private const val KEY_URL = "app.rawline.mobile.QRCodeDialog.KEY_URL"
         private const val KEY_NAME = "app.rawline.mobile.QRCodeDialog.KEY_NAME"
-        private val iso88591 = StandardCharsets.ISO_8859_1.newEncoder()
+        private fun hints(text: String): Map<EncodeHintType, Any> =
+            if (StandardCharsets.ISO_8859_1.newEncoder().canEncode(text)) emptyMap()
+            else mapOf(EncodeHintType.CHARACTER_SET to StandardCharsets.UTF_8.name())
+
+        fun fits(text: String): Boolean = try {
+            Encoder.encode(text, ErrorCorrectionLevel.L, hints(text))
+            true
+        } catch (_: WriterException) {
+            false
+        }
     }
 
     constructor(url: String, displayName: String) : this() {
@@ -71,9 +82,7 @@ class QRCodeDialog() : DialogFragment() {
         val url = arguments?.getString(KEY_URL)!!
         val displayName = arguments?.getString(KEY_NAME)!!
 
-        val hints = mutableMapOf<EncodeHintType, Any>()
-        if (!iso88591.canEncode(url)) hints[EncodeHintType.CHARACTER_SET] = StandardCharsets.UTF_8.name()
-        val qrBits = MultiFormatWriter().encode(url, BarcodeFormat.QR_CODE, size, size, hints)
+        val qrBits = MultiFormatWriter().encode(url, BarcodeFormat.QR_CODE, size, size, hints(url))
         LinearLayout(context).apply {
             // Layout
             orientation = LinearLayout.VERTICAL
@@ -88,13 +97,15 @@ class QRCodeDialog() : DialogFragment() {
                 )
                 // scaled down, still square, when the padded dialog is narrower than the code
                 adjustViewBounds = true
-                val pixels = IntArray(size * size)
-                for (y in 0 until size) {
-                    val row = y * size
-                    for (x in 0 until size) pixels[row + x] = if (qrBits.get(x, y)) Color.BLACK else Color.WHITE
+                val width = qrBits.width
+                val height = qrBits.height
+                val pixels = IntArray(width * height)
+                for (y in 0 until height) {
+                    val row = y * width
+                    for (x in 0 until width) pixels[row + x] = if (qrBits.get(x, y)) Color.BLACK else Color.WHITE
                 }
-                setImageBitmap(Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565).apply {
-                    setPixels(pixels, 0, size, 0, 0, size, size)
+                setImageBitmap(Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565).apply {
+                    setPixels(pixels, 0, width, 0, 0, width, height)
                 })
             })
 

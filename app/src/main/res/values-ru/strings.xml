@@ -920,6 +920,7 @@
     <string name="profile_row_upload">Отправка %s</string>
     <string name="profiles_appearance">Внешний вид</string>
     <string name="profiles_copy_links">Копировать ссылки</string>
+    <string name="qr_too_large">Выбранные профили не помещаются в один QR-код.</string>
     <string name="profiles_copy_share_links">Ссылки для обмена</string>
     <string name="profiles_copy_rawline_links">Ссылки Rawline</string>
     <string name="profiles_delete_failed">Не удалось удалить профили.</string>

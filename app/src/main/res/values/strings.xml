@@ -1205,6 +1205,7 @@
         <item quantity="other">Moved %1$d profiles to %2$s</item>
     </plurals>
     <string name="profiles_copy_links">Copy links</string>
+    <string name="qr_too_large">The selected profiles do not fit in one QR code.</string>
     <string name="profiles_copy_share_links">Share links</string>
     <string name="profiles_copy_rawline_links">Rawline links</string>
     <plurals name="profiles_copied">
