@@ -147,7 +147,9 @@ class PanelCommandsTest {
     @Test fun choicesAreComplete() {
         assertEquals(listOf("combined", "panel", "node"), PanelCommands.roles.map { it.value })
         assertEquals(listOf("nginx", "caddy", "local"), PanelCommands.access.map { it.value })
-        assertEquals(14, PanelCommands.protocols.size)
+        assertEquals(15, PanelCommands.protocols.size)
+        assertEquals(0, PanelCommands.protocols.single { it.id == "mrtt" }.group)
+        assertFalse("mrtt" in PanelCommands.defaultProtocols)
         assertTrue(PanelCommands.access.first { it.value == "local" }.text.contains("Подписки по ссылке в этом режиме не работают"))
         // Production texts: no long dashes.
         for (text in (PanelCommands.roles + PanelCommands.access).flatMap { listOf(it.title, it.text) }) assertFalse(text, text.contains('—'))
