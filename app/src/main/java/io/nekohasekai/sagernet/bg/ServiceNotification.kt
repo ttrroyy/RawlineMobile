@@ -203,10 +203,14 @@ class ServiceNotification(
         .setPriority(if (visible) NotificationCompat.PRIORITY_LOW else NotificationCompat.PRIORITY_MIN)
 
     private val buildLock = Mutex()
+    private val postingLock = Any()
+    private var closed = false
 
     private suspend fun useBuilder(f: (NotificationCompat.Builder) -> Unit) {
         buildLock.withLock {
-            f(builder)
+            synchronized(postingLock) {
+                if (!closed) f(builder)
+            }
         }
     }
 
@@ -318,6 +322,11 @@ class ServiceNotification(
     }
 
     fun destroy() {
+        // A queued title, speed or foreground update must not bring back a stopped notification.
+        synchronized(postingLock) {
+            if (closed) return
+            closed = true
+        }
         listenPostSpeed = false
         runOnMainDispatcher {
             if (ExitIp.listener === exitListener) ExitIp.listener = null
