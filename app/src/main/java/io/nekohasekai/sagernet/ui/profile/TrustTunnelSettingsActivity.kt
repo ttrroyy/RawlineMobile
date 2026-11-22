@@ -24,8 +24,14 @@ class TrustTunnelSettingsActivity : BindingSettingsActivity<TrustTunnel>() {
         pbm.text("congestion_control")
         pbm.text("custom_sni")
         pbm.text("client_random")
+        pbm.text("client_random_auth_key")
         pbm.bool("health_check")
         TlsBlock.bind(pbm)
+    }
+
+    override fun TrustTunnel.serialize() {
+        pbm.fromCacheAll(this)
+        client_random_auth_key = client_random_auth_key.trim()
     }
 
     override fun TrustTunnel.init() {
@@ -50,16 +56,22 @@ class TrustTunnelSettingsActivity : BindingSettingsActivity<TrustTunnel>() {
     private fun tlsConflictKey(): String {
         val outbound = validationOutbound()
         val tls = outbound.tls
-        val clientRandom = outbound.client_random.isNotEmpty() && TrustTunnelChecks.trustTunnelTlsConflict(
+        val keyed = outbound.client_random.isNotEmpty() || outbound.client_random_auth_key.isNotEmpty()
+        val clientRandom = keyed && TrustTunnelChecks.trustTunnelTlsConflict(
             true, false, outbound.quic, tls.ech.enabled, tls.reality.enabled, tls.disable_sni,
             if (tls.utls.enabled) tls.utls.fingerPrint else "",
         ).isNotEmpty()
-        return if (clientRandom) "client_random" else "custom_sni"
+        return when {
+            !clientRandom -> "custom_sni"
+            outbound.client_random.isNotEmpty() -> "client_random"
+            else -> "client_random_auth_key"
+        }
     }
 
     override fun PreferenceFragmentCompat.onPreferencesCreated() {
         portInput("serverPort")
         passwordSummary("password")
+        passwordSummary("client_random_auth_key")
         TlsBlock.setup(this, mustTls = true)
         // QUIC dials through qtls, which takes no uTLS config (dialog_edit_profile.cpp:759-763); it is TLS 1.3 only,
         // where Go does not let the cipher suites be chosen

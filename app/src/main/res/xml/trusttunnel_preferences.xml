@@ -50,6 +50,12 @@
             app:key="client_random"
             app:title="@string/trusttunnel_client_random"
             app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_vpn_key_24"
+            app:key="client_random_auth_key"
+            app:title="@string/trusttunnel_client_random_auth_key"
+            app:dialogMessage="@string/trusttunnel_client_random_auth_key_hint"
+            app:dialogLayout="@layout/layout_password_dialog" />
         <SwitchPreference
             app:icon="@drawable/ic_baseline_refresh_24"
             app:key="health_check"

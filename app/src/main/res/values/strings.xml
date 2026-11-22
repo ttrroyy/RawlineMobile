@@ -2838,4 +2838,10 @@
     <string name="juicity_pinned_certchain_sha256_hint">Certificate chain hash printed by juicity-server; replaces CA verification, even with Allow insecure</string>
     <string name="validation_juicity_certchain">Use the 32-byte certificate chain hash in base64 (44 characters ending in =), as juicity-server prints it.</string>
     <string name="validation_juicity_certchain_conflict">The certificate chain pin replaces certificate verification; clear the TLS certificate and certificate pins.</string>
+    <string name="trusttunnel_client_random_auth_key">Client random key</string>
+    <string name="trusttunnel_client_random_auth_key_hint">Hex key of the server\'s client_random_auth_key rule; use instead of Client random</string>
+    <string name="validation_trusttunnel_client_random_pair">Use either Client Random or Client Random Key, not both.</string>
+    <string name="validation_trusttunnel_auth_key_disable_sni">Client Random Key cannot be combined with Disable SNI.</string>
+    <string name="validation_trusttunnel_auth_key_mixed_case_sni">Client Random Key cannot be combined with mixed-case SNI.</string>
+    <string name="validation_trusttunnel_auth_key_sni">Client Random Key needs a domain name as the SNI; set Custom SNI or the TLS server name.</string>
 </resources>

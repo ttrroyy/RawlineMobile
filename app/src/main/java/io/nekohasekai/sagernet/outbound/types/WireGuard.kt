@@ -614,20 +614,32 @@ class WireGuard : Outbound("wireguard") {
     }
 
     override fun parseFromClash(node: JsonObject): Boolean {
-        val proxy=ClashProxy(node)
-        if(proxy.type!="wireguard") return false
+        val proxy = ClashProxy(node)
+        if (proxy.type != "wireguard") return false
         baseParseFromClash(proxy)
-        private_key=proxy.string("private-key")
-        peer=WireGuardPeer().apply {
-            address=server;port=serverPort
-            public_key=proxy.string("public-key")
-            pre_shared_key=proxy.string("pre-shared-key")
-            persistent_keepalive=proxy.string("persistent-keepalive")
-            if(node.isArray("reserved")) reserved=node.array("reserved").map { JsonValues.toInt(it) }.toMutableList()
+        private_key = proxy.string("private-key").trim()
+        val peers = node.array("peers")
+        val endpoint = if (peers.isEmpty()) proxy else ClashProxy(peers.first() as? JsonObject ?: return false)
+        if (peers.size > 1) ParseDiag.warn("peers", vtr(R.string.validation_wg_peers, peers.size))
+        val keepalive = proxy.string("persistent-keepalive").ifBlank { proxy.string("keepalive") }.trim()
+        val reservedField = endpoint.strings("reserved").ifEmpty { proxy.strings("reserved") }.joinToString(",")
+        peer = WireGuardPeer().apply {
+            address = Hosts.toAceHost(endpoint.string("server").trim())
+            port = endpoint.int("port")
+            public_key = endpoint.string("public-key").trim()
+            pre_shared_key = endpoint.string("pre-shared-key").trim()
+            if (wireguardKeep("keepalive", keepalive, WireGuardChecks::wireguardKeepalive)) persistent_keepalive = keepalive
+            acceptOptional("reserved", WireGuardChecks.wireguardReserved(reservedField, reserved), reservedField)
         }
-        if(peer.reserved.any { it !in 0..255 }) return false
-        address=(proxy.strings("ip")+proxy.strings("ipv6")).filter(String::isNotBlank).toMutableList()
-        if(proxy.has("mtu")) mtu=proxy.int("mtu")
+        server = peer.address
+        serverPort = peer.port
+        val allowedKey = if (endpoint.has("allowed-ips")) "allowed-ips" else "allowed_ips"
+        val allowed = endpoint.strings(allowedKey).flatMap { it.split(',') }.map(String::trim)
+        if (allowed.isNotEmpty() && !peer.setAllowedNetworks(allowed)) return false
+        address = (proxy.strings("ip") + proxy.strings("ipv6")).flatMap { it.split(',') }
+            .map(String::trim).filter(String::isNotEmpty).toMutableList()
+        proxy.int("mtu").takeIf { it > 0 }?.let { mtu = it }
+        proxy.int("workers").takeIf { it > 0 }?.let { worker_count = it }
         val amnezia=JsonObject()
         val options=proxy.obj("amnezia-wg-option")
         for((key,value) in options.node) {
@@ -640,6 +652,7 @@ class WireGuard : Outbound("wireguard") {
         }
         amneziaFromJson(amnezia)
         fixAddress()
+        address = wireguardDropBadAddresses(address)
         return private_key.isNotEmpty() && peer.public_key.isNotEmpty() && peer.address.isNotEmpty() &&
             peer.port in 1..65535 && address.isNotEmpty()
     }

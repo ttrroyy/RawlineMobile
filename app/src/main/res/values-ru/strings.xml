@@ -2711,4 +2711,10 @@
     <string name="juicity_pinned_certchain_sha256_hint">Хеш цепочки сертификатов, который выводит juicity-server; заменяет проверку по CA, даже при «Разрешить небезопасное подключение»</string>
     <string name="validation_juicity_certchain">Укажите 32-байтовый хеш цепочки сертификатов в base64 (44 символа, в конце =), как его выводит juicity-server.</string>
     <string name="validation_juicity_certchain_conflict">Хеш цепочки сертификатов заменяет проверку сертификата; очистите сертификат TLS и закрепление сертификатов.</string>
+    <string name="trusttunnel_client_random_auth_key">Ключ случайного значения клиента</string>
+    <string name="trusttunnel_client_random_auth_key_hint">Ключ в hex из правила client_random_auth_key на сервере; указывается вместо случайного значения клиента</string>
+    <string name="validation_trusttunnel_client_random_pair">Укажите либо случайное значение клиента, либо его ключ, но не оба.</string>
+    <string name="validation_trusttunnel_auth_key_disable_sni">Ключ случайного значения клиента нельзя сочетать с «Отключить SNI».</string>
+    <string name="validation_trusttunnel_auth_key_mixed_case_sni">Ключ случайного значения клиента нельзя сочетать с SNI в смешанном регистре.</string>
+    <string name="validation_trusttunnel_auth_key_sni">Для ключа случайного значения клиента в SNI нужно доменное имя; укажите пользовательский SNI или имя сервера TLS.</string>
 </resources>

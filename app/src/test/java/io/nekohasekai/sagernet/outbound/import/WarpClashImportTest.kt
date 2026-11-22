@@ -31,6 +31,31 @@ class WarpClashImportTest {
         assertEquals("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=",profile.peer.pre_shared_key)
     }
 
+    @Test fun wireGuardClashUsesPeerWithItsAllowedNetworks() {
+        val yaml = """
+            proxies:
+              - name: WireGuard peers
+                type: wireguard
+                server: 192.0.2.100
+                port: 100
+                private-key: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+                ip: 172.16.0.2
+                workers: 2
+                reserved: [1, 2, 3]
+                peers:
+                  - server: 192.0.2.7
+                    port: 51820
+                    public-key: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+                    allowed-ips: [10.0.0.0/8, 'fd00::/8']
+        """.trimIndent()
+        val profile = ProfileImport.parse(yaml).outbounds.single() as WireGuard
+        assertEquals("192.0.2.7", profile.peer.address)
+        assertEquals(51820, profile.peer.port)
+        assertEquals(listOf("10.0.0.0/8", "fd00::/8"), profile.peer.allowedNetworks())
+        assertEquals(listOf(1, 2, 3), profile.peer.reserved)
+        assertEquals(2, profile.worker_count)
+    }
+
     @Test fun fullTemplateFileImportsBothMasqueAndEveryWireGuardProfile() {
         val document=javaClass.getResourceAsStream("/fixtures/clash-warp-templates.yaml")!!.bufferedReader().use { it.readText() }
         val result=ProfileImport.parse(document)
