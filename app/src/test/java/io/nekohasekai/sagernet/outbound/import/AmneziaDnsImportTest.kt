@@ -37,4 +37,11 @@ class AmneziaDnsImportTest {
         val plain = ProfileImport.parse(conf.replace("DNS = \$PRIMARY_DNS, \$SECONDARY_DNS\n", "")).outbounds.single() as WireGuard
         assertEquals(1280, plain.mtu)
     }
+
+    @Test fun wireGuardFilesKeepExplicitMtuAndUseTheDefaultForNone() {
+        val explicit = ProfileImport.parse(conf.replace("[Peer]", "MTU = 1400\n[Peer]")).outbounds.single() as WireGuard
+        val unset = ProfileImport.parse(conf.replace("[Peer]", "MTU = none\n[Peer]")).outbounds.single() as WireGuard
+        assertEquals(1400, explicit.mtu)
+        assertEquals(1280, unset.mtu)
+    }
 }

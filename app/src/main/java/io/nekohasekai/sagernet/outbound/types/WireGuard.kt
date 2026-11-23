@@ -487,6 +487,7 @@ class WireGuard : Outbound("wireguard") {
         var section = ""
         var target = ""
         var peers = 0
+        var mtuSet = false
         val allowedIps = ArrayList<String>()
         for (line in QtStrings.split(text, "\n")) {
             // wg and wg-quick cut every line at '#'; keys and signature tags never contain one.
@@ -535,7 +536,10 @@ class WireGuard : Outbound("wireguard") {
                 "privatekey" -> private_key = value
                 // wg-quick allows the key to repeat, e.g. one line per address family.
                 "address" -> address.addAll(QtStrings.splitSkipEmpty(value.replace(" ", ""), ","))
-                "mtu" -> if (wireguardKeep(rawKey, value, Validation.Rules.int(0, WIREGUARD_INT_MAX))) mtu = QtStrings.toInt(value)
+                "mtu" -> if (wireguardKeep(rawKey, value, Validation.Rules.int(0, WIREGUARD_INT_MAX))) {
+                    mtu = QtStrings.toInt(value)
+                    mtuSet = true
+                }
                 // The official clients resolve through the INI's DNS; some servers only forward what they resolved.
                 "dns" -> dns = (dns + QtStrings.splitSkipEmpty(value.replace(" ", ""), ",")).toMutableList()
                 "publickey" -> peer.public_key = value
@@ -601,8 +605,8 @@ class WireGuard : Outbound("wireguard") {
         }
         if (peers > 1) ParseDiag.warn("[Peer]", vtr(R.string.validation_wg_peer_sections, peers.toString()))
         if (allowedIps.isNotEmpty() && !peer.setAllowedNetworks(allowedIps)) return false
-        // Without an MTU line the official WireGuard and AmneziaWG Android apps run at 1280; 1420 loses big packets on many paths.
-        if (!Regex("""(?im)^\s*MTU\s*=""").containsMatchIn(text)) mtu = 1280
+        // Match the Android WireGuard and AmneziaWG fallback when the file supplies no MTU.
+        if (!mtuSet) mtu = 1280
         fixAddress()
         address = wireguardDropBadAddresses(address)
         if (private_key.isEmpty() || peer.public_key.isEmpty() || (obfs_type.isNotEmpty() && obfs_key.isEmpty())) return false
