@@ -15,6 +15,7 @@ import app.rawline.mobile.ktx.nameList
 import app.rawline.mobile.ktx.showAllowingStateLoss
 import app.rawline.mobile.ktx.snackbar
 import app.rawline.mobile.ui.ConfigurationFragment
+import app.rawline.mobile.ui.PinnedServers
 import app.rawline.mobile.widget.QRCodeDialog
 
 /**
@@ -130,6 +131,12 @@ class SelectionMode(private val host: ConfigurationFragment) {
             R.id.action_selection_delete -> delete(ids)
             R.id.action_selection_clear_results -> clearResults(ids)
             R.id.action_selection_move -> moveToGroup(ids)
+            R.id.action_selection_pin -> {
+                val group = groupId
+                PinnedServers.toggle(ids)
+                finish()
+                host.launchIo { GroupRepo.postReload(group) }
+            }
             R.id.action_selection_copy_links -> copyLinks(ids, rawline = false)
             R.id.action_selection_copy_rawline -> copyLinks(ids, rawline = true)
             R.id.action_selection_qr_links -> showQr(ids, rawline = false)
@@ -142,6 +149,12 @@ class SelectionMode(private val host: ConfigurationFragment) {
     private fun test(kind: Int, ids: List<Long>) {
         ProfileTests.startProfiles(host, kind, ids, groupId)
         finish()
+    }
+
+    fun pinActionTitle(): Int {
+        val selected = ids()
+        return if (selected.isNotEmpty() && PinnedServers.ids().containsAll(selected)) R.string.qmobile_unpin
+        else R.string.qmobile_pin
     }
 
     /** on_menu_delete_triggered: asks unless skip_delete_confirmation; the running profile is stopped. */

@@ -306,6 +306,9 @@ class ProfileListFragment : Fragment(R.layout.layout_profile_list) {
                 val from = viewHolder.bindingAdapterPosition
                 val to = target.bindingAdapterPosition
                 if (from == RecyclerView.NO_POSITION || to == RecyclerView.NO_POSITION) return false
+                val first = adapter.displayedIds.getOrNull(from) ?: return false
+                val second = adapter.displayedIds.getOrNull(to) ?: return false
+                if (!app.rawline.mobile.ui.PinnedServers.sameSection(first, second)) return false
                 adapter.move(from, to)
                 return true
             }

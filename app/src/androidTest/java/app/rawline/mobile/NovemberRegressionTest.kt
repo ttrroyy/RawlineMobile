@@ -34,6 +34,7 @@ import app.rawline.mobile.outbound.types.DnsTunnel
 import app.rawline.mobile.outbound.types.WireGuard
 import app.rawline.mobile.outbound.types.Socks
 import app.rawline.mobile.ui.MainActivity
+import app.rawline.mobile.ui.PinnedServers
 import app.rawline.mobile.utils.Theme
 import app.rawline.mobile.ui.MobileFeedback
 import app.rawline.mobile.ui.MobileReorder
@@ -57,6 +58,24 @@ import java.net.ServerSocket
 @RunWith(AndroidJUnit4::class)
 class NovemberRegressionTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
+
+    @Test fun pinningSelectedProfilesPreservesOtherPinsAndGroupOrder() {
+        val previous = DataStore.mobilePinnedProfiles
+        try {
+            DataStore.mobilePinnedProfiles = "10,30"
+            val profiles = listOf(40L, 30L, 20L, 10L)
+            PinnedServers.toggle(listOf(10L, 20L))
+            assertEquals(listOf(30L, 20L, 10L, 40L), PinnedServers.first(profiles) { it })
+            assertTrue(PinnedServers.sameSection(10L, 30L))
+            assertFalse(PinnedServers.sameSection(10L, 40L))
+
+            PinnedServers.toggle(listOf(10L, 20L))
+            assertEquals(setOf(30L), PinnedServers.ids())
+            assertEquals(listOf(30L, 40L, 20L, 10L), PinnedServers.first(profiles) { it })
+        } finally {
+            DataStore.mobilePinnedProfiles = previous
+        }
+    }
 
     @Test fun cancellingAJustStartedProbeReleasesTheTestSession() = runBlocking {
         val callback = object : ITestSessionCallback.Stub() {

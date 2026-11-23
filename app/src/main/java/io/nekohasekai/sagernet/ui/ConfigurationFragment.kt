@@ -705,6 +705,7 @@ class ConfigurationFragment : ToolbarFragment(R.layout.layout_group_list),
                 searchView?.clearFocus()
                 setNavigationIcon(R.drawable.ic_navigation_close, R.string.navigation_cancel_selection)
                 toolbar.title = resources.getQuantityString(R.plurals.profiles_selected, selection.count, selection.count)
+                toolbar.menu.findItem(R.id.action_selection_pin)?.setTitle(selection.pinActionTitle())
             } else {
                 setNavigationIcon(R.drawable.ic_navigation_menu, R.string.navigation_open_drawer)
                 toolbar.setTitle(R.string.app_name)
@@ -718,6 +719,7 @@ class ConfigurationFragment : ToolbarFragment(R.layout.layout_group_list),
 
     fun onSelectionChanged(ids: Collection<Long>?) {
         toolbar?.title = resources.getQuantityString(R.plurals.profiles_selected, selection.count, selection.count)
+        toolbar?.menu?.findItem(R.id.action_selection_pin)?.setTitle(selection.pinActionTitle())
         listFor(selection.groupId)?.adapter?.notifyState(ids)
     }
 

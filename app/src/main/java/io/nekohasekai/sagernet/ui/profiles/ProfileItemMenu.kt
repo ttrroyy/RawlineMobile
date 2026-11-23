@@ -9,6 +9,8 @@ import app.rawline.mobile.SagerNet
 import app.rawline.mobile.bg.test.TestSpec
 import app.rawline.mobile.database.DataStore
 import app.rawline.mobile.database.GroupRepo
+import app.rawline.mobile.database.GroupSort
+import app.rawline.mobile.database.GroupSortAction
 import app.rawline.mobile.database.ProfileManager
 import app.rawline.mobile.database.ProxyEntity
 import app.rawline.mobile.database.ProxyGroup
@@ -23,6 +25,7 @@ import app.rawline.mobile.ktx.snackbar
 import app.rawline.mobile.ktx.startFilesForResult
 import app.rawline.mobile.ui.ConfigurationFragment
 import app.rawline.mobile.ui.MainActivity
+import app.rawline.mobile.ui.PinnedServers
 import app.rawline.mobile.ui.profile.ProfileConfigExport
 import app.rawline.mobile.ui.profile.ProfileSettingsActivity
 import app.rawline.mobile.ui.profile.profileSettingsIntent
@@ -60,10 +63,10 @@ class ProfileItemMenu(private val host: ConfigurationFragment) {
         val popup = PopupMenu(anchor.context, anchor)
         popup.menuInflater.inflate(R.menu.double_column_item_menu, popup.menu)
         val menu = popup.menu
-        val pinned = profile.id in app.rawline.mobile.ui.PinnedServers.ids()
+        val pinned = profile.id in PinnedServers.ids()
         menu.add(if (pinned) R.string.qmobile_unpin else R.string.qmobile_pin).setOnMenuItemClickListener {
-            app.rawline.mobile.ui.PinnedServers.toggle(profile.id)
-            host.launchIo { app.rawline.mobile.database.GroupRepo.postReload(profile.groupId) }
+            PinnedServers.toggle(profile.id)
+            host.launchIo { GroupRepo.postReload(profile.groupId) }
             true
         }
         menu.add(R.string.connection_test_clear_results).setOnMenuItemClickListener {
@@ -89,13 +92,16 @@ class ProfileItemMenu(private val host: ConfigurationFragment) {
         // TV only, where a D-pad cannot drag; a filtered list says nothing about the stored order
         val index = adapter.memberIds.indexOf(profile.id)
         val movable = SagerNet.isTv && !adapter.isFiltered && index >= 0
+        fun canMove(step: Int) = index >= 0 && adapter.memberIds.getOrNull(index + step)?.let {
+            PinnedServers.sameSection(profile.id, it)
+        } == true
         menu.findItem(R.id.action_move_up).apply {
             isVisible = movable
-            isEnabled = index > 0
+            isEnabled = canMove(-1)
         }
         menu.findItem(R.id.action_move_down).apply {
             isVisible = movable
-            isEnabled = index in 0 until adapter.memberIds.size - 1
+            isEnabled = canMove(1)
         }
         menu.findItem(R.id.action_delete).isEnabled = !host.isStartedProfile(profile.id)
         val address = profile.outbound.getAddress()
@@ -161,12 +167,14 @@ class ProfileItemMenu(private val host: ConfigurationFragment) {
     private fun move(profile: ProxyEntity, step: Int) {
         val groupId = profile.groupId
         host.launchIo {
-            val ids = ProfileManager.memberIds(groupId)
+            val ids = PinnedServers.first(ProfileManager.memberIds(groupId)) { it }.toMutableList()
             val from = ids.indexOf(profile.id)
             val to = from + step
             if (from < 0 || to !in ids.indices) return@launchIo
-            // EmplaceProfile lands a downward move on its target; moving up is the upper neighbour moving down
-            if (step > 0) ProfileManager.emplace(groupId, from, to) else ProfileManager.emplace(groupId, to, from)
+            if (!PinnedServers.sameSection(profile.id, ids[to])) return@launchIo
+            java.util.Collections.swap(ids, from, to)
+            GroupSort.setSort(groupId, GroupSortAction())
+            ProfileManager.setOrder(groupId, ids)
         }
     }
 

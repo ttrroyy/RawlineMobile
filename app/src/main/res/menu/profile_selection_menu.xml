@@ -5,6 +5,10 @@
         android:id="@+id/group_selection_toolbar"
         android:visible="false">
         <item
+            android:id="@+id/action_selection_pin"
+            android:title="@string/qmobile_pin"
+            app:showAsAction="never" />
+        <item
             android:id="@+id/action_selection_test"
             android:icon="@drawable/ic_baseline_speed_24"
             android:title="@string/profiles_test"
