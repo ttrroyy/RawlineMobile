@@ -177,14 +177,19 @@ class MobileOrbArtwork(context: Context, private val idleText: String) : MobileP
 
         // Caption under the waves, with the workers of WDTT, qWDTT and CSQTT beside the time.
         paint.style = Paint.Style.FILL; paint.textAlign = Paint.Align.CENTER; paint.typeface = font
-        // A smaller button keeps its lines inside it, at the same proportions whatever the state: the caption and the
-        // time take 51 dp under the disc, the subscription and server line 19 more.
+        val wide = (if (textRoom > 0f) minOf(textRoom, bounds.width().toFloat()) else bounds.width().toFloat()) * .94f
+        // Measure wrapping at the design size. Measuring at the fitted size lets the extra line change
+        // its own width and repeatedly resize the dock and the list above it.
+        paint.textSize = 12f * density
+        val lines = if (groupText.isNotEmpty() && serverText.isNotEmpty() &&
+            paint.measureText(groupText + "  ·  " + serverText) > wide) 2 else 1
+        if (lines != serverLines) {
+            serverLines = lines
+            linesChanged?.invoke(lines)
+        }
         val withServer = serverText.isNotEmpty() || groupText.isNotEmpty()
-        // The subscription above the server takes a second line (about 17 dp): counted here, or the room the button grew
-        // by for it scaled the text back up and the second line ran past the bottom.
         val fit = ((bounds.bottom - cy - rest) / ((if (withServer) 70f + (serverLines - 1) * 17f else 51f) * density)).coerceIn(.6f, 1f)
         val top = cy + rest + 22f * density * fit
-        val wide = (if (textRoom > 0f) minOf(textRoom, bounds.width().toFloat()) else bounds.width().toFloat()) * .94f
         fun line(text: String, size: Float, y: Float) {
             paint.textSize = size * density * fit
             val measured = paint.measureText(text)
@@ -227,10 +232,7 @@ class MobileOrbArtwork(context: Context, private val idleText: String) : MobileP
         val separator = if (groupText.isNotEmpty() && serverText.isNotEmpty()) "  ·  " else ""
         var group = groupText
         var server = serverText
-        // Too long for one line: the subscription above the server, each centred, rather than both cut.
-        val lines = if (group.isNotEmpty() && server.isNotEmpty() && text.measureText(group + separator + server) > wide) 2 else 1
-        if (lines != serverLines) { serverLines = lines; linesChanged?.invoke(lines) }
-        if (lines == 2) {
+        if (serverLines == 2) {
             val cut = { value: String -> android.text.TextUtils.ellipsize(value, text, wide, android.text.TextUtils.TruncateAt.END).toString() }
             val first = cut(group); val second = cut(server)
             text.color = MobilePalette.muted; canvas.drawText(first, cx - text.measureText(first) / 2, y, text)

@@ -3,6 +3,8 @@ package app.rawline.mobile
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.graphics.Rect
 import android.content.Intent
 import android.os.Build
@@ -33,6 +35,7 @@ import app.rawline.mobile.ui.MobileFeedback
 import app.rawline.mobile.ui.MobileReorder
 import app.rawline.mobile.ui.MobileSubscriptionSwipe
 import app.rawline.mobile.ui.MobileHomeLayout
+import app.rawline.mobile.ui.MobileOrbArtwork
 import app.rawline.mobile.bg.carrier.CarrierUiRequests
 import android.view.MotionEvent
 import android.os.SystemClock
@@ -48,6 +51,43 @@ import java.net.ServerSocket
 @RunWith(AndroidJUnit4::class)
 class NovemberRegressionTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
+
+    @Test fun dockCaptionWrappingDoesNotOscillateWhenItsHeightChanges() {
+        val context = instrumentation.targetContext
+        instrumentation.runOnMainSync {
+            val density = context.resources.displayMetrics.density
+            val width = (320 * density).toInt()
+            val group = "Subscription"
+            val server = "Amsterdam 01"
+            val measure = Paint().apply {
+                textSize = 12f * density
+                typeface = androidx.core.content.res.ResourcesCompat.getFont(context, R.font.geologica)
+            }
+            val combinedWidth = measure.measureText("$group  ·  $server")
+            val changes = mutableListOf<Int>()
+            val artwork = MobileOrbArtwork(context, "Tap to connect").apply {
+                discSize = (160 * density).toInt()
+                groupText = group
+                serverText = server
+                textRoom = (combinedWidth - density) / .94f
+                linesChanged = { changes.add(it) }
+            }
+            val bitmap = Bitmap.createBitmap(width, (200 * density).toInt(), Bitmap.Config.ARGB_8888)
+            try {
+                val canvas = Canvas(bitmap)
+                for (height in listOf(176, 192, 176, 192)) {
+                    artwork.setBounds(0, 0, width, (height * density).toInt())
+                    artwork.draw(canvas)
+                }
+                assertEquals(listOf(2), changes)
+                artwork.textRoom = (combinedWidth + density) / .94f
+                artwork.draw(canvas)
+                assertEquals(listOf(2, 1), changes)
+            } finally {
+                bitmap.recycle()
+            }
+        }
+    }
 
     @Test fun autoSelectorFilterFitsTheFullRussianLabelInEveryPalette() {
         val context = instrumentation.targetContext
