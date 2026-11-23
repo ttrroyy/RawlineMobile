@@ -7,6 +7,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.content.Intent
+import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.view.View
 import android.view.ViewGroup
@@ -27,6 +28,8 @@ import app.rawline.mobile.database.DataStore
 import app.rawline.mobile.database.GroupRepo
 import app.rawline.mobile.database.ProxyGroup
 import app.rawline.mobile.database.SagerDatabase
+import app.rawline.mobile.database.backup.BackupExport
+import app.rawline.mobile.database.backup.RwlBackup
 import app.rawline.mobile.outbound.config.ProfileProvider
 import app.rawline.mobile.outbound.json.JsonObject
 import app.rawline.mobile.outbound.json.JsonInput
@@ -51,6 +54,7 @@ import org.junit.runner.RunWith
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.yield
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.InetAddress
 import java.net.ServerSocket
@@ -74,6 +78,36 @@ class NovemberRegressionTest {
             assertEquals(listOf(30L, 40L, 20L, 10L), PinnedServers.first(profiles) { it })
         } finally {
             DataStore.mobilePinnedProfiles = previous
+        }
+    }
+
+    @Test fun profilesOnlyBackupCarriesPinsWithoutSettings() {
+        val group = ProxyGroup(name = "Pinned backup regression")
+        group.id = SagerDatabase.groupDao.insert(group)
+        val previousPins = DataStore.mobilePinnedProfiles
+        val snapshot = File.createTempFile("pins", ".db", instrumentation.targetContext.cacheDir)
+        try {
+            val profile = ProxyEntity(groupId = group.id).putOutbound(Socks().apply {
+                name = "Pinned server"
+                server = "192.0.2.1"
+                serverPort = 1080
+            })
+            profile.id = SagerDatabase.proxyDao.addProxy(profile)
+            DataStore.mobilePinnedProfiles = profile.id.toString()
+            val output = ByteArrayOutputStream()
+            BackupExport.write(BackupExport.Selection(profiles = true, routes = false, settings = false), output)
+            val backup = RwlBackup.read(output.toByteArray().inputStream(), snapshot)
+            assertFalse(backup.parts.settings)
+            SQLiteDatabase.openDatabase(snapshot.path, null, SQLiteDatabase.OPEN_READONLY).use { database ->
+                database.rawQuery("SELECT pinned_json FROM groups WHERE id = ?", arrayOf(group.id.toString())).use {
+                    assertTrue(it.moveToFirst())
+                    assertEquals("[${profile.id}]", it.getString(0))
+                }
+            }
+        } finally {
+            DataStore.mobilePinnedProfiles = previousPins
+            SagerDatabase.groupDao.deleteById(group.id)
+            snapshot.delete()
         }
     }
 
