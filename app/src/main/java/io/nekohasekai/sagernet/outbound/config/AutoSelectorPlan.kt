@@ -290,7 +290,7 @@ class AutoSelectorPlanner @JvmOverloads constructor(
         var working = 0
         for (id in eligibleMembers(selectorId, selector, tracked, now, null)) {
             val latency = if (id in staleSet) 0 else effectiveLatency(tracked.byId[id], selector, now)
-            if (latency == 0) needed.add(id) else if (latency > 0) working++
+            if (latency == 0) needed.add(id) else if (qualifyingLatency(latency, selector)) working++
         }
         return needed to working
     }
@@ -308,7 +308,7 @@ class AutoSelectorPlanner @JvmOverloads constructor(
         if (builtSet.any { it !in next }) return true
         // The build drops members that fail validation, so an unbuilt one counts only when it is known to work.
         val now = clock()
-        return next.any { it !in builtSet && effectiveLatency(plan.member(it), selector, now) > 0 }
+        return next.any { it !in builtSet && memberWorks(plan.member(it), selector, now) }
     }
 
     /**
@@ -476,7 +476,15 @@ class AutoSelectorPlanner @JvmOverloads constructor(
             ordered.add(id)
         }
         ordered.addAll(sortByLatency(members.filter { it !in placed }, selector, tracked.byId, now))
-        return ordered
+        val ranks = ordered.associateWith { id ->
+            val latency = effectiveLatency(tracked.byId[id], selector, now)
+            when {
+                latency < 0 -> 2
+                overCap(latency, selector) -> 1
+                else -> 0
+            }
+        }
+        return ordered.sortedBy { ranks.getValue(it) }
     }
 
     // sortByLatency (cpp:149-159): each effective latency read once up front, [untrusted] members as untested, then
@@ -485,19 +493,18 @@ class AutoSelectorPlanner @JvmOverloads constructor(
         ids: List<Long>, selector: AutoSelector, byId: Map<Long, SelectorMember>, now: Long, untrusted: Set<Long> = emptySet(),
     ): List<Long> {
         val latency = ids.associateWith { if (it in untrusted) 0 else effectiveLatency(byId[it], selector, now) }
-        return ids.sortedWith(byLatency(latency))
+        return ids.sortedWith(byLatency(latency, selector))
     }
 
-    // byLatency (cpp:140-147) as a comparator: fresh ok ascending, then untested, then failed.
-    private fun byLatency(latency: Map<Long, Int>): Comparator<Long> {
+    private fun byLatency(latency: Map<Long, Int>, selector: AutoSelector): Comparator<Long> {
         return Comparator { left, right ->
             val leftLatency = latency[left] ?: 0
             val rightLatency = latency[right] ?: 0
-            val leftRank = latencyRank(leftLatency)
-            val rightRank = latencyRank(rightLatency)
+            val leftRank = latencyRank(leftLatency, selector)
+            val rightRank = latencyRank(rightLatency, selector)
             when {
                 leftRank != rightRank -> leftRank.compareTo(rightRank)
-                leftRank == 0 -> leftLatency.compareTo(rightLatency)
+                leftLatency > 0 -> leftLatency.compareTo(rightLatency)
                 else -> 0
             }
         }
@@ -521,10 +528,16 @@ class AutoSelectorPlanner @JvmOverloads constructor(
         fun effectiveLatency(member: SelectorMember?, selector: AutoSelector, now: Long): Int =
             if (member != null && hasFreshResult(member, selector, now)) member.latency else 0
 
-        /** AutoSelectorMemberWorks (cpp:355-360): the ranking counts [member] as working, a success inside the validity window. */
+        /** A fresh successful test under the latency cap counts toward the startup quorum. */
         @JvmStatic
         fun memberWorks(member: SelectorMember?, selector: AutoSelector, now: Long): Boolean =
-            effectiveLatency(member, selector, now) > 0
+            qualifyingLatency(effectiveLatency(member, selector, now), selector)
+
+        private fun overCap(latency: Int, selector: AutoSelector): Boolean =
+            latency > 0 && selector.maxRTTms > 0 && latency >= selector.maxRTTms
+
+        private fun qualifyingLatency(latency: Int, selector: AutoSelector): Boolean =
+            latency > 0 && !overCap(latency, selector)
 
         /** AutoSelectorStartQuorum (cpp:362-369): working members a selector needs before it may start while its sweep runs. */
         @JvmStatic
@@ -533,11 +546,12 @@ class AutoSelectorPlanner @JvmOverloads constructor(
             return minOf(maxOf(selector.expected, selector.activeSize), selector.buildLimit)
         }
 
-        // latencyRank (cpp:110-116): untested (1) outranks failed (2) so a fresh subscription still gets explored.
-        private fun latencyRank(latency: Int): Int = when {
+        // Untested members get a chance before known over-cap fallbacks.
+        private fun latencyRank(latency: Int, selector: AutoSelector): Int = when {
+            overCap(latency, selector) -> 2
             latency > 0 -> 0
             latency == 0 -> 1
-            else -> 2
+            else -> 3
         }
 
         // coreTransitions (cpp:84-98): a chain may hand off sing-box <-> Xray at most twice.

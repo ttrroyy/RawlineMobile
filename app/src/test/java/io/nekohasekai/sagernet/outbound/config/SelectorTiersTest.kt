@@ -37,4 +37,23 @@ class SelectorTiersTest {
         assertEquals(listOf(5L to "", -1L to "DE"), restored.tiers.map { it.gid to it.nameFilter })
         assertEquals(4, restored.failbackChecks)
     }
+
+    @Test fun capDemotesPreviouslyRankedMembersAndExcludesThemFromQuorum() {
+        val group = SelectorGroup(5, "Endpoints", -1, -1, null, null,
+            listOf(member(1, 100), member(2, 250), member(3, 0), member(4, -1), member(5, 250)))
+        val planner = AutoSelectorPlanner(SelectorStore { group.takeIf { it.id == 5L } }, { now })
+        val selector = AutoSelector().apply {
+            gids = mutableListOf(5)
+            pool = mutableListOf(2, 4, 1, 3, 5)
+            maxRTTms = 250
+            excludeUnavailable = false
+            resultValidityMins = 5
+        }
+
+        assertEquals(listOf(1L, 3L, 2L, 5L, 4L), planner.plan(10, selector).pool)
+        assertEquals(listOf(3L) to 1, planner.unmeasuredCandidates(10, selector))
+        assertFalse(AutoSelectorPlanner.memberWorks(group.members[1], selector, now))
+        selector.maxRTTms = 0
+        assertEquals(listOf(3L) to 3, planner.unmeasuredCandidates(10, selector))
+    }
 }
