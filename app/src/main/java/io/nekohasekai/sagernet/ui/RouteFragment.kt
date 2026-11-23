@@ -49,6 +49,7 @@ import app.rawline.mobile.route.RuleType
 import app.rawline.mobile.ui.route.RouteImports
 import app.rawline.mobile.ui.route.RouteJson
 import app.rawline.mobile.ui.route.RouteProfileActivity
+import app.rawline.mobile.ui.route.RouteTesterActivity
 import app.rawline.mobile.ui.route.RouteQuickSwitch
 import app.rawline.mobile.ui.route.RouteTexts
 import app.rawline.mobile.ui.settings.RoutingSettingsFragment
@@ -138,6 +139,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
             // The scanner hands route links to MainActivity, which prompts and comes back here.
             R.id.action_route_scan -> startActivity(Intent(requireContext(), ScannerActivity::class.java))
             R.id.action_route_download -> downloadProfiles()
+            R.id.action_route_tester -> startActivity(Intent(requireContext(), RouteTesterActivity::class.java))
             R.id.action_route_update_all -> updateAll()
             R.id.action_route_update_rule_sets -> updateRuleSets()
             R.id.action_route_refresh_repo -> refreshRepository()
@@ -661,6 +663,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
             if (profile.is_raw) {
                 popup.menu.findItem(R.id.action_route_edit)?.setTitle(R.string.route_raw_view)
                 popup.menu.removeItem(R.id.action_route_clone)
+                popup.menu.removeItem(R.id.action_route_tester)
                 popup.menu.removeItem(R.id.action_route_share)
             }
             popup.setOnMenuItemClickListener { item ->
@@ -671,6 +674,10 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
                     R.id.action_route_share_qr -> share(profile.id, qr = true)
                     R.id.action_route_update -> runRemoteUpdates(listOf(profile.id))
                     R.id.action_route_delete -> delete(profile)
+                    R.id.action_route_tester -> startActivity(
+                        Intent(requireContext(), RouteTesterActivity::class.java)
+                            .putExtra(RouteTesterActivity.EXTRA_ROUTE_ID, profile.id),
+                    )
                     else -> return@setOnMenuItemClickListener false
                 }
                 true

@@ -351,6 +351,7 @@
         <activity
             android:name="app.rawline.mobile.ui.AppListActivity"
             android:configChanges="uiMode" />
+        <activity android:name="app.rawline.mobile.ui.route.RouteTesterActivity" android:exported="false" />
         <activity
             android:name="app.rawline.mobile.ui.route.RouteProfileActivity"
             android:configChanges="uiMode"

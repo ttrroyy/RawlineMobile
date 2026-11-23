@@ -36,6 +36,27 @@ class RouteFrontProxyTest {
         JsonInput.parseObject(result.coreConfig).array("outbounds").filterIsInstance<JsonObject>()
             .associateBy { it.string("tag") }
 
+    @Test fun diagnosticRuleIndexesStayAlignedWithGeneratedRules() {
+        val profiles = Provider(mapOf(1L to socks("192.0.2.10"), 2L to socks("192.0.2.20").apply { name = "Exit" }))
+        val route = requireNotNull(routingTo(2L).profile)
+        route.rules.single().name = "Example route"
+        route.rules.add(0, RouteRule().apply { disabled = true; name = "Disabled rule" })
+        val settings = GeneratorSettings(vpnMode = true, perAppEnabled = true, perAppAllowedUids = listOf(11000), blockQuic = true)
+        val result = ConfigGenerator(profiles, settings, routing = RoutingInput(route, RuleSetCatalog(emptyList()))).build(1L)
+        assertNull(result.error)
+        val rules = JsonInput.parseObject(result.coreConfig).obj("route").array("rules").filterIsInstance<JsonObject>()
+        assertEquals(rules.size, result.routeRuleOrigins.size)
+        assertEquals(RouteRuleOriginKind.PER_APP_GUARD, result.routeRuleOrigins.first().kind)
+        val index = rules.indexOfFirst { it.array("domain").contains("example.com") }
+        assertTrue(index > 0)
+        assertEquals(RouteRuleOriginKind.QUIC_GUARD, result.routeRuleOrigins[index - 1].kind)
+        val origin = result.routeRuleOrigins[index]
+        assertEquals(RouteRuleOriginKind.PROFILE_RULE, origin.kind)
+        assertEquals(1, origin.profileRule)
+        assertEquals("Example route", origin.name)
+        assertEquals("Exit", result.outboundNames[rules[index].string("outbound")])
+    }
+
     @Test fun routeRuleThroughFrontProxyGroupDialsTheFrontDirectly() {
         val main = socks("192.0.2.10"); val exit = socks("192.0.2.20"); val front = socks("192.0.2.30")
         val profiles = mapOf<Long, Outbound>(1L to main, 2L to exit, 3L to front)

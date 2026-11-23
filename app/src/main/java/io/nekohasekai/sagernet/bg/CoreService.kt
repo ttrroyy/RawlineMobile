@@ -45,6 +45,8 @@ class CoreService : Service() {
 
         override fun genQuicSignature(domain: String?): String = QuicSignature.generate(domain.orEmpty())
 
+        override fun testRoute(requestJson: String?): String = RouteTester.test(requestJson.orEmpty())
+
         override fun captureDiagnostics(
             durationMs: Int,
             contention: Boolean,

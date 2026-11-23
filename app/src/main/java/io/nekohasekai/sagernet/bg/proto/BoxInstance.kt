@@ -162,7 +162,9 @@ abstract class BoxInstance(
             }
             throw error
         }
-        CoreRuntime.attachRunning(box, profile.id)
+        CoreRuntime.attachRunning(box, profile.id, app.rawline.mobile.bg.RunningRouteRules(
+            config.routeRuleOrigins, config.outboundNames, routeId,
+        ))
         if(config.carrierPlans.isNotEmpty()) holdLocks()
         if(nativeStatus!=null) nativeWatchdog=CoroutineScope(Dispatchers.IO).launch {
             while(isActive) {

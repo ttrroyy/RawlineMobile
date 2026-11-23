@@ -97,8 +97,10 @@ class ConfigGenerator @JvmOverloads constructor(
                 involvedProfileIds = reads.ids,
             )
         }
-        val route = routing.profile?.let(::routeProfileForBuild)
+        val storedRoute = routing.profile
             ?: return GeneratedConfig.failure("Routing profile does not exist, try resetting the route profile in Routing Settings")
+        val route = routeProfileForBuild(storedRoute)
+        val storedIndexes = storedRoute.rules.indices.filter { !storedRoute.rules[it].disabled }
 
         // One plan serves the Xray decision and the build (the desktop plans twice, :446-452 and :1631).
         val plan = (profile as? AutoSelector)?.let { AutoSelectorPlanner(routing.selectors, clock).plan(profileId, it) }
@@ -130,9 +132,14 @@ class ConfigGenerator @JvmOverloads constructor(
         buildOutboundsSection(state, chains, reads, profile, profileId, landing, front, plan, origin)
         if (state.failed) return GeneratedConfig.failure(state.error)
         buildDnsSection(state, useDnsObj = true)
-        buildRouteSection(state, route)
+        buildRouteSection(state, route, storedIndexes)
         if (state.failed) return GeneratedConfig.failure(state.error)
+        val routeRules = state.coreConfig.obj("route").array("rules")
+        val routeOrigins = routeRules.filterIsInstance<JsonObject>().map { rule ->
+            state.routeRuleOrigins[rule] ?: RouteRuleOrigin(RouteRuleOriginKind.QUIC_GUARD)
+        }
         if(settings.vpnMode && settings.perAppEnabled) VpnAppGuard.apply(state.coreConfig,settings.perAppAllowedUids)
+        val guardCount = (state.coreConfig.obj("route").array("rules").size - routeRules.size).coerceAtLeast(0)
         buildExperimentalSection(state)
         buildServicesSection(state)
         buildXrayConfig(state)
@@ -154,6 +161,13 @@ class ConfigGenerator @JvmOverloads constructor(
             involvedProfileIds = reads.ids,
             autoSelector = state.autoSelector,
             carrierPlans = state.carrierPlans.values.toList(),
+            routeRuleOrigins = List(guardCount) { RouteRuleOrigin(RouteRuleOriginKind.PER_APP_GUARD) } + routeOrigins,
+            outboundNames = buildMap {
+                for ((id, tag) in state.prerequisites.outboundMap) {
+                    if (id >= 0) reads.get(id)?.let { put(tag, it.displayName()) }
+                }
+                put(Tags.PROXY, profile.displayName())
+            },
         )
     }
 
@@ -1327,8 +1341,8 @@ class ConfigGenerator @JvmOverloads constructor(
     }
 
     /** buildRouteSection (:1957-2146) for a structured route profile. */
-    private fun buildRouteSection(state: BuildState, route: RouteProfile) {
-        val profileRules = getRouteRules(state, route)
+    private fun buildRouteSection(state: BuildState, route: RouteProfile, storedIndexes: List<Int>) {
+        val profileRules = getRouteRules(state, route, storedIndexes)
         if (state.failed) return
         val mismatch = state.bridgeIngressMismatch()
         if (mismatch.isNotEmpty()) {
@@ -1336,9 +1350,13 @@ class ConfigGenerator @JvmOverloads constructor(
             return
         }
         val rules = JsonArray()
+        fun append(rule: JsonObject, origin: RouteRuleOriginKind) {
+            rules.add(rule)
+            state.routeRuleOrigins[rule] = RouteRuleOrigin(origin)
+        }
         // Bridge rules come first: what Xray hands back must reach its tailing hop before any other rule sees it.
         for (i in state.xrayToSingBridges.indices) {
-            rules.add(jsonObjectOf("inbound" to bridgeTagFor(state.singIngressTags[i]), "action" to "route", "outbound" to state.singIngressTags[i]))
+            append(jsonObjectOf("inbound" to bridgeTagFor(state.singIngressTags[i]), "action" to "route", "outbound" to state.singIngressTags[i]), RouteRuleOriginKind.XRAY_BRIDGE)
         }
         // SO_BINDTODEVICE can inject ownerless traffic from the tunnel's own address. Basic protection leaves
         // UDP/ICMP and forwarded client addresses alone; strict protection also checks these ownerless flows.
@@ -1349,21 +1367,21 @@ class ConfigGenerator @JvmOverloads constructor(
                 traffic["source_ip_cidr"] = JsonArray.of(
                     settings.tunIPv4Cidr.substringBefore('/') + "/32", settings.tunIPv6Cidr.substringBefore('/') + "/128")
             }
-            rules.add(jsonObjectOf(
+            append(jsonObjectOf(
                 "type" to "logical", "mode" to "and", "action" to "reject",
                 "rules" to JsonArray.of(
                     traffic,
                     jsonObjectOf("package_name_regex" to JsonArray.of(".*"), "invert" to true),
                     jsonObjectOf("user_id" to JsonArray.of(0, 1000, 1001, 1002, 1010, 1016, 1020, 1021, 1036, 1051, 1052, 1073, 1076, 2000, 9999), "invert" to true),
                 ),
-            ))
+            ), RouteRuleOriginKind.TUN_GUARD)
         }
-        rules.add(jsonObjectOf("action" to "sniff").also { if (!settings.sniffRouteOnly) it["override_destination"] = true })
+        append(jsonObjectOf("action" to "sniff").also { if (!settings.sniffRouteOnly) it["override_destination"] = true }, RouteRuleOriginKind.SNIFF)
         if (settings.resolveDomainStrategy.isNotEmpty()) {
-            rules.add(jsonObjectOf("inbound" to JsonArray.of(Tags.MIXED_IN, "http-in", Tags.TUN_IN), "action" to "resolve", "strategy" to settings.resolveDomainStrategy))
+            append(jsonObjectOf("inbound" to JsonArray.of(Tags.MIXED_IN, "http-in", Tags.TUN_IN), "action" to "resolve", "strategy" to settings.resolveDomainStrategy), RouteRuleOriginKind.RESOLVE)
         }
-        rules.add(jsonObjectOf("protocol" to "dns", "action" to "hijack-dns"))
-        if (!state.forTest) rules.add(jsonObjectOf("inbound" to Tags.DNS_IN, "action" to "reject"))
+        append(jsonObjectOf("protocol" to "dns", "action" to "hijack-dns"), RouteRuleOriginKind.DNS_HIJACK)
+        if (!state.forTest) append(jsonObjectOf("inbound" to Tags.DNS_IN, "action" to "reject"), RouteRuleOriginKind.DNS_INBOUND_REJECT)
         val quicGuardFrom = rules.size
         for (rule in profileRules) rules.add(rule)
         if (state.remotePrivateNetworks) {
@@ -1372,16 +1390,16 @@ class ConfigGenerator @JvmOverloads constructor(
             val primaryVpn = state.endpoints.filterIsInstance<JsonObject>().firstOrNull {
                 it.string("tag") == Tags.PROXY && it.string("type") in listOf("openconnect", "openvpn-client")
             }
-            if (primaryVpn != null) rules.add(jsonObjectOf(
+            if (primaryVpn != null) append(jsonObjectOf(
                 "ip_is_private" to true, "preferred_by" to JsonArray.of(Tags.PROXY),
-                "action" to "route", "outbound" to Tags.PROXY))
-            if (state.sstpRemoteLan) rules.add(jsonObjectOf("ip_is_private" to true, "action" to "route", "outbound" to Tags.PROXY))
-            if (settings.bypassLan) rules.add(jsonObjectOf(
-                "ip_is_private" to true, "action" to "route", "outbound" to Tags.DIRECT))
+                "action" to "route", "outbound" to Tags.PROXY), RouteRuleOriginKind.REMOTE_NETWORK)
+            if (state.sstpRemoteLan) append(jsonObjectOf("ip_is_private" to true, "action" to "route", "outbound" to Tags.PROXY), RouteRuleOriginKind.REMOTE_NETWORK)
+            if (settings.bypassLan) append(jsonObjectOf(
+                "ip_is_private" to true, "action" to "route", "outbound" to Tags.DIRECT), RouteRuleOriginKind.REMOTE_NETWORK)
         }
         val defaultOutbound = route.default_outbound_id
         // A block default is a direct final that nothing reaches (:2064-2068, :2126-2128).
-        if (defaultOutbound == OutboundIds.BLOCK) rules.add(jsonObjectOf("action" to "reject"))
+        if (defaultOutbound == OutboundIds.BLOCK) append(jsonObjectOf("action" to "reject"), RouteRuleOriginKind.BLOCK_FINAL)
 
         val finalTag = when (defaultOutbound) {
             OutboundIds.BLOCK -> Tags.DIRECT
@@ -1413,10 +1431,15 @@ class ConfigGenerator @JvmOverloads constructor(
      * whose apps include unidentified ones, or that has both apps and package regexes, becomes a logical rule
      * ([RouteRule.toConfigJson]).
      */
-    private fun getRouteRules(state: BuildState, route: RouteProfile): JsonArray {
+    private fun getRouteRules(state: BuildState, route: RouteProfile, storedIndexes: List<Int>): JsonArray {
         val out = JsonArray()
+        fun addAdblock() {
+            val rule = adblockRule()
+            out.add(rule)
+            state.routeRuleOrigins[rule] = RouteRuleOrigin(RouteRuleOriginKind.AD_BLOCK)
+        }
         var addedAdblock = false
-        for (rule in route.rules) {
+        for ((index, rule) in route.rules.withIndex()) {
             val type = RuleType.ofId(rule.type)
             if (type == RuleType.ENDPOINT_PREFERRED_BY) continue
             if (type != RuleType.CUSTOM && rule.isEmpty()) continue
@@ -1442,12 +1465,13 @@ class ConfigGenerator @JvmOverloads constructor(
             // The core refuses a route-options rule left without options ("empty route option action").
             if (stripped && json.string("action") == "route-options" && ROUTE_OPTION_KEYS.none { json.contains(it) }) continue
             if (!addedAdblock && settings.adblockEnable && json.string("action") == "route") {
-                out.add(adblockRule())
+                addAdblock()
                 addedAdblock = true
             }
             out.add(json)
+            state.routeRuleOrigins[json] = RouteRuleOrigin(RouteRuleOriginKind.PROFILE_RULE, storedIndexes[index], rule.name)
         }
-        if (!addedAdblock && settings.adblockEnable) out.add(adblockRule())
+        if (!addedAdblock && settings.adblockEnable) addAdblock()
         return out
     }
 

@@ -37,6 +37,8 @@ class GeneratedConfig(
     @JvmField val involvedProfileIds: Set<Long> = emptySet(),
     @JvmField val autoSelector: AutoSelectorBuild? = null,
     @JvmField val carrierPlans: List<app.rawline.mobile.bg.carrier.CarrierPlan> = emptyList(),
+    @JvmField val routeRuleOrigins: List<RouteRuleOrigin> = emptyList(),
+    @JvmField val outboundNames: Map<String, String> = emptyMap(),
 ) {
     val ok: Boolean get() = error == null
 

@@ -27,11 +27,13 @@ object CoreConfigs {
 
     /** Stored profiles by id, each row parsed once per generation; group pairs resolved once per profile id too. */
     private class DatabaseProfiles(private val geoFallback: app.rawline.mobile.outbound.json.JsonObject = app.rawline.mobile.outbound.json.JsonObject(),
-                                   private val forTest: Boolean = false) : ProfileProvider {
+                                   private val forTest: Boolean = false, private val diagnostic: Boolean = false) : ProfileProvider {
         private val cache = HashMap<Long, Outbound?>()
         private val groupCache = HashMap<Long, Pair<Long, Long>>()
         override fun get(id: Long): Outbound? = cache.getOrPut(id) {
-            SagerDatabase.proxyDao.getById(id)?.let { prepareOutbound(it, geoFallback, forTest) }
+            SagerDatabase.proxyDao.getById(id)?.let {
+                if (diagnostic) it.outbound else prepareOutbound(it, geoFallback, forTest)
+            }
         }
         override fun groupProxies(profileId: Long): Pair<Long, Long> = groupCache.getOrPut(profileId) {
             val groupId = SagerDatabase.proxyDao.getById(profileId)?.groupId ?: -1L
@@ -96,13 +98,18 @@ object CoreConfigs {
         return buildMainWith(profile, deferRuleSets, ports, route)
     }
 
-    private fun buildMainWith(profile: ProxyEntity, deferRuleSets: Boolean, ports: PortLease?, groupRoute: RouteProfile): GeneratedConfig {
+    fun buildRuleTest(profile: ProxyEntity, route: RouteProfile, inbound: String): GeneratedConfig =
+        buildMainWith(profile, deferRuleSets = false, ports = null, groupRoute = route, diagnostic = true, diagnosticInbound = inbound)
+
+    private fun buildMainWith(profile: ProxyEntity, deferRuleSets: Boolean, ports: PortLease?, groupRoute: RouteProfile,
+                              diagnostic: Boolean = false, diagnosticInbound: String = ""): GeneratedConfig {
         val (landing, front, groupName) = groupProxies(profile.groupId)
         val options = SagerDatabase.groupDao.getById(profile.groupId)?.subOptions
         // The group's own routing profile wins over the provider's routing; the global one gives way to it.
         val chosenRoute = groupRoute.takeIf { it.id != RouteManager.current().id && !it.is_raw }
         val bound = options?.takeIf { it.routingProvider.isNotBlank() && it.providerRoutingEnabled }
         val route = when {
+            diagnostic -> groupRoute.copy()
             chosenRoute != null -> chosenRoute.copy()
             bound?.providerRouting == "off" -> app.rawline.mobile.route.RouteProfile.defaultProfile()
             bound != null -> app.rawline.mobile.route.ProviderRouting.profile(
@@ -112,6 +119,11 @@ object CoreConfigs {
         // Provider routing below still wins over the routing profile's own DNS, which wins over Settings > DNS.
         val dns = route.activeDns()
         var settings = SettingsMapper.generatorSettings(dns).copy(deferRuleSets = deferRuleSets)
+        settings = when (diagnosticInbound) {
+            "tun-in" -> settings.copy(vpnMode = true)
+            "mixed-in", "http-in" -> settings.copy(vpnMode = false, mixedInboundEnabled = true)
+            else -> settings
+        }
         // The subscription's own apps (per-app-proxy) replace the user's app mode while its server runs.
         options?.takeUnless { it.providerIgnoreImport }?.providerApps?.let { app.rawline.mobile.group.ProviderApps.fromJson(it) }?.let { apps ->
             settings = settings.copy(
@@ -123,8 +135,8 @@ object CoreConfigs {
         var routing = SettingsMapper.routingInput(route)
         val fullJson = profile.outbound.isXrayFullConfig()
         val providerRouting=app.rawline.mobile.route.ProviderRouting.stored(route)
-        app.rawline.mobile.route.ProviderGeoAssets.dropInstalledCopies()
-        val profiles = DatabaseProfiles(providerRouting?.second ?: app.rawline.mobile.outbound.json.JsonObject())
+        if (!diagnostic) app.rawline.mobile.route.ProviderGeoAssets.dropInstalledCopies()
+        val profiles = DatabaseProfiles(providerRouting?.second ?: app.rawline.mobile.outbound.json.JsonObject(), diagnostic = diagnostic)
         providerRouting?.let { (_, document) ->
             if (fullJson) {
                 val tunnel = app.rawline.mobile.route.ProviderRouting.settings(document,settings)
@@ -132,7 +144,7 @@ object CoreConfigs {
                 routing = SettingsMapper.routingInput(app.rawline.mobile.route.RouteProfile.defaultProfile())
             } else {
                 settings = app.rawline.mobile.route.ProviderRouting.settings(document, settings)
-                val catalog = app.rawline.mobile.route.ProviderGeoAssets.resolve(route, document, routing.catalog)
+                val catalog = app.rawline.mobile.route.ProviderGeoAssets.resolve(route, document, routing.catalog, localOnly = diagnostic)
                 routing = RoutingInput(route, catalog, routing.selectors, routing.memberCheck)
             }
         }

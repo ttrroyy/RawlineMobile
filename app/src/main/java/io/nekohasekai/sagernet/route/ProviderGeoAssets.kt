@@ -159,9 +159,10 @@ object ProviderGeoAssets {
         } finally { temp.delete() }
     }
     @Synchronized
-    fun resolve(profile: RouteProfile, document: JsonObject, catalog: RuleSetCatalog): RuleSetCatalog {
+    fun resolve(profile: RouteProfile, document: JsonObject, catalog: RuleSetCatalog, localOnly: Boolean = false): RuleSetCatalog {
         val entries = catalog.names().map { it to catalog.urlOf(it)!! }.toMutableList()
-        val dir = File(app.filesDir, "provider-geodata").apply { mkdirs() }
+        val dir = File(app.filesDir, "provider-geodata")
+        if (!localOnly) dir.mkdirs()
         for (rule in profile.rules) {
             for (i in rule.rule_set.indices) {
                 val selector = rule.rule_set[i]
@@ -171,21 +172,25 @@ object ProviderGeoAssets {
                     "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/$kind.dat"
                 }
                 require(url.startsWith("https://") || url.startsWith("http://")) { "Invalid geo file URL" }
-                val sourceId = digest(url)
-                val source = download(0,document,kind,false)
+                val source = if (localOnly) file(document, kind) else download(0,document,kind,false)
                 val key = digest("$url/$selector/${source.lastModified()}")
                 val converted = File(dir, "$key.srs")
+                val tag = "provider-$key"
+                rule.rule_set[i] = tag
+                if (localOnly && !converted.isFile) {
+                    // The stripped core reports rules using an unavailable remote rule-set as skipped.
+                    entries.add(tag to url)
+                    continue
+                }
                 if (!converted.isFile) {
                     val temp = File(dir, "$key.${android.os.Process.myPid()}.${System.nanoTime()}.tmp")
                     Mobile.convertGeoRuleSet(source.absolutePath, temp.absolutePath, kind, selector.substringAfter(':'))
                     check(temp.renameTo(converted)) { "Cannot save routing rules" }
                 }
-                val tag = "provider-$key"
-                rule.rule_set[i] = tag
                 entries.add(tag to "file://${converted.absolutePath}")
             }
         }
-        status(0,Status(complete = true))
+        if (!localOnly) status(0,Status(complete = true))
         return RuleSetCatalog(entries)
     }
     private fun digest(text: String) = MessageDigest.getInstance("SHA-256").digest(text.toByteArray()).joinToString("") { "%02x".format(it) }

@@ -360,6 +360,7 @@ class RouteProfileActivity : ThemedActivity(R.layout.layout_route_profile) {
         if (model.profile?.is_raw == true) {
             menu.removeItem(R.id.action_add_rule)
             menu.removeItem(R.id.action_apply)
+            menu.removeItem(R.id.action_route_tester)
         }
         return true
     }
@@ -368,6 +369,19 @@ class RouteProfileActivity : ThemedActivity(R.layout.layout_route_profile) {
         when (item.itemId) {
             R.id.action_add_rule -> addRule()
             R.id.action_apply -> save()
+            R.id.action_route_tester -> {
+                val profile = model.profile?.takeUnless { it.is_raw } ?: return false
+                val intent = Intent(this, RouteTesterActivity::class.java)
+                if (model.dirty || profile.id <= 0) {
+                    undoManager.flush()
+                    val draft = profile.copy()
+                    applyDns(draft)
+                    intent.putExtra(RouteTesterActivity.EXTRA_ROUTE_DRAFT, RouteJson.profileToJson(draft))
+                } else {
+                    intent.putExtra(RouteTesterActivity.EXTRA_ROUTE_ID, profile.id)
+                }
+                startActivity(intent)
+            }
             else -> return super.onOptionsItemSelected(item)
         }
         return true

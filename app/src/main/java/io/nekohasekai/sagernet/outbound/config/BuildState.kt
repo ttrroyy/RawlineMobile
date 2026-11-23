@@ -7,6 +7,7 @@ import app.rawline.mobile.outbound.link.Hosts
 import app.rawline.mobile.outbound.types.Dnstt
 import app.rawline.mobile.outbound.types.MasterDns
 import java.util.TreeMap
+import java.util.IdentityHashMap
 
 /** The tag vocabulary of generate.cpp:43-74. */
 internal object Tags {
@@ -157,6 +158,7 @@ internal class BuildState(val forTest: Boolean, val ports: PortLease) {
 
     // BuildConfigResult (generate.h:35-51)
     val coreConfig = JsonObject()
+    val routeRuleOrigins = IdentityHashMap<JsonObject, RouteRuleOrigin>()
     var xrayConfig = JsonObject()
 
     /** [Tags.PROXY_EXPLICIT] when the main server is a full Xray config whose routing would send proxied traffic out directly. */

@@ -24,7 +24,7 @@ object CoreRuntime {
     val platform: NativeInterface by lazy { NativeInterface() }
 
     /** The started main instance and the profile it runs, from box start to close (test-current). */
-    class RunningCore(val instance: Instance, val profileId: Long) {
+    class RunningCore(val instance: Instance, val profileId: Long, val routeRules: RunningRouteRules? = null) {
         val authSession = java.util.UUID.randomUUID().toString()
     }
 
@@ -33,8 +33,8 @@ object CoreRuntime {
         private set
 
     @Synchronized
-    fun attachRunning(instance: Instance, profileId: Long) {
-        running = RunningCore(instance, profileId)
+    fun attachRunning(instance: Instance, profileId: Long, routeRules: RunningRouteRules? = null) {
+        running = RunningCore(instance, profileId, routeRules)
     }
 
     fun detachRunning(instance: Instance) {
