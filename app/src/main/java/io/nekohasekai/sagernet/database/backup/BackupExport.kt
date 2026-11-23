@@ -66,6 +66,7 @@ object BackupExport {
 
         /** Group id -> member ids in list order. */
         val members = HashMap<Long, MutableList<Long>>()
+        var pinned = emptySet<Long>()
 
         /** (group id, display_order) in tab order. */
         val tabs = ArrayList<Pair<Long, Long>>()
@@ -135,6 +136,13 @@ object BackupExport {
             if (selection.profiles) {
                 s.profiles = copy(PROFILES, "`id`")
                 s.groups = copy(GROUPS, "`display_order`, `id`")
+                live.query(
+                    "SELECT value FROM settings WHERE key = ?", arrayOf(Key.MOBILE_PINNED_PROFILES),
+                ).use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        s.pinned = cursor.getString(0).orEmpty().split(',').mapNotNull(String::toLongOrNull).toSet()
+                    }
+                }
             }
             if (selection.routes) {
                 s.routeProfiles = copy(ROUTE_PROFILES, "`id`")
@@ -200,11 +208,15 @@ object BackupExport {
         )
         s.groups?.let { groups ->
             val id = groups.index("id")
-            val columns = groups.columns + "profiles_json"
+            val columns = groups.columns + listOf("profiles_json", "pinned_json")
             val rows = groups.rows.map { row ->
                 val members = JsonArray()
-                s.members[row[id] as Long].orEmpty().forEach { members.add(it) }
-                row + members.toCompact()
+                val pinned = JsonArray()
+                s.members[row[id] as Long].orEmpty().forEach {
+                    members.add(it)
+                    if (it in s.pinned) pinned.add(it)
+                }
+                row + arrayOf(members.toCompact(), pinned.toCompact())
             }
             insertRows(db, GROUPS, columns, rows)
             insertRows(db, GROUPS_ORDER, listOf("group_id", "display_order"), s.tabs.map { arrayOf(it.first, it.second) })

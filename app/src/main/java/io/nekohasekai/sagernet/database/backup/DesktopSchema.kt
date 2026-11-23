@@ -80,6 +80,7 @@ object DesktopSchema {
             sort_descending INTEGER NOT NULL DEFAULT 0,
             route_id INTEGER NOT NULL DEFAULT -1,
             import_sub_route INTEGER NOT NULL DEFAULT 0,
+            pinned_json TEXT NOT NULL DEFAULT '[]',
             created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
             updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
         )

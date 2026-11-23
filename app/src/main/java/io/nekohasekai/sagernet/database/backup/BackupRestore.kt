@@ -90,6 +90,7 @@ object BackupRestore {
         var routeProfiles: SqlTable? = null
         var routeRules: SqlTable? = null
         var settings: LinkedHashMap<String, String>? = null
+        var pinnedProfiles = ""
 
         /** Null when the backup has no markers table (the desktop then clears its markers). */
         var markers: SqlTable? = null
@@ -258,6 +259,28 @@ object BackupRestore {
 
         staged.groups = groups
         staged.profiles = profiles
+        if (bak.tableColumns(GROUPS).any { it.name == "pinned_json" }) {
+            val pins = LinkedHashSet<Long>()
+            bak.rawQuery("SELECT id, pinned_json FROM groups ORDER BY id", null).use { cursor ->
+                while (cursor.moveToNext()) {
+                    val own = members[cursor.getLong(0)]?.toHashSet() ?: continue
+                    val saved = cursor.getString(1)?.let { JsonInput.parseValue(it) } as? JsonArray ?: continue
+                    saved.map { JsonValues.toInteger(it) }.filterTo(pins) { it in own }
+                }
+            }
+            staged.pinnedProfiles = pins.joinToString(",")
+        } else if (bak.hasTable(SETTINGS)) {
+            val own = members.values.flatten().toHashSet()
+            bak.rawQuery(
+                "SELECT value FROM settings WHERE key IN (?, ?) ORDER BY key",
+                arrayOf(Key.MOBILE_PINNED_PROFILES, "pinned_profiles"),
+            ).use { cursor ->
+                if (cursor.moveToFirst()) {
+                    staged.pinnedProfiles = cursor.getString(0).orEmpty().split(',')
+                        .mapNotNull(String::toLongOrNull).filter { it in own }.distinct().joinToString(",")
+                }
+            }
+        }
     }
 
     private fun stageRoutes(bak: SQLiteDatabase, main: SupportSQLiteDatabase, staged: Staged, warnings: MutableList<String>) {
@@ -373,6 +396,7 @@ object BackupRestore {
                 for ((table, value) in staged.counters) raiseSequence(db, table, value)
             }
             if (choice.settings) applySettings(db, staged, fromAndroid)
+            if (choice.profiles) writeSetting(db, Key.MOBILE_PINNED_PROFILES, staged.pinnedProfiles.ifEmpty { null })
             // Configs.cpp:32-44 initDB: an empty table gets its Default row, with a fresh id.
             if (choice.profiles) SagerDatabase.groupDao.insertDefaultIfEmpty(SagerDatabase.defaultGroupName())
             if (choice.routes && (db.longQuery("SELECT COUNT(*) FROM `$ROUTE_PROFILES` WHERE `is_raw` = 0") ?: 0L) == 0L) {
@@ -413,7 +437,8 @@ object BackupRestore {
      * keys are stored as they are so they go back to the desktop.
      */
     private fun applySettings(db: SupportSQLiteDatabase, staged: Staged, fromAndroid: Boolean) {
-        val kept = if (fromAndroid) SettingsRegistry.DEVICE_LOCAL_KEYS else SettingsRegistry.DEVICE_LOCAL_KEYS + SettingsRegistry.ANDROID_KEYS
+        val kept = SettingsRegistry.DEVICE_LOCAL_KEYS + Key.MOBILE_PINNED_PROFILES +
+            if (fromAndroid) emptySet() else SettingsRegistry.ANDROID_KEYS
         db.execSQL(
             "DELETE FROM `$SETTINGS` WHERE `key` NOT IN (${kept.joinToString(",") { "?" }})",
             kept.toTypedArray<Any?>()
@@ -421,7 +446,7 @@ object BackupRestore {
         db.compileStatement("INSERT OR REPLACE INTO `$SETTINGS` (`key`, `value`) VALUES (?, ?)").use { replace ->
             db.compileStatement("INSERT OR IGNORE INTO `$SETTINGS` (`key`, `value`) VALUES (?, ?)").use { ignore ->
                 for ((key, value) in staged.settings.orEmpty()) {
-                    if (key in SettingsRegistry.DEVICE_LOCAL_KEYS) continue
+                    if (key == Key.MOBILE_PINNED_PROFILES || key in SettingsRegistry.DEVICE_LOCAL_KEYS) continue
                     val statement = if (!fromAndroid && key in SettingsRegistry.ANDROID_KEYS) ignore else replace
                     statement.clearBindings()
                     statement.bindString(1, key)
