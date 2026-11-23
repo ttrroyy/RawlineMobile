@@ -52,7 +52,7 @@ def prepare(kind: str, folder: Path):
     else:
         raise ValueError("Expected qwdtt or wdttplus")
     path.write_text(source, encoding="utf-8", newline="\n")
-    # CUBIC and growing windows for the userspace TCP behind the SOCKS listener (netstack_tuning.go overlay).
+    # Adaptive windows for the userspace TCP behind the SOCKS listener (netstack_tuning.go overlay).
     tuning = {
         "qwdtt": [
             ("socks_wg.go", '\t\treturn nil, nil, fmt.Errorf("CreateNetTUN: %w", err)\n\t}\n', "\ttuneNetstack(tnet)\n"),
