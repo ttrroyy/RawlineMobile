@@ -23,7 +23,8 @@ interface ICoreService {
   void unregisterSubscriptionCallback(ISubscriptionCallback cb);
 
   // WARP: blocks up to 10 s + 10 s per API host; returns JSON (see WarpRegistration).
-  String warpRegister(String tunnelType, String proxy, in String[] apiHosts, boolean useCurrent);
+  String warpRegister(String tunnelType, String proxy, in String[] apiHosts, boolean useCurrent,
+      boolean tlsFragment, boolean tlsRecordFragment, String tlsFragmentFallbackDelay);
   String testRoute(String requestJson);
 
   // AmneziaWG I1..I5 from a QUIC handshake to domain, built offline; returns JSON (see QuicSignature).

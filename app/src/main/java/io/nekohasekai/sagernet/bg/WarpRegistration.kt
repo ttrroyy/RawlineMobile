@@ -13,10 +13,23 @@ import app.rawline.core.mobile.WarpRegisterRequest
 object WarpRegistration {
 
     /** Returns sorted-key JSON: {"device_id","endpoint","error","ipv4","ipv6","license","peer_public_key","private_key","reserved","token"}. */
-    fun register(tunnelType: String, proxy: String, apiHosts: Array<String>, useCurrent: Boolean): String = try {
+    fun register(
+        tunnelType: String,
+        proxy: String,
+        apiHosts: Array<String>,
+        useCurrent: Boolean,
+        tlsFragment: Boolean,
+        tlsRecordFragment: Boolean,
+        tlsFragmentFallbackDelay: String,
+    ): String = try {
         val request = WarpRegisterRequest()
         request.tunnelType = tunnelType
         request.proxy = proxy
+        if (!useCurrent && proxy.isBlank()) {
+            request.setTLSFragment(tlsFragment)
+            request.setTLSRecordFragment(tlsRecordFragment)
+            if (tlsFragment) request.setTLSFragmentFallbackDelay(tlsFragmentFallbackDelay)
+        }
         for (host in apiHosts) request.addAPIHost(host)
         val identity = if (useCurrent) {
             val running = CoreRuntime.running ?: error("Active tunnel has stopped; reconnect before registering WARP")

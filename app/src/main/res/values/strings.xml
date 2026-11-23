@@ -1560,6 +1560,8 @@
     <string name="warp_generate_failed">Failed to generate WARP config</string>
     <string name="warp_api_hosts">Registration domains</string>
     <string name="warp_api_hosts_message">One domain per line. They are tried in order and the first one that accepts the registration is used. Leave empty to use %s.</string>
+    <string name="warp_api_tls_fragment_title">TLS fragmentation for WARP registration</string>
+    <string name="warp_api_tls_fragment_note">Applies to direct registration.</string>
     <string name="warp_not_generated">WARP is enabled but its config has not been generated. Generate it in Settings › Routing › WARP.</string>
 
     <!-- WireGuard / MASQUE profile editors -->

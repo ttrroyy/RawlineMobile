@@ -358,6 +358,9 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var warpMasqueSni by SettingsRegistry.WARP_MASQUE_SNI
     var warpMasqueHttpMode by SettingsRegistry.WARP_MASQUE_HTTP_MODE
     var warpApiHosts by SettingsRegistry.WARP_API_HOSTS
+    var warpApiTlsFragment by SettingsRegistry.WARP_API_TLS_FRAGMENT
+    var warpApiTlsRecordFragment by SettingsRegistry.WARP_API_TLS_RECORD_FRAGMENT
+    var warpApiTlsFragmentFallbackDelay by SettingsRegistry.WARP_API_TLS_FRAGMENT_FALLBACK_DELAY
 
     // core
     var logLevel by SettingsRegistry.LOG_LEVEL

@@ -40,8 +40,18 @@ class CoreService : Service() {
 
         override fun unregisterSubscriptionCallback(cb: ISubscriptionCallback) = SubscriptionQueue.unregister(cb)
 
-        override fun warpRegister(tunnelType: String, proxy: String?, apiHosts: Array<String>?, useCurrent: Boolean): String =
-            WarpRegistration.register(tunnelType, proxy.orEmpty(), apiHosts ?: emptyArray(), useCurrent)
+        override fun warpRegister(
+            tunnelType: String,
+            proxy: String?,
+            apiHosts: Array<String>?,
+            useCurrent: Boolean,
+            tlsFragment: Boolean,
+            tlsRecordFragment: Boolean,
+            tlsFragmentFallbackDelay: String?,
+        ): String = WarpRegistration.register(
+            tunnelType, proxy.orEmpty(), apiHosts ?: emptyArray(), useCurrent,
+            tlsFragment, tlsRecordFragment, tlsFragmentFallbackDelay.orEmpty(),
+        )
 
         override fun genQuicSignature(domain: String?): String = QuicSignature.generate(domain.orEmpty())
 

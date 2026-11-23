@@ -1426,6 +1426,8 @@
     <string name="vpn_settings_missing">На этом устройстве нет экрана настроек VPN</string>
     <string name="warp_api_hosts">Домены регистрации</string>
     <string name="warp_api_hosts_message">По одному домену в строке. Перебираются по порядку, используется первый принявший регистрацию. Пусто — используется %s.</string>
+    <string name="warp_api_tls_fragment_title">Фрагментация TLS при регистрации WARP</string>
+    <string name="warp_api_tls_fragment_note">Применяется при прямой регистрации.</string>
     <string name="warp_core_unreachable">Не удалось связаться с ядром.</string>
     <string name="warp_disable">Отключить WARP</string>
     <string name="warp_disabled">WARP отключён</string>

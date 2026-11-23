@@ -11,6 +11,7 @@ import androidx.preference.SwitchPreference
 import app.rawline.mobile.R
 import app.rawline.mobile.SagerNet
 import app.rawline.mobile.database.DataStore
+import app.rawline.mobile.database.SettingValidators
 import app.rawline.mobile.database.SettingsRegistry
 import app.rawline.mobile.database.preference.OnPreferenceDataStoreChangeListener
 import app.rawline.mobile.ktx.needReload
@@ -19,6 +20,7 @@ import app.rawline.mobile.ktx.runOnMainDispatcher
 import app.rawline.mobile.ui.profile.ProfileSettingsActivity
 import app.rawline.mobile.ui.warp.WarpClient
 import app.rawline.mobile.ui.warp.WarpGenerate
+import app.rawline.mobile.validation.Validation
 import kotlinx.coroutines.launch
 import moe.matsuri.nb4a.ui.SimpleMenuPreference
 
@@ -121,6 +123,20 @@ class WarpSettingsFragment : SettingsScreenFragment(R.xml.settings_warp) {
             hosts.text = WarpClient.normalizeApiHosts(newValue as String?).joinToString("\n")
             false
         }
+
+        val fragment = pref<SwitchPreference>(SettingsRegistry.WARP_API_TLS_FRAGMENT.key)
+        val fallbackDelay = pref<EditTextPreference>(SettingsRegistry.WARP_API_TLS_FRAGMENT_FALLBACK_DELAY.key)
+        fallbackDelay.isEnabled = fragment.isChecked
+        fragment.setOnPreferenceChangeListener { _, newValue ->
+            fallbackDelay.isEnabled = newValue as Boolean
+            validation.refresh()
+            true
+        }
+        gateText(
+            fallbackDelay.key, Validation.Rules.duration(), reload = false,
+            invalid = R.string.invalid_duration, valid = SettingValidators::isDurationOrEmpty,
+        )
+        fallbackDelay.summaryProvider = DefaultSummaryProvider("500ms")
     }
 
     /** The fields of the generated mode (dialog_manage_routes.cpp:480-495), saved at once. */

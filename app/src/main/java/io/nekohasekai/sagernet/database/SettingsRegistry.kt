@@ -347,6 +347,10 @@ object SettingsRegistry {
     @JvmField val WARP_MASQUE_HTTP_MODE = int("warp_masque_http_mode", 0) { it in 0..2 }
     /** Registration API hosts tried in order; empty = api.cloudflareclient.com. */
     @JvmField val WARP_API_HOSTS = stringList("warp_api_hosts", emptyList())
+    @JvmField val WARP_API_TLS_FRAGMENT = bool("warp_api_tls_fragment", false)
+    @JvmField val WARP_API_TLS_RECORD_FRAGMENT = bool("warp_api_tls_record_fragment", false)
+    @JvmField val WARP_API_TLS_FRAGMENT_FALLBACK_DELAY =
+        string("warp_api_tls_fragment_fallback_delay", "", SettingValidators::isDurationOrEmpty)
 
     // ------------------------------------------------------------------------------------------------ core
 

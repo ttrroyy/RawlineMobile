@@ -117,8 +117,13 @@ object WarpClient {
         val useCurrent = DataStore.serviceState.connected
         val proxy = if (useCurrent) "" else proxy()
         val hosts = DataStore.warpApiHosts.toTypedArray()
+        val fragment = DataStore.warpApiTlsFragment
+        val recordFragment = DataStore.warpApiTlsRecordFragment
+        val fallbackDelay = if (fragment) DataStore.warpApiTlsFragmentFallbackDelay.trim() else ""
         val raw = try {
-            CoreServiceClient.call { it.warpRegister(tunnelType, proxy, hosts, useCurrent) }
+            CoreServiceClient.call {
+                it.warpRegister(tunnelType, proxy, hosts, useCurrent, fragment, recordFragment, fallbackDelay)
+            }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
