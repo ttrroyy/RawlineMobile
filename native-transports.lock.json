@@ -40,14 +40,14 @@
     "carriers/masterdns/main.go": "807ce6e1d0035c744b5911f03ce42fc7f6ad47ab0603dcc4eeacfdf10cf61f99"
   },
   "secure_socks": {
-    "build_commit": "8a472e404a6f6cf4f24721c961d7ca11f30b7a84",
+    "build_commit": "226911f56b7192b4a20b51b2003c215001a0b437",
     "core_commit": "e5c3c405f21cfb27a883038a0aec40bd9dcf8587",
     "wdtt_commit": "f706ccd373685bbde20cae33b2b7f400e8335ecc",
     "csqtt_commit": "2066156119a5afe7d63e104aefdc8e0849999d03",
     "inputs": {
       "scripts/build_secure_carriers.sh": "929b94fe78d9821e7975008875ba9d0772de8c89622b761b0eb5959e0d54ded0",
       "scripts/prepare_android_captcha.py": "40c35d33944c04c915486550b39a56f3282da726459c065b480902ac9761ab6a",
-      "scripts/prepare_mobile_carrier_socks.py": "c1437afa13b26227bfd43619826f287eddc25ba8ec2206ff5cfe905e9cb57cc7",
+      "scripts/prepare_mobile_carrier_socks.py": "c058042f80a44f14e241f2d8ef4feb81d85062188374db0910ab46c1a5a47f6a",
       "scripts/prepare_private_csqtt.py": "475a90ed087356041821b1dfe7e827806909874762e1ac07fb0440f5e45425d2",
       "scripts/prepare_csqtt_rebirth.py": "7a9cc30d1cef83e81efc285ed53026aff41de14b9b9943089dec5b51771bfa4d",
       "scripts/prepare_csqtt_rebirth_bridge.py": "b5e54d9b49ba2d111dd77467d91c28ff012fe261303e24b3ad232e9a410e7336",
@@ -58,31 +58,31 @@
       "core-patches/carrier-socks/qwdtt/mobile_csqtt_ipc_other.go": "e146d0bbddced21a41ad10b6ff047a4379a452449b69703077a81082bad77a57",
       "core-patches/carrier-socks/qwdtt/mobile_csqtt_rebirth_test.go": "094c9d0ef4e4b2df3833095e88a241a320cef109f0f7324a5c5b84e65e33aa53",
       "core-patches/carrier-socks/qwdtt/mobile_source_port_test.go": "87c3c2b7e8b8674c658e8be9360cb87a304c6a940b9afde69eaad71c18a52ce8",
-      "core-patches/carrier-socks/qwdtt/netstack_tuning.go": "4484a8ab7a0ea8ffb3d8bd9104a569a72bdd415b48b68c4d4fd24e3bc5f1f210",
+      "core-patches/carrier-socks/qwdtt/netstack_tuning.go": "ed571dde2393722857b48b465cb75584c41adc946108bc1c53a33717aa5eccd0",
       "core-patches/carrier-socks/wdttplus/mobile_source_port_test.go": "727d2ef5ee67f0591848cdf79f26cb097d7059b7c42ddf09649c42953b7825c6",
-      "core-patches/carrier-socks/wdttplus/netstack_tuning.go": "4484a8ab7a0ea8ffb3d8bd9104a569a72bdd415b48b68c4d4fd24e3bc5f1f210"
+      "core-patches/carrier-socks/wdttplus/netstack_tuning.go": "ed571dde2393722857b48b465cb75584c41adc946108bc1c53a33717aa5eccd0"
     },
     "archives": [
       {
         "abi": "armeabi-v7a",
-        "name": "rawline-secure-socks-8a472e40-armeabi-v7a.tar.gz",
-        "sha256": "716777cf8960bfa18ed1d4e6ef95b708889e395caa91ea938afc221bcd0ecfae",
-        "sources": "Rawline e5c3c405f21cfb27a883038a0aec40bd9dcf8587\nWDTT-Plus f706ccd373685bbde20cae33b2b7f400e8335ecc\nCSQTT 2066156119a5afe7d63e104aefdc8e0849999d03\nAndroid ABI armeabi-v7a\nLocal IPC hardening 8a472e404a6f6cf4f24721c961d7ca11f30b7a84\n",
-        "url": "https://github.com/ttrroyy/RawlineMobile/releases/download/v1.0.0/rawline-secure-socks-8a472e40-armeabi-v7a.tar.gz"
+        "name": "rawline-secure-socks-226911f5-armeabi-v7a.tar.gz",
+        "sha256": "2a1b7f1d22fa983e8cbdad7c0cd3aab9a61358f12aee36f72b2af1ec6f157c67",
+        "sources": "Rawline e5c3c405f21cfb27a883038a0aec40bd9dcf8587\nWDTT-Plus f706ccd373685bbde20cae33b2b7f400e8335ecc\nCSQTT 2066156119a5afe7d63e104aefdc8e0849999d03\nAndroid ABI armeabi-v7a\nLocal IPC hardening 226911f56b7192b4a20b51b2003c215001a0b437\n",
+        "url": "https://github.com/ttrroyy/RawlineMobile/releases/download/v1.0.0/rawline-secure-socks-226911f5-armeabi-v7a.tar.gz"
       },
       {
         "abi": "arm64-v8a",
-        "name": "rawline-secure-socks-8a472e40-arm64-v8a.tar.gz",
-        "sha256": "b3eae120fe902613068bd84e0bb18787f4344eec5e1384d4773c6f3861eedc09",
-        "sources": "Rawline e5c3c405f21cfb27a883038a0aec40bd9dcf8587\nWDTT-Plus f706ccd373685bbde20cae33b2b7f400e8335ecc\nCSQTT 2066156119a5afe7d63e104aefdc8e0849999d03\nAndroid ABI arm64-v8a\nLocal IPC hardening 8a472e404a6f6cf4f24721c961d7ca11f30b7a84\n",
-        "url": "https://github.com/ttrroyy/RawlineMobile/releases/download/v1.0.0/rawline-secure-socks-8a472e40-arm64-v8a.tar.gz"
+        "name": "rawline-secure-socks-226911f5-arm64-v8a.tar.gz",
+        "sha256": "09acbf74e443dec77fce8f933f8d9283605071d9fac9c9de1b2bc24d0a7a9b63",
+        "sources": "Rawline e5c3c405f21cfb27a883038a0aec40bd9dcf8587\nWDTT-Plus f706ccd373685bbde20cae33b2b7f400e8335ecc\nCSQTT 2066156119a5afe7d63e104aefdc8e0849999d03\nAndroid ABI arm64-v8a\nLocal IPC hardening 226911f56b7192b4a20b51b2003c215001a0b437\n",
+        "url": "https://github.com/ttrroyy/RawlineMobile/releases/download/v1.0.0/rawline-secure-socks-226911f5-arm64-v8a.tar.gz"
       },
       {
         "abi": "x86_64",
-        "name": "rawline-secure-socks-8a472e40-x86_64.tar.gz",
-        "sha256": "c1ffbce2257518060fafe86c1cc265ee49d5b9de61edc7c9fa44433f00e289bd",
-        "sources": "Rawline e5c3c405f21cfb27a883038a0aec40bd9dcf8587\nWDTT-Plus f706ccd373685bbde20cae33b2b7f400e8335ecc\nCSQTT 2066156119a5afe7d63e104aefdc8e0849999d03\nAndroid ABI x86_64\nLocal IPC hardening 8a472e404a6f6cf4f24721c961d7ca11f30b7a84\n",
-        "url": "https://github.com/ttrroyy/RawlineMobile/releases/download/v1.0.0/rawline-secure-socks-8a472e40-x86_64.tar.gz"
+        "name": "rawline-secure-socks-226911f5-x86_64.tar.gz",
+        "sha256": "f0aaf76037e40fd6324b6931501c92732806b6e1d291e20f6b84b0628a215bb6",
+        "sources": "Rawline e5c3c405f21cfb27a883038a0aec40bd9dcf8587\nWDTT-Plus f706ccd373685bbde20cae33b2b7f400e8335ecc\nCSQTT 2066156119a5afe7d63e104aefdc8e0849999d03\nAndroid ABI x86_64\nLocal IPC hardening 226911f56b7192b4a20b51b2003c215001a0b437\n",
+        "url": "https://github.com/ttrroyy/RawlineMobile/releases/download/v1.0.0/rawline-secure-socks-226911f5-x86_64.tar.gz"
       }
     ]
   },
@@ -205,13 +205,13 @@
     ]
   },
   "csqtt_compat": {
-    "build_commit": "8a472e404a6f6cf4f24721c961d7ca11f30b7a84",
+    "build_commit": "226911f56b7192b4a20b51b2003c215001a0b437",
     "core_commit": "e5c3c405f21cfb27a883038a0aec40bd9dcf8587",
     "csqtt_commit": "446293aa2e873ac5323ef6fd2316d9b81d966c11",
     "inputs": {
       "scripts/build_csqtt_compat.sh": "5005ca6e0d64bb1734f4298a2616c5b872d689fd0ddd5430f3f80537a728874a",
       "scripts/prepare_android_captcha.py": "40c35d33944c04c915486550b39a56f3282da726459c065b480902ac9761ab6a",
-      "scripts/prepare_mobile_carrier_socks.py": "c1437afa13b26227bfd43619826f287eddc25ba8ec2206ff5cfe905e9cb57cc7",
+      "scripts/prepare_mobile_carrier_socks.py": "c058042f80a44f14e241f2d8ef4feb81d85062188374db0910ab46c1a5a47f6a",
       "scripts/prepare_csqtt_rebirth_bridge.py": "b5e54d9b49ba2d111dd77467d91c28ff012fe261303e24b3ad232e9a410e7336",
       "scripts/prepare_csqtt_compat_bridge.py": "d5e8efb6ae8f7daf9b96bf54c979541ff70a9e419db1ebc3ec9f4f63958521e2",
       "scripts/prepare_csqtt_compat.py": "f52948078de0b073462470f702550c3e5656cf77202ce828c52b81a7e5a47944",
@@ -224,31 +224,31 @@
       "core-patches/carrier-socks/qwdtt/mobile_csqtt_ipc_other.go": "e146d0bbddced21a41ad10b6ff047a4379a452449b69703077a81082bad77a57",
       "core-patches/carrier-socks/qwdtt/mobile_csqtt_rebirth_test.go": "094c9d0ef4e4b2df3833095e88a241a320cef109f0f7324a5c5b84e65e33aa53",
       "core-patches/carrier-socks/qwdtt/mobile_source_port_test.go": "87c3c2b7e8b8674c658e8be9360cb87a304c6a940b9afde69eaad71c18a52ce8",
-      "core-patches/carrier-socks/qwdtt/netstack_tuning.go": "4484a8ab7a0ea8ffb3d8bd9104a569a72bdd415b48b68c4d4fd24e3bc5f1f210"
+      "core-patches/carrier-socks/qwdtt/netstack_tuning.go": "ed571dde2393722857b48b465cb75584c41adc946108bc1c53a33717aa5eccd0"
     },
     "archives": [
       {
         "abi": "arm64-v8a",
-        "url": "https://github.com/ttrroyy/RawlineMobile/releases/download/v1.0.0/rawline-csqtt-compat-8a472e40-arm64-v8a.tar.gz",
-        "sha256": "7b517f11f20a141cfbe4e76371832e1f0dbf69e2067145da6cd4f09114e0f577",
-        "sources": "Rawline e5c3c405f21cfb27a883038a0aec40bd9dcf8587\nCSQTT compatibility 446293aa2e873ac5323ef6fd2316d9b81d966c11\nAndroid ABI arm64-v8a\nPrivate IPC 8a472e404a6f6cf4f24721c961d7ca11f30b7a84\n"
+        "url": "https://github.com/ttrroyy/RawlineMobile/releases/download/v1.0.0/rawline-csqtt-compat-226911f5-arm64-v8a.tar.gz",
+        "sha256": "f4ea86d14fedf26b46c4c0426bd223c5a9b309ccdab59cc4cd38f081dbac0d65",
+        "sources": "Rawline e5c3c405f21cfb27a883038a0aec40bd9dcf8587\nCSQTT compatibility 446293aa2e873ac5323ef6fd2316d9b81d966c11\nAndroid ABI arm64-v8a\nPrivate IPC 226911f56b7192b4a20b51b2003c215001a0b437\n"
       },
       {
         "abi": "armeabi-v7a",
-        "url": "https://github.com/ttrroyy/RawlineMobile/releases/download/v1.0.0/rawline-csqtt-compat-8a472e40-armeabi-v7a.tar.gz",
-        "sha256": "10ad973f54eb9ec3eaab83c3f3e75fc49b40541d7b2a3519ec70a4ac0eb7f5a3",
-        "sources": "Rawline e5c3c405f21cfb27a883038a0aec40bd9dcf8587\nCSQTT compatibility 446293aa2e873ac5323ef6fd2316d9b81d966c11\nAndroid ABI armeabi-v7a\nPrivate IPC 8a472e404a6f6cf4f24721c961d7ca11f30b7a84\n"
+        "url": "https://github.com/ttrroyy/RawlineMobile/releases/download/v1.0.0/rawline-csqtt-compat-226911f5-armeabi-v7a.tar.gz",
+        "sha256": "281d15d13457802ec830a60e366795773f78d657165244aa44dbdfa098da3cfd",
+        "sources": "Rawline e5c3c405f21cfb27a883038a0aec40bd9dcf8587\nCSQTT compatibility 446293aa2e873ac5323ef6fd2316d9b81d966c11\nAndroid ABI armeabi-v7a\nPrivate IPC 226911f56b7192b4a20b51b2003c215001a0b437\n"
       },
       {
         "abi": "x86_64",
-        "url": "https://github.com/ttrroyy/RawlineMobile/releases/download/v1.0.0/rawline-csqtt-compat-8a472e40-x86_64.tar.gz",
-        "sha256": "746d2dd547aa6b393fd78a8864803afd11ab8df366943cdf1b635730be36e8dc",
-        "sources": "Rawline e5c3c405f21cfb27a883038a0aec40bd9dcf8587\nCSQTT compatibility 446293aa2e873ac5323ef6fd2316d9b81d966c11\nAndroid ABI x86_64\nPrivate IPC 8a472e404a6f6cf4f24721c961d7ca11f30b7a84\n"
+        "url": "https://github.com/ttrroyy/RawlineMobile/releases/download/v1.0.0/rawline-csqtt-compat-226911f5-x86_64.tar.gz",
+        "sha256": "633165982b18c123e67cbc3591592e63311e34cd481a04ca4b59d0dc7cbe1c09",
+        "sources": "Rawline e5c3c405f21cfb27a883038a0aec40bd9dcf8587\nCSQTT compatibility 446293aa2e873ac5323ef6fd2316d9b81d966c11\nAndroid ABI x86_64\nPrivate IPC 226911f56b7192b4a20b51b2003c215001a0b437\n"
       }
     ]
   },
   "mrtt": {
-    "build_commit": "eef17c266a62ce007c910734044d0f2fb0954836",
+    "build_commit": "226911f56b7192b4a20b51b2003c215001a0b437",
     "mrtt_commit": "233eddc06a0a117d3b1cbd20386be2bb4300126e",
     "core_commit": "e5c3c405f21cfb27a883038a0aec40bd9dcf8587",
     "inputs": {
@@ -261,24 +261,24 @@
     "archives": [
       {
         "abi": "armeabi-v7a",
-        "name": "rawline-mrtt-eef17c26-armeabi-v7a.tar.gz",
-        "sha256": "527964d19e3a97b5baa1a52a65f7d2ac2a0ba6863f95dfd2fe6d6a39c82f5021",
-        "sources": "RawlineMobile MRTT eef17c266a62ce007c910734044d0f2fb0954836\nMRTT 233eddc06a0a117d3b1cbd20386be2bb4300126e\nRawline e5c3c405f21cfb27a883038a0aec40bd9dcf8587\nAndroid ABI armeabi-v7a\n",
-        "url": "https://github.com/ttrroyy/RawlineMobile/releases/download/v1.0.0/rawline-mrtt-eef17c26-armeabi-v7a.tar.gz"
+        "name": "rawline-mrtt-226911f5-armeabi-v7a.tar.gz",
+        "sha256": "c23eabcdb7cf6fe021388b4ee0c1214276f3f8b43e58e34b9109744c91a113e3",
+        "sources": "RawlineMobile MRTT 226911f56b7192b4a20b51b2003c215001a0b437\nMRTT 233eddc06a0a117d3b1cbd20386be2bb4300126e\nRawline e5c3c405f21cfb27a883038a0aec40bd9dcf8587\nAndroid ABI armeabi-v7a\n",
+        "url": "https://github.com/ttrroyy/RawlineMobile/releases/download/v1.0.0/rawline-mrtt-226911f5-armeabi-v7a.tar.gz"
       },
       {
         "abi": "arm64-v8a",
-        "name": "rawline-mrtt-eef17c26-arm64-v8a.tar.gz",
-        "sha256": "05228f6b4cc2698b1528008309372fbcd89fe920a5bb1be7b78398955b9ceee3",
-        "sources": "RawlineMobile MRTT eef17c266a62ce007c910734044d0f2fb0954836\nMRTT 233eddc06a0a117d3b1cbd20386be2bb4300126e\nRawline e5c3c405f21cfb27a883038a0aec40bd9dcf8587\nAndroid ABI arm64-v8a\n",
-        "url": "https://github.com/ttrroyy/RawlineMobile/releases/download/v1.0.0/rawline-mrtt-eef17c26-arm64-v8a.tar.gz"
+        "name": "rawline-mrtt-226911f5-arm64-v8a.tar.gz",
+        "sha256": "ddf9a18e6442d9d52676601cd776f6526f403d7bd4bf1cb074e580898147c944",
+        "sources": "RawlineMobile MRTT 226911f56b7192b4a20b51b2003c215001a0b437\nMRTT 233eddc06a0a117d3b1cbd20386be2bb4300126e\nRawline e5c3c405f21cfb27a883038a0aec40bd9dcf8587\nAndroid ABI arm64-v8a\n",
+        "url": "https://github.com/ttrroyy/RawlineMobile/releases/download/v1.0.0/rawline-mrtt-226911f5-arm64-v8a.tar.gz"
       },
       {
         "abi": "x86_64",
-        "name": "rawline-mrtt-eef17c26-x86_64.tar.gz",
-        "sha256": "3434fb3991a5957825adfa913b7c0ff9ee6e7e96c8f1d0f40060f7db5f4f0668",
-        "sources": "RawlineMobile MRTT eef17c266a62ce007c910734044d0f2fb0954836\nMRTT 233eddc06a0a117d3b1cbd20386be2bb4300126e\nRawline e5c3c405f21cfb27a883038a0aec40bd9dcf8587\nAndroid ABI x86_64\n",
-        "url": "https://github.com/ttrroyy/RawlineMobile/releases/download/v1.0.0/rawline-mrtt-eef17c26-x86_64.tar.gz"
+        "name": "rawline-mrtt-226911f5-x86_64.tar.gz",
+        "sha256": "a7839d075efb8357bc067ab16baf2f00d9c1be5e3f12707d4741004fb2bc946a",
+        "sources": "RawlineMobile MRTT 226911f56b7192b4a20b51b2003c215001a0b437\nMRTT 233eddc06a0a117d3b1cbd20386be2bb4300126e\nRawline e5c3c405f21cfb27a883038a0aec40bd9dcf8587\nAndroid ABI x86_64\n",
+        "url": "https://github.com/ttrroyy/RawlineMobile/releases/download/v1.0.0/rawline-mrtt-226911f5-x86_64.tar.gz"
       }
     ]
   },
