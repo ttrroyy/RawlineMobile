@@ -4,6 +4,7 @@ import app.rawline.mobile.database.ProxyEntity
 import app.rawline.mobile.aidl.ITestSessionCallback
 import app.rawline.core.mobile.Mobile
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.coroutineScope
@@ -28,14 +29,20 @@ object TestEngine {
     fun start(spec: TestSpec, callback: ITestSessionCallback): Int {
         if (!session.tryLock()) return -1
         val test = TestSession(sessionIds.incrementAndGet(), spec, callback)
-        current = test
-        test.job = scope.launch {
-            try {
-                test.run()
-            } finally {
-                finish(test)
-            }
+        var entered = false
+        val job = scope.launch(start = CoroutineStart.LAZY) {
+            entered = true
+            test.run()
         }
+        test.job = job
+        // Cancellation can prevent the coroutine body from starting. The completion
+        // handler releases the session even then, so a queued selector can still run.
+        job.invokeOnCompletion {
+            finish(test)
+            if (!entered) runCatching { callback.onDone(test.id, true) }
+        }
+        current = test
+        job.start()
         return test.id
     }
 

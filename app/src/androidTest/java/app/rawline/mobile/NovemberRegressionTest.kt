@@ -15,6 +15,10 @@ import android.widget.TextView
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import app.rawline.mobile.bg.proto.CoreConfigs
+import app.rawline.mobile.bg.proto.SpeedTestSnapshot
+import app.rawline.mobile.aidl.ITestSessionCallback
+import app.rawline.mobile.bg.test.TestEngine
+import app.rawline.mobile.bg.test.TestSpec
 import app.rawline.mobile.bg.carrier.CarrierKind
 import app.rawline.mobile.bg.carrier.CarrierProcess
 import app.rawline.mobile.bg.carrier.CarrierBridgeCredentials
@@ -44,6 +48,8 @@ import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.yield
 import java.io.File
 import java.net.InetAddress
 import java.net.ServerSocket
@@ -51,6 +57,25 @@ import java.net.ServerSocket
 @RunWith(AndroidJUnit4::class)
 class NovemberRegressionTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
+
+    @Test fun cancellingAJustStartedProbeReleasesTheTestSession() = runBlocking {
+        val callback = object : ITestSessionCallback.Stub() {
+            override fun onStarted(session: Int, kind: Int, total: Int) = Unit
+            override fun onUrlResult(profileId: Long, latency: Int, error: String?) = Unit
+            override fun onIpResult(profileId: Long, ip: String?, country: String?, error: String?) = Unit
+            override fun onSpeedProgress(snapshot: SpeedTestSnapshot?) = Unit
+            override fun onSpeedResult(profileId: Long, dl: String?, ul: String?, latency: Int, country: String?, error: String?) = Unit
+            override fun onDone(session: Int, cancelled: Boolean) = Unit
+        }
+        val spec = TestSpec(TestSpec.KIND_URL)
+        repeat(32) {
+            withTimeout(5_000) {
+                while (TestEngine.start(spec, callback) < 0) yield()
+                TestEngine.stopAndJoin()
+                while (TestEngine.runningSession() != 0) yield()
+            }
+        }
+    }
 
     @Test fun dockCaptionWrappingDoesNotOscillateWhenItsHeightChanges() {
         val context = instrumentation.targetContext
