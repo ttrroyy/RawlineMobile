@@ -98,7 +98,6 @@ object TestEngine {
             return
         }
         stop(test)
-        while(current===test && test.job==null) kotlinx.coroutines.yield()
         test.job?.join()
     }
 
@@ -114,11 +113,12 @@ object TestEngine {
         if (ids.isEmpty()) return
         session.lock()
         val test = TestSession(sessionIds.incrementAndGet(), TestSpec(TestSpec.KIND_URL, ids.toLongArray()), null, onResult)
-        current = test
         try {
             coroutineScope {
-                val job = launch(Dispatchers.IO) { test.run() }
+                // Publish the session only once stopAndJoin can cancel its worker.
+                val job = launch(Dispatchers.IO, start = CoroutineStart.LAZY) { test.run() }
                 test.job = job
+                current = test
                 job.join()
             }
         } finally {

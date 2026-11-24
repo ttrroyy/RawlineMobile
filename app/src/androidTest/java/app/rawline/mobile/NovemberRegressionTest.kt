@@ -388,24 +388,47 @@ class NovemberRegressionTest {
         }
     }
 
-    @Test fun freeTurnLocalhostCaptchaOpensAVisibleSheet() {
+    @Test fun freeTurnLocalhostCaptchaRendersItsPageInTheVisibleSheet() {
         val context = instrumentation.targetContext
-        val activity = instrumentation.startActivitySync(Intent(context,MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) as MainActivity
+        val activity = instrumentation.startActivitySync(Intent(context, MainActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) as MainActivity
         val id = UUID.randomUUID().toString()
+        val marker = "FreeTurn manual challenge fixture"
         try {
-            instrumentation.waitForIdleSync()
-            assertTrue(CarrierUiRequests.post(id,"http://localhost:9/",client="freeturn"))
-            val deadline = SystemClock.uptimeMillis()+10_000
-            var shown = false
-            while (!shown && SystemClock.uptimeMillis()<deadline) {
-                val root = instrumentation.uiAutomation.rootInActiveWindow
-                shown = root?.findAccessibilityNodeInfosByText("VK · Captcha")?.isNotEmpty() == true
-                if (!shown) Thread.sleep(50)
+            ServerSocket(0, 1, InetAddress.getByName("127.0.0.1")).use { server ->
+                val served = java.util.concurrent.CompletableFuture<Unit>()
+                val responder = Thread {
+                    runCatching {
+                        server.accept().use { socket ->
+                            socket.soTimeout = 5_000
+                            val input = socket.getInputStream().bufferedReader()
+                            while (!input.readLine().isNullOrEmpty()) Unit
+                            val body = "<html><body><h1>$marker</h1></body></html>".toByteArray()
+                            val headers = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\n" +
+                                "Content-Length: ${body.size}\r\nConnection: close\r\n\r\n"
+                            socket.getOutputStream().apply { write(headers.toByteArray()); write(body); flush() }
+                        }
+                    }.fold({ served.complete(Unit) }, { served.completeExceptionally(it) })
+                }
+                responder.isDaemon = true
+                responder.start()
+
+                instrumentation.waitForIdleSync()
+                assertTrue(CarrierUiRequests.post(id, "http://localhost:${server.localPort}/", client = "freeturn"))
+                served.get(10, java.util.concurrent.TimeUnit.SECONDS)
+                val deadline = SystemClock.uptimeMillis() + 10_000
+                var shown = false
+                while (!shown && SystemClock.uptimeMillis() < deadline) {
+                    val root = instrumentation.uiAutomation.rootInActiveWindow
+                    shown = root?.findAccessibilityNodeInfosByText(marker)?.isNotEmpty() == true
+                    if (!shown) Thread.sleep(50)
+                }
+                assertTrue("FreeTurn opened the sheet without rendering the localhost challenge", shown)
             }
-            assertTrue("FreeTurn localhost captcha sheet was discarded",shown)
         } finally {
             CarrierUiRequests.clear(id)
-            context.sendBroadcast(Intent(context.packageName+".CAPTCHA_CLOSE").setPackage(context.packageName).putExtra("id",id),context.packageName+".SERVICE")
+            context.sendBroadcast(Intent(context.packageName + ".CAPTCHA_CLOSE").setPackage(context.packageName)
+                .putExtra("id", id), context.packageName + ".SERVICE")
             instrumentation.runOnMainSync { activity.finish() }
         }
     }
