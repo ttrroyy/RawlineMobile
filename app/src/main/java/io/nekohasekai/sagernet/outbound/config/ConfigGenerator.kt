@@ -1,6 +1,8 @@
 package app.rawline.mobile.outbound.config
 
+import app.rawline.mobile.R
 import app.rawline.mobile.ktx.Logs
+import app.rawline.mobile.validation.vtr
 import app.rawline.mobile.outbound.BuildContext
 import app.rawline.mobile.outbound.Outbound
 import app.rawline.mobile.outbound.OutboundChecks
@@ -10,6 +12,7 @@ import app.rawline.mobile.outbound.json.JsonObject
 import app.rawline.mobile.outbound.json.JsonValues
 import app.rawline.mobile.outbound.json.jsonObjectOf
 import app.rawline.mobile.outbound.types.AutoSelector
+import app.rawline.mobile.outbound.types.Chain
 import app.rawline.mobile.route.OutboundIds
 import app.rawline.mobile.route.RouteProfile
 import app.rawline.mobile.route.RuleSets
@@ -443,6 +446,82 @@ class ConfigGenerator @JvmOverloads constructor(
         val lease = ports ?: PortLease()
         try {
             return buildTestLeased(candidates, lease)
+        } finally {
+            if (ports == null) lease.close()
+        }
+    }
+
+    @JvmOverloads
+    fun buildChainStepTest(hops: List<Long>, landingProxyId: Long, frontProxyId: Long, ports: PortLease? = null): ChainStepBuild {
+        if (hops.isEmpty()) return ChainStepBuild(error = vtr(R.string.chain_step_no_hops))
+        val front = frontProxyId.takeIf { it > 0 } ?: -1L
+        val landing = landingProxyId.takeIf { it > 0 } ?: -1L
+        val involved = ArrayList(hops)
+        if (front > 0) involved.add(front)
+        if (landing > 0) involved.add(landing)
+        for (id in involved) {
+            val hop = profiles.get(id) ?: return ChainStepBuild(
+                error = vtr(if (id == front || id == landing) R.string.chain_step_group_proxy_missing else R.string.chain_step_hop_missing),
+            )
+            if (hop.isExtraCore() || hop.isXrayFullConfig()) return ChainStepBuild(error = vtr(R.string.chain_step_untestable))
+            if (hop.type == "autoselector") return ChainStepBuild(error = vtr(R.string.chain_step_selector))
+        }
+        val lease = ports ?: PortLease()
+        try {
+            val checker = ChainBuilder(profiles, buildContext.copy(buildingTestConfig = true), BuildState(forTest = true, lease))
+            val rejected = rejectedMembers(checker, profiles, involved.distinct())
+            for ((id, reason) in rejected) Logs.w("Invalid ent ${profiles.get(id)?.name.orEmpty()}: $reason")
+            if (front in rejected || landing in rejected) return ChainStepBuild(error = vtr(R.string.chain_step_group_proxy_invalid))
+            val invalidHops = hops.indices.filterTo(LinkedHashSet<Int>()) { hops[it] in rejected }
+            val hasLanding = landing > 0
+
+            val overrides = HashMap<Long, Outbound>()
+            val probes = HashMap<Long, ChainStepProbe>()
+            val exitTypes = HashMap<Long, String>()
+            val candidates = ArrayList<TestCandidate>()
+            var nextId = -2_000_000L
+            fun addProbe(topFirst: List<Long>, probe: ChainStepProbe) {
+                val chain = Chain()
+                if (front > 0) chain.list.add(front)
+                chain.list.addAll(topFirst)
+                val id = nextId--
+                overrides[id] = chain
+                probes[id] = probe
+                exitTypes[id] = profiles.get(topFirst.last())?.type.orEmpty()
+                candidates.add(TestCandidate(id))
+            }
+            var pathValid = true
+            for (i in hops.indices) {
+                if (i in invalidHops) {
+                    pathValid = false
+                    continue
+                }
+                if (i > 0) addProbe(listOf(hops[i]), ChainStepProbe(i, alone = true))
+                if (pathValid) addProbe(hops.subList(0, i + 1), ChainStepProbe(i, alone = false))
+            }
+            if (hasLanding) {
+                addProbe(listOf(landing), ChainStepProbe(hops.size, alone = true))
+                if (pathValid) addProbe(hops + landing, ChainStepProbe(hops.size, alone = false))
+            }
+            if (candidates.isEmpty()) return ChainStepBuild(invalidHops = invalidHops, hasLanding = hasLanding)
+
+            val synthetic = object : ProfileProvider {
+                override fun get(id: Long): Outbound? = overrides[id] ?: profiles.get(id)
+
+                override fun groupProxies(profileId: Long): Pair<Long, Long> = profiles.groupProxies(profileId)
+            }
+            val build = ConfigGenerator(
+                profiles = synthetic, settings = settings, buildContext = buildContext, routing = routing, clock = clock,
+            ).buildTestLeased(candidates, lease)
+            if (!build.ok) return ChainStepBuild(error = build.error.orEmpty(), invalidHops = invalidHops, hasLanding = hasLanding)
+            val tagToProbe = LinkedHashMap<String, ChainStepProbe>()
+            val vpnEndpointTags = ArrayList<String>()
+            for ((tag, id) in build.tagToProfileId) {
+                probes[id]?.let { tagToProbe[tag] = it }
+                val exitType = exitTypes[id]
+                if (exitType == "openvpn" || exitType == "openconnect") vpnEndpointTags.add(tag)
+            }
+            return ChainStepBuild("", build, tagToProbe, invalidHops, vpnEndpointTags, hasLanding)
         } finally {
             if (ports == null) lease.close()
         }

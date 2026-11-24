@@ -7,6 +7,7 @@ import app.rawline.mobile.database.RouteManager
 import app.rawline.mobile.database.SagerDatabase
 import app.rawline.mobile.database.SettingsMapper
 import app.rawline.mobile.outbound.Outbound
+import app.rawline.mobile.outbound.config.ChainStepBuild
 import app.rawline.mobile.outbound.config.ConfigGenerator
 import app.rawline.mobile.outbound.config.GeneratedConfig
 import app.rawline.mobile.outbound.config.GeneratorSettings
@@ -172,6 +173,18 @@ object CoreConfigs {
         val fallback = app.rawline.mobile.route.ProviderRouting.stored(RouteManager.current())?.second
             ?: app.rawline.mobile.outbound.json.JsonObject()
         return ConfigGenerator(DatabaseProfiles(fallback, forTest = true), SettingsMapper.generatorSettings(dns), SettingsMapper.buildContext(dns)).buildTest(candidates, ports)
+    }
+
+    fun buildChainStepTest(hops: List<Long>, groupId: Long, ports: PortLease): ChainStepBuild {
+        val (landing, front, _) = groupProxies(groupId)
+        val dns = RouteManager.customDns(DataStore.currentRouteId)
+        val fallback = app.rawline.mobile.route.ProviderRouting.stored(RouteManager.current())?.second
+            ?: app.rawline.mobile.outbound.json.JsonObject()
+        return ConfigGenerator(
+            DatabaseProfiles(fallback, forTest = true),
+            SettingsMapper.generatorSettings(dns),
+            SettingsMapper.buildContext(dns),
+        ).buildChainStepTest(hops, landing, front, ports)
     }
 
     /** (landing_proxy_id, front_proxy_id, name) of a group, -1 when unset (any id <= 0 is "none"). */

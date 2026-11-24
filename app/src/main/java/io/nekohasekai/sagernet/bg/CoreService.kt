@@ -4,6 +4,8 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import app.rawline.mobile.aidl.ICoreService
+import app.rawline.mobile.aidl.IChainStepCallback
+import app.rawline.mobile.bg.test.ChainStepRunner
 import app.rawline.mobile.aidl.ISubscriptionCallback
 import app.rawline.mobile.aidl.ITestSessionCallback
 import app.rawline.mobile.bg.test.TestEngine
@@ -20,6 +22,11 @@ class CoreService : Service() {
         override fun stopTests() = TestEngine.stop()
 
         override fun runningTestSession(): Int = TestEngine.runningSession()
+
+        override fun startChainStepTest(hops: LongArray?, gid: Long, cb: IChainStepCallback?): Boolean =
+            hops != null && cb != null && ChainStepRunner.start(hops.toList(), gid, cb)
+
+        override fun stopChainStepTest() = TestEngine.stopExclusive()
 
         override fun refreshGroup(gid: Long, showDiff: Boolean) = SubscriptionQueue.refreshGroup(gid, showDiff)
 

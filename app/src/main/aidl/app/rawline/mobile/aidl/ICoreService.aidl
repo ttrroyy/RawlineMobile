@@ -1,5 +1,6 @@
 package app.rawline.mobile.aidl;
 
+import app.rawline.mobile.aidl.IChainStepCallback;
 import app.rawline.mobile.aidl.ISubscriptionCallback;
 import app.rawline.mobile.aidl.ITestSessionCallback;
 import app.rawline.mobile.bg.test.TestSpec;
@@ -9,6 +10,8 @@ interface ICoreService {
   int startTest(in TestSpec spec, ITestSessionCallback cb);
   void stopTests();
   int runningTestSession();
+  boolean startChainStepTest(in long[] hops, long gid, IChainStepCallback cb);
+  void stopChainStepTest();
 
   // Subscriptions (desktop GroupUpdater queue).
   void refreshGroup(long gid, boolean showDiff);

@@ -93,3 +93,23 @@ class TestCandidate @JvmOverloads constructor(
     /** The group's name, for the error when its landing / front proxy is gone. */
     @JvmField val groupName: String = "",
 )
+
+/**
+ * ChainStepProbe (generate.h): [hop] indexes the chain editor's top-first hop list, the list's size standing for the
+ * group's landing proxy; [alone] dials it by itself rather than through every hop above it.
+ */
+class ChainStepProbe(@JvmField val hop: Int, @JvmField val alone: Boolean)
+
+/**
+ * ChainStepTestBuild (generate.h) of [ConfigGenerator.buildChainStepTest]: [build] is the test box of the probes,
+ * [tagToProbe] its ingress tags, [vpnEndpointTags] the probes exiting through an OpenVPN / OpenConnect hop (their
+ * tunnel coming up is a Connect OK). [invalidHops] failed IsValid and were not probed; [error] is empty on success.
+ */
+class ChainStepBuild(
+    @JvmField val error: String = "",
+    @JvmField val build: GeneratedConfig? = null,
+    @JvmField val tagToProbe: Map<String, ChainStepProbe> = emptyMap(),
+    @JvmField val invalidHops: Set<Int> = emptySet(),
+    @JvmField val vpnEndpointTags: List<String> = emptyList(),
+    @JvmField val hasLanding: Boolean = false,
+)

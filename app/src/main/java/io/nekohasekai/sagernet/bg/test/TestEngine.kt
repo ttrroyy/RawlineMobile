@@ -6,6 +6,7 @@ import app.rawline.core.mobile.Mobile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -24,6 +25,28 @@ object TestEngine {
 
     @Volatile
     private var current: TestSession? = null
+
+    @Volatile
+    private var exclusive: Job? = null
+
+    internal fun startExclusive(finished: () -> Unit, block: suspend () -> Unit): Boolean {
+        if (!session.tryLock()) return false
+        val job = scope.launch(start = CoroutineStart.LAZY) { block() }
+        exclusive = job
+        job.invokeOnCompletion {
+            exclusive = null
+            session.unlock()
+            finished()
+        }
+        job.start()
+        return true
+    }
+
+    fun stopExclusive() {
+        val job = exclusive ?: return
+        Mobile.stopTests()
+        job.cancel()
+    }
 
     /** Starts a session and returns its id, or -1 while another session runs. */
     fun start(spec: TestSpec, callback: ITestSessionCallback): Int {
@@ -49,7 +72,9 @@ object TestEngine {
     /** TestRunner::stop: the core aborts what runs, the session starts nothing new and ends with onDone(cancelled). */
     fun stop() {
         val test = current
-        if (test == null) Mobile.stopTests() else stop(test)
+        if (test != null) stop(test)
+        else if (exclusive != null) stopExclusive()
+        else Mobile.stopTests()
     }
 
     /** profile_stop (mainwindow_profile_lifecycle.cpp:419-423): a test of the running box ends with the box. */
@@ -64,7 +89,14 @@ object TestEngine {
 
     /** A VPN start takes priority, but never reuses a transport before its probe has released it. */
     suspend fun stopAndJoin() {
-        val test=current ?: return
+        val test = current
+        if (test == null) {
+            val job = exclusive ?: return
+            Mobile.stopTests()
+            job.cancel()
+            job.join()
+            return
+        }
         stop(test)
         while(current===test && test.job==null) kotlinx.coroutines.yield()
         test.job?.join()
