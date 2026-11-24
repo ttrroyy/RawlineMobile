@@ -3,6 +3,7 @@ package app.rawline.mobile.ui.test
 import android.os.SystemClock
 import app.rawline.mobile.aidl.ICoreService
 import app.rawline.mobile.bg.proto.SpeedTestSnapshot
+import app.rawline.mobile.bg.test.ServiceTestRunner
 import app.rawline.mobile.bg.test.TestSpec
 import app.rawline.mobile.database.GroupSort
 import app.rawline.mobile.database.ProxyEntity
@@ -103,10 +104,12 @@ internal class TestSessionModel(
         }
     }
 
-    // URL, IP and country lookups run in engine batches of BATCH ids in list order and report no "started" event,
-    // so the rows of the batch in flight are shown as testing until all of them reported.
+    // URL, IP, service and country lookups run in engine batches of [batch] ids in list order and report no "started"
+    // event, so the rows of the batch in flight are shown as testing until all of them reported.
     private val batched: Boolean
         get() = !testCurrent && (kind != TestSpec.KIND_SPEED || speedMode == TestUiState.SPEED_MODE_COUNTRY)
+
+    private val batch = if (kind == TestSpec.KIND_SERVICE) ServiceTestRunner.SERVICE_BATCH_SIZE else BATCH
 
     fun setIds(ids: LongArray) {
         order = ids.distinct().toLongArray()
@@ -145,6 +148,12 @@ internal class TestSessionModel(
             profileId,
             RowState(RowPhase.DONE, error = error, country = country, ip = ip, ok = ok, failed = !ok && !aborted)
         )
+    }
+
+    fun onServiceResult(profileId: Long, error: String) {
+        val ok = error.isEmpty()
+        val aborted = !ok && ProxyEntity.isTestAborted(error)
+        put(profileId, RowState(RowPhase.DONE, error = error, ok = ok, failed = !ok && !aborted))
     }
 
     fun onSpeedResult(profileId: Long, dl: String, ul: String, latency: Int, country: String, error: String) {
@@ -366,7 +375,7 @@ internal class TestSessionModel(
 
     private fun openWindow() {
         windowLeft = 0
-        val end = min(windowStart + BATCH, order.size)
+        val end = min(windowStart + batch, order.size)
         for (i in windowStart until end) {
             val id = order[i]
             val row = rows[id] ?: continue
@@ -380,14 +389,14 @@ internal class TestSessionModel(
 
     private fun advanceWindow(id: Long) {
         val pos = position[id] ?: return
-        if (pos >= windowStart + BATCH) {
-            windowStart = pos / BATCH * BATCH
+        if (pos >= windowStart + batch) {
+            windowStart = pos / batch * batch
             openWindow()
         } else if (pos >= windowStart) {
             windowLeft--
         }
-        while (windowLeft <= 0 && windowStart + BATCH < order.size) {
-            windowStart += BATCH
+        while (windowLeft <= 0 && windowStart + batch < order.size) {
+            windowStart += batch
             openWindow()
         }
     }
@@ -431,7 +440,7 @@ internal class TestSessionModel(
                 countriesDirty = true
             }
         }
-        if (row.ok && kind != TestSpec.KIND_IP) {
+        if (row.ok && kind != TestSpec.KIND_IP && kind != TestSpec.KIND_SERVICE) {
             working[id] = RankedResult(
                 profileId = id,
                 latency = row.latency,

@@ -48,6 +48,7 @@ object DesktopSchema {
             outbound_json TEXT NOT NULL,
             traffic_dl INTEGER NOT NULL DEFAULT 0,
             traffic_up INTEGER NOT NULL DEFAULT 0,
+            service_checks TEXT NOT NULL DEFAULT '',
             created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
             updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
             FOREIGN KEY(gid) REFERENCES groups(id) ON DELETE CASCADE

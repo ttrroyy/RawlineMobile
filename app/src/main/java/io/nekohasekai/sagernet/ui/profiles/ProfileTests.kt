@@ -1,8 +1,10 @@
 package app.rawline.mobile.ui.profiles
 
+import android.content.Context
 import app.rawline.mobile.ui.MobileAlertDialogBuilder as MobileAlertDialogBuilder
 import app.rawline.mobile.R
 import app.rawline.mobile.bg.test.TestSpec
+import app.rawline.mobile.database.ProfileManager
 import app.rawline.mobile.ktx.snackbar
 import app.rawline.mobile.ui.ConfigurationFragment
 import app.rawline.mobile.ui.test.TestSessionClient
@@ -33,6 +35,46 @@ internal object ProfileTests {
             .setPositiveButton(R.string.profiles_test_start) { _, _ -> report(host, start()) }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    /** Service Check Group: the group's members, counted like the selection (desktop group->Profiles()). */
+    fun startServiceGroup(host: ConfigurationFragment, groupId: Long) {
+        host.launchIo {
+            val count = ProfileManager.memberIds(groupId).size
+            host.onUi {
+                confirmService(requireContext(), count) {
+                    report(this, TestSessionClient.startGroup(TestSpec.KIND_SERVICE, groupId))
+                }
+            }
+        }
+    }
+
+    /** Service Check of the selected profiles (or one). */
+    fun startServiceProfiles(host: ConfigurationFragment, ids: List<Long>, groupId: Long) {
+        if (ids.isEmpty()) return
+        confirmService(host.requireContext(), ids.size) {
+            report(host, TestSessionClient.startProfiles(TestSpec.KIND_SERVICE, ids, groupId))
+        }
+    }
+
+    /** startServiceChecks (mainwindow_setup.cpp): refused above the runner's limit, asked first above 20 profiles. */
+    fun confirmService(context: Context, count: Int, start: () -> Unit) {
+        when {
+            count > TestSpec.SERVICE_MAX_PROFILES -> MobileAlertDialogBuilder(context)
+                .setTitle(R.string.service_check)
+                .setMessage(context.getString(R.string.service_check_too_many, TestSpec.SERVICE_MAX_PROFILES))
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+
+            count > TestSpec.SERVICE_CONFIRM_ABOVE -> MobileAlertDialogBuilder(context)
+                .setTitle(R.string.service_check)
+                .setMessage(context.getString(R.string.service_check_confirm, count))
+                .setPositiveButton(R.string.profiles_test_start) { _, _ -> start() }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+
+            else -> start()
+        }
     }
 
     private fun report(host: ConfigurationFragment, started: Boolean) {

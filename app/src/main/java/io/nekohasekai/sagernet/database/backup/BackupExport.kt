@@ -216,7 +216,10 @@ object BackupExport {
                     members.add(it)
                     if (it in s.pinned) pinned.add(it)
                 }
-                row + arrayOf(members.toCompact(), pinned.toCompact())
+                row.copyOf(row.size + 2).apply {
+                    this[row.size] = members.toCompact()
+                    this[row.size + 1] = pinned.toCompact()
+                }
             }
             insertRows(db, GROUPS, columns, rows)
             insertRows(db, GROUPS_ORDER, listOf("group_id", "display_order"), s.tabs.map { arrayOf(it.first, it.second) })

@@ -103,6 +103,10 @@ object ProfileManager {
     }
 
     /** The group's profile ids in list order (Group::Profiles). */
+    fun saveServiceResult(profileId: Long, document: String) {
+        dao.updateServiceChecks(profileId, document)
+    }
+
     fun memberIds(groupId: Long): List<Long> = dao.getIdsByGroup(groupId)
 
     /** The group's profiles in list order. */

@@ -11,5 +11,6 @@ oneway interface ITestSessionCallback {
   void onIpResult(long profileId, String ip, String country, String error);
   void onSpeedProgress(in SpeedTestSnapshot snapshot);
   void onSpeedResult(long profileId, String dl, String ul, int latency, String country, String error);
+  void onServiceResult(long profileId, String error);
   void onDone(int session, boolean cancelled);
 }

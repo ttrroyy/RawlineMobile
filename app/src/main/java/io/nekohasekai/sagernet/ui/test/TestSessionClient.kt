@@ -391,7 +391,7 @@ object TestSessionClient {
             publishLocked()
         }
         release(m)
-        if (m.kind != TestSpec.KIND_IP && !m.testCurrent) prune(m)
+        if ((m.kind == TestSpec.KIND_URL || m.kind == TestSpec.KIND_SPEED) && !m.testCurrent) prune(m)
         advanceQueueLocked()
     }
 
@@ -499,6 +499,9 @@ object TestSessionClient {
         override fun onSpeedResult(
             profileId: Long, dl: String?, ul: String?, latency: Int, country: String?, error: String?,
         ) = event(m) { onSpeedResult(profileId, dl.orEmpty(), ul.orEmpty(), latency, country.orEmpty(), error.orEmpty()) }
+
+        override fun onServiceResult(profileId: Long, error: String?) =
+            event(m) { onServiceResult(profileId, error.orEmpty()) }
 
         override fun onDone(session: Int, cancelled: Boolean) {
             synchronized(lock) { finishLocked(m, cancelled, TestFailure.NONE) }

@@ -118,6 +118,7 @@ class NovemberRegressionTest {
             override fun onIpResult(profileId: Long, ip: String?, country: String?, error: String?) = Unit
             override fun onSpeedProgress(snapshot: SpeedTestSnapshot?) = Unit
             override fun onSpeedResult(profileId: Long, dl: String?, ul: String?, latency: Int, country: String?, error: String?) = Unit
+            override fun onServiceResult(profileId: Long, error: String?) = Unit
             override fun onDone(session: Int, cancelled: Boolean) = Unit
         }
         val spec = TestSpec(TestSpec.KIND_URL)

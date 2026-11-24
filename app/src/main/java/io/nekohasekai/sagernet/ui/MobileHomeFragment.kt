@@ -21,6 +21,8 @@ import androidx.core.view.doOnPreDraw
 import androidx.lifecycle.lifecycleScope
 import app.rawline.mobile.ui.MobileAlertDialogBuilder as MobileAlertDialogBuilder
 import app.rawline.mobile.bg.test.TestSpec
+import app.rawline.mobile.ui.profiles.ProfileTests
+import app.rawline.mobile.ui.test.ServiceCheckDialog
 import app.rawline.mobile.ui.test.TestSessionClient
 import androidx.room.InvalidationTracker
 import app.rawline.mobile.R
@@ -1460,6 +1462,10 @@ class MobileHomeFragment : ToolbarFragment() {
                             openSwipe?.closeActions(); startActivity(AutoSelectorStatusActivity.intent(requireContext(),profile.id))
                         } else null,
                         iconAction(R.drawable.ic_mobile_test,getString(R.string.qmobile_tests),Color.rgb(36,171,85)) { openSwipe?.closeActions(); testMenu(longArrayOf(profile.id),profile.displayName(),group.id) },
+                        iconAction(R.drawable.ic_baseline_check_circle_24, getString(R.string.service_check), Color.rgb(78,110,171)) {
+                            openSwipe?.closeActions()
+                            profileServiceCheck(profile)
+                        },
                         iconAction(R.drawable.ic_mobile_share,getString(R.string.qmobile_share),Color.rgb(60,132,190)) { shareProfile(profile) },
                         iconAction(R.drawable.ic_mobile_pin,getString(if(pinnedServer) R.string.qmobile_unpin else R.string.qmobile_pin),Color.rgb(201,140,40)) { openSwipe?.closeActions(); togglePinnedProfile(profile.id) },
                         iconAction(R.drawable.ic_mobile_delete,getString(R.string.qmobile_delete),Color.rgb(220,66,61)) {
@@ -1713,6 +1719,27 @@ class MobileHomeFragment : ToolbarFragment() {
             },FrameLayout.LayoutParams(-1,-1))
         }
     }
+    private fun profileServiceCheck(profile: ProxyEntity) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val stored = withContext(Dispatchers.IO) { ProfileManager.getProfile(profile.id) } ?: return@launch
+            if (stored.serviceChecks.isEmpty()) {
+                startServiceCheck(listOf(stored.id), stored.groupId)
+            } else {
+                MobileAlertDialogBuilder(requireContext())
+                    .setItems(arrayOf(getString(R.string.service_check_results), getString(R.string.service_check))) { _, choice ->
+                        if (choice == 0) ServiceCheckDialog.show(requireContext(), stored.displayName(), stored.serviceChecks)
+                        else startServiceCheck(listOf(stored.id), stored.groupId)
+                    }.show()
+            }
+        }
+    }
+
+    private fun startServiceCheck(ids: List<Long>, groupId: Long) {
+        if (!TestSessionClient.startProfiles(TestSpec.KIND_SERVICE, ids, groupId)) {
+            Toast.makeText(requireContext(), R.string.profiles_test_busy, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun testMenu(ids: LongArray, label: String, gid: Long, wholeGroup: Boolean=false) {
         TestSessionClient.start(TestSpec(TestSpec.KIND_URL, profileIds=ids,scopeLabel=label,sortGroupId=if(wholeGroup) gid else 0L),gid)
         // A repeated ping starts its spinner over at once.
@@ -1800,6 +1827,13 @@ class MobileHomeFragment : ToolbarFragment() {
             startActivity(Intent(requireContext(),ProviderRoutingActivity::class.java).putExtra("groupId",group.id))
         }
         entry(getString(R.string.qmobile_ping),R.drawable.ic_mobile_test) { viewLifecycleOwner.lifecycleScope.launch { val ids=withContext(Dispatchers.IO) { SagerDatabase.proxyDao.getByGroup(group.id).map { it.id }.toLongArray() };testMenu(ids,group.displayName(),group.id,true) } }
+        entry(getString(R.string.service_check), R.drawable.ic_baseline_check_circle_24) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val ids = withContext(Dispatchers.IO) { ProfileManager.memberIds(group.id) }
+                if (ids.isEmpty()) return@launch
+                ProfileTests.confirmService(requireContext(), ids.size) { startServiceCheck(ids, group.id) }
+            }
+        }
         entry(getString(R.string.qmobile_search),R.drawable.ic_baseline_manage_search_24) { searchGroup(group) }
         if(group.isSubscription) entry(getString(R.string.profiles_resolve_domains),R.drawable.ic_action_dns) {
             requireContext().confirmAction(getString(R.string.confirm_resolve_domains),getString(R.string.confirm_resolve_domains_message,group.displayName()),R.string.confirm_resolve) {

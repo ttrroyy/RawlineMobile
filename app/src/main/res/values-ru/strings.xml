@@ -2784,4 +2784,24 @@
     <string name="route_tester_per_app_guard">VPN для выбранных приложений</string>
     <string name="route_tester_quic_guard">Ограничение QUIC через прокси</string>
     <string name="route_tester_remote_network">Маршрутизация удалённой сети</string>
+    <string name="service_check">Проверка сервисов</string>
+    <string name="service_check_results">Результаты проверки сервисов</string>
+    <string name="service_check_confirm">Будет проверено профилей: %d. Каждый отправит около 20 запросов к проверяемым сервисам. Продолжить?</string>
+    <string name="service_check_too_many">Проверка сервисов охватывает не более %d профилей за раз. Выберите меньше профилей.</string>
+    <string name="service_check_summary_results">результаты в меню каждого профиля</string>
+    <string name="service_check_summary_none">ничего не проверено</string>
+    <string name="service_status_available">Доступно</string>
+    <string name="service_status_partial">Частично</string>
+    <string name="service_status_restricted">Ограничено</string>
+    <string name="service_status_blocked">Заблокировано</string>
+    <string name="service_status_unknown">Неизвестно</string>
+    <string name="service_status_failed">Сбой</string>
+    <string name="service_ip_datacenter">IP дата-центра</string>
+    <string name="service_ip_mobile">Мобильный IP</string>
+    <string name="service_ip_business">Корпоративный IP</string>
+    <string name="service_ip_residential">Домашний IP</string>
+    <string name="service_ip_listed_as">отмечен как %s</string>
+    <string name="service_ip_risk">риск %d</string>
+    <string name="service_check_checked_now">Проверено только что</string>
+    <string name="service_check_checked_at">Проверено %s</string>
 </resources>

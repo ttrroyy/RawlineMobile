@@ -29,6 +29,7 @@ import app.rawline.mobile.ui.PinnedServers
 import app.rawline.mobile.ui.profile.ProfileConfigExport
 import app.rawline.mobile.ui.profile.ProfileSettingsActivity
 import app.rawline.mobile.ui.profile.profileSettingsIntent
+import app.rawline.mobile.ui.test.ServiceCheckDialog
 import app.rawline.mobile.widget.QRCodeDialog
 
 /** The actions of one profile row: edit, share, the ⋮ menu (tests, resolve, clearing results / traffic, move up/down on TV, delete). */
@@ -63,6 +64,17 @@ class ProfileItemMenu(private val host: ConfigurationFragment) {
         val popup = PopupMenu(anchor.context, anchor)
         popup.menuInflater.inflate(R.menu.double_column_item_menu, popup.menu)
         val menu = popup.menu
+        if (profile.serviceChecks.isNotEmpty()) {
+            menu.add(R.string.service_check_results).setOnMenuItemClickListener {
+                host.launchIo {
+                    val stored = ProfileManager.getProfile(profile.id) ?: return@launchIo
+                    if (stored.serviceChecks.isNotEmpty()) host.onUi {
+                        ServiceCheckDialog.show(requireContext(), stored.displayName(), stored.serviceChecks)
+                    }
+                }
+                true
+            }
+        }
         val pinned = profile.id in PinnedServers.ids()
         menu.add(if (pinned) R.string.qmobile_unpin else R.string.qmobile_pin).setOnMenuItemClickListener {
             PinnedServers.toggle(profile.id)
@@ -116,6 +128,7 @@ class ProfileItemMenu(private val host: ConfigurationFragment) {
                 R.id.action_test_url -> test(profile, TestSpec.KIND_URL)
                 R.id.action_test_ip -> test(profile, TestSpec.KIND_IP)
                 R.id.action_test_speed -> test(profile, TestSpec.KIND_SPEED)
+                R.id.action_test_service -> ProfileTests.startServiceProfiles(host, listOf(profile.id), profile.groupId)
                 R.id.action_resolve_domain -> resolve(profile)
                 R.id.action_clear_test_results -> clearTestResults(profile)
                 R.id.action_clear_traffic_statistics -> clearTraffic(profile, adapter)

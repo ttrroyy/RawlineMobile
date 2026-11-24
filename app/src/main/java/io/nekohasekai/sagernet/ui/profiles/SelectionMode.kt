@@ -127,6 +127,10 @@ class SelectionMode(private val host: ConfigurationFragment) {
             R.id.action_selection_test_url -> test(TestSpec.KIND_URL, ids)
             R.id.action_selection_test_ip -> test(TestSpec.KIND_IP, ids)
             R.id.action_selection_test_speed -> test(TestSpec.KIND_SPEED, ids)
+            R.id.action_selection_test_service -> {
+                ProfileTests.startServiceProfiles(host, ids, groupId)
+                finish()
+            }
             R.id.action_selection_all -> selectAll()
             R.id.action_selection_delete -> delete(ids)
             R.id.action_selection_clear_results -> clearResults(ids)

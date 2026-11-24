@@ -2912,4 +2912,25 @@
     <string name="route_tester_per_app_guard">Per-app VPN</string>
     <string name="route_tester_quic_guard">Proxy QUIC restriction</string>
     <string name="route_tester_remote_network">Remote network routing</string>
+    <string name="service_check">Service check</string>
+    <string name="service_check_results">Service check results</string>
+    <string name="service_check_confirm">This checks %d profiles. Each one sends about 20 requests to the checked services. Continue?</string>
+    <string name="service_check_too_many">A service check can test up to %d profiles at a time. Select fewer profiles.</string>
+    <string name="service_check_summary_results">results in each profile\'s menu</string>
+    <string name="service_check_summary_none">none checked</string>
+    <string name="service_status_available">Available</string>
+    <string name="service_status_partial">Partial</string>
+    <string name="service_status_restricted">Restricted</string>
+    <string name="service_status_blocked">Blocked</string>
+    <string name="service_status_unknown">Unknown</string>
+    <string name="service_status_failed">Failed</string>
+    <string name="service_check_ip" translatable="false">IP</string>
+    <string name="service_ip_datacenter">Datacenter IP</string>
+    <string name="service_ip_mobile">Mobile IP</string>
+    <string name="service_ip_business">Business IP</string>
+    <string name="service_ip_residential">Residential IP</string>
+    <string name="service_ip_listed_as">listed as %s</string>
+    <string name="service_ip_risk">risk %d</string>
+    <string name="service_check_checked_now">Checked just now</string>
+    <string name="service_check_checked_at">Checked %s</string>
 </resources>
