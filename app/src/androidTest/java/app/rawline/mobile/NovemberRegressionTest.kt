@@ -643,8 +643,12 @@ class NovemberRegressionTest {
         profile.id = SagerDatabase.proxyDao.addProxy(profile)
         try {
             val type = CoreConfigs::class.java.declaredClasses.single { it.simpleName == "DatabaseProfiles" }
-            val constructor = type.getDeclaredConstructor(JsonObject::class.java, Boolean::class.javaPrimitiveType).apply { isAccessible = true }
-            val profiles = constructor.newInstance(JsonObject(), false) as ProfileProvider
+            val constructor = type.getDeclaredConstructor(
+                JsonObject::class.java,
+                Boolean::class.javaPrimitiveType,
+                Boolean::class.javaPrimitiveType,
+            ).apply { isAccessible = true }
+            val profiles = constructor.newInstance(JsonObject(), false, false) as ProfileProvider
             assertEquals(654321L to 123456L, profiles.groupProxies(profile.id))
             assertEquals(-1L to -1L, profiles.groupProxies(-1L))
         } finally {
