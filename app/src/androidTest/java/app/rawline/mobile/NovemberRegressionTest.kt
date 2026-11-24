@@ -393,37 +393,48 @@ class NovemberRegressionTest {
         val activity = instrumentation.startActivitySync(Intent(context, MainActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) as MainActivity
         val id = UUID.randomUUID().toString()
-        val marker = "FreeTurn manual challenge fixture"
         try {
-            ServerSocket(0, 1, InetAddress.getByName("127.0.0.1")).use { server ->
-                val served = java.util.concurrent.CompletableFuture<Unit>()
+            ServerSocket(0, 4, InetAddress.getByName("127.0.0.1")).use { server ->
+                server.soTimeout = 12_000
+                val rendered = java.util.concurrent.CompletableFuture<Unit>()
                 val responder = Thread {
                     runCatching {
-                        server.accept().use { socket ->
+                        while (!rendered.isDone) server.accept().use connection@ { socket ->
                             socket.soTimeout = 5_000
                             val input = socket.getInputStream().bufferedReader()
+                            val request = input.readLine()?.split(' ')?.getOrNull(1) ?: return@connection
                             while (!input.readLine().isNullOrEmpty()) Unit
-                            val body = "<html><body><h1>$marker</h1></body></html>".toByteArray()
+                            val body = when (request) {
+                                "/challenge" -> """
+                                    <!doctype html><h1 id="challenge">FreeTurn manual challenge fixture</h1>
+                                    <script>
+                                    if (document.getElementById('challenge').getBoundingClientRect().width > 0) {
+                                      fetch('/rendered');
+                                    }
+                                    </script>
+                                """.trimIndent().toByteArray()
+                                else -> ByteArray(0)
+                            }
                             val headers = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\n" +
                                 "Content-Length: ${body.size}\r\nConnection: close\r\n\r\n"
                             socket.getOutputStream().apply { write(headers.toByteArray()); write(body); flush() }
+                            if (request == "/rendered") rendered.complete(Unit)
                         }
-                    }.fold({ served.complete(Unit) }, { served.completeExceptionally(it) })
-                }
-                responder.isDaemon = true
+                    }.onFailure { rendered.completeExceptionally(it) }
+                }.apply { isDaemon = true }
                 responder.start()
 
                 instrumentation.waitForIdleSync()
-                assertTrue(CarrierUiRequests.post(id, "http://localhost:${server.localPort}/", client = "freeturn"))
-                served.get(10, java.util.concurrent.TimeUnit.SECONDS)
+                assertTrue(CarrierUiRequests.post(id, "http://localhost:${server.localPort}/challenge", client = "freeturn"))
+                rendered.get(15, java.util.concurrent.TimeUnit.SECONDS)
                 val deadline = SystemClock.uptimeMillis() + 10_000
                 var shown = false
                 while (!shown && SystemClock.uptimeMillis() < deadline) {
                     val root = instrumentation.uiAutomation.rootInActiveWindow
-                    shown = root?.findAccessibilityNodeInfosByText(marker)?.isNotEmpty() == true
+                    shown = root?.findAccessibilityNodeInfosByText("VK · Captcha")?.isNotEmpty() == true
                     if (!shown) Thread.sleep(50)
                 }
-                assertTrue("FreeTurn opened the sheet without rendering the localhost challenge", shown)
+                assertTrue("FreeTurn rendered the page without opening the visible sheet", shown)
             }
         } finally {
             CarrierUiRequests.clear(id)
