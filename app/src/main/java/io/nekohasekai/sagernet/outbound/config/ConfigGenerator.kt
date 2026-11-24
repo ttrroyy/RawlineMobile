@@ -106,10 +106,14 @@ class ConfigGenerator @JvmOverloads constructor(
         val storedIndexes = storedRoute.rules.indices.filter { !storedRoute.rules[it].disabled }
 
         // One plan serves the Xray decision and the build (the desktop plans twice, :446-452 and :1631).
-        val plan = (profile as? AutoSelector)?.let { AutoSelectorPlanner(routing.selectors, clock).plan(profileId, it) }
+        val selectorHop = if (profile.type == "chain") TypeAccess.chainHops(profile).firstNotNullOfOrNull { id ->
+            (reads.get(id) as? AutoSelector)?.let { id to it }
+        } else null
+        val selector = (profile as? AutoSelector)?.let { profileId to it } ?: selectorHop
+        val plan = selector?.let { (id, outbound) -> AutoSelectorPlanner(routing.selectors, clock).plan(id, outbound) }
         // An auto-selector builds each member with the landing / front proxy of the group it came from.
-        val landing = if (plan != null) -1L else landingProxyId
-        val front = if (plan != null) -1L else frontProxyId
+        val landing = if (profile is AutoSelector) -1L else landingProxyId
+        val front = if (profile is AutoSelector) -1L else frontProxyId
 
         val state = BuildState(forTest = false, ports)
         val remoteVpnTypes = listOf("openconnect", "openvpn")
@@ -132,7 +136,7 @@ class ConfigGenerator @JvmOverloads constructor(
         buildCertificateSection(state)
         buildInboundSection(state)
         val origin = HopOrigin(profile, listOf(ChainGroup(groupName, landing, front)))
-        buildOutboundsSection(state, chains, reads, profile, profileId, landing, front, plan, origin)
+        buildOutboundsSection(state, chains, reads, profile, profileId, landing, front, plan, selectorHop, origin)
         if (state.failed) return GeneratedConfig.failure(state.error)
         buildDnsSection(state, useDnsObj = true)
         buildRouteSection(state, route, storedIndexes)
@@ -693,6 +697,7 @@ class ConfigGenerator @JvmOverloads constructor(
                 if (hop.isExtraCore() || hop.isXrayFullConfig()) {
                     return "Skipping chain with terminal (extra-core or Xray full config) hop (cannot test)"
                 }
+                if (hop is AutoSelector) return "Skipping chain with an auto selector hop (test its members instead)"
             }
             return null
         }
@@ -833,16 +838,23 @@ class ConfigGenerator @JvmOverloads constructor(
      */
     private fun buildOutboundsSection(
         state: BuildState, chains: ChainBuilder, reads: ProfileProvider, profile: Outbound, profileId: Long,
-        landingProxyId: Long, frontProxyId: Long, plan: AutoSelectorPlan?, origin: HopOrigin,
+        landingProxyId: Long, frontProxyId: Long, plan: AutoSelectorPlan?,
+        selectorHop: Pair<Long, AutoSelector>?, origin: HopOrigin,
     ) {
         val warpWrap = settings.enableWarp
         if (profile is AutoSelector && plan != null) {
-            buildAutoSelectorGroup(state, chains, reads, profile, profileId, plan, warpWrap)
+            val request = SelectorGroupRequest(if (warpWrap) Tags.WARP_BYPASS else Tags.PROXY, landsOnProxy = warpWrap)
+            buildAutoSelectorGroup(state, chains, reads, profile, profileId, plan, request)
             if (state.failed) return
             if (warpWrap) {
                 buildWarpInFrontOfSelector(state)
                 if (state.failed) return
             }
+        } else if (selectorHop != null && plan != null) {
+            buildChainAroundSelector(
+                state, chains, reads, profile, selectorHop.first, selectorHop.second, plan, landingProxyId, frontProxyId, warpWrap, origin,
+            )
+            if (state.failed) return
         } else {
             // Exit first: the landing proxy becomes "proxy", the stored chain list is reversed, the front proxy is dialed directly.
             val hopIds = ArrayList<Long>()
@@ -877,13 +889,106 @@ class ConfigGenerator @JvmOverloads constructor(
         }
         val inbounds = state.coreConfig.array("inbounds")
         for (i in state.xrayToSingBridges.indices) {
-            inbounds.add(socksBridgeInbound(bridgeTagFor(state.singIngressTags[i]), state.xrayToSingBridges[i]))
+            inbounds.add(socksBridgeInbound(mainBridgeTag(state, i), state.xrayToSingBridges[i]))
         }
         state.coreConfig["inbounds"] = inbounds
 
         state.outbounds.add(jsonObjectOf("type" to "direct", "tag" to Tags.DIRECT))
         state.coreConfig["endpoints"] = state.endpoints
         state.coreConfig["outbounds"] = state.outbounds
+    }
+
+    /** SelectorGroupRequest (generate.cpp) without the traffic crediting, which the service derives from [AutoSelectorBuild]. */
+    private class SelectorGroupRequest(
+        val groupTag: String,
+        /** Every member dials through this outbound; empty when they are dialed directly. */
+        val upstreamTag: String = "",
+        val upstreamResolvesViaDns: Boolean = false,
+        /** Bytes land on WARP or the exit hops rather than on a member. */
+        val landsOnProxy: Boolean = false,
+    ) {
+        /** Set when a member's outermost hop looks hostnames up via DNS rules. */
+        var headsResolveViaDns = false
+    }
+
+    private fun mainBridgeTag(state: BuildState, index: Int): String {
+        val ingress = state.singIngressTags[index]
+        val tag = bridgeTagFor(ingress)
+        // Several Xray members can cross into the same shared sing-box outbound.
+        return if (state.singIngressTags.count { it == ingress } == 1) tag
+        else "$tag-${state.xrayToSingBridges[index].port}"
+    }
+
+    /**
+     * buildChainAroundSelector (generate.cpp): a chain with an auto-selector hop. The hops above the selector and the
+     * group's front proxy are built once as `upstream-<n>`, which every member's chain detours into; the hops below it,
+     * the group's landing proxy and WARP are the main chain, whose last hop detours into the group. The group is
+     * `auto-selector`, or `proxy` / `warp-bypass` when nothing but WARP is below it.
+     */
+    private fun buildChainAroundSelector(
+        state: BuildState, chains: ChainBuilder, reads: ProfileProvider, chain: Outbound, selectorId: Long,
+        selector: AutoSelector, plan: AutoSelectorPlan, landingProxyId: Long, frontProxyId: Long, warpWrap: Boolean,
+        origin: HopOrigin,
+    ) {
+        val list = TypeAccess.chainHops(chain)
+        val at = list.indexOf(selectorId)
+        val exitIds = ArrayList<Long>()
+        if (warpWrap) exitIds.add(WarpHop.PROFILE_ID)
+        if (landingProxyId > 0) exitIds.add(landingProxyId)
+        for (i in list.size - 1 downTo at + 1) exitIds.add(list[i])
+        val upstreamIds = ArrayList<Long>()
+        for (i in at - 1 downTo 0) upstreamIds.add(list[i])
+        if (frontProxyId > 0) upstreamIds.add(frontProxyId)
+
+        for (id in exitIds + upstreamIds) {
+            if (id == WarpHop.PROFILE_ID) continue
+            val hop = reads.get(id)
+            if (hop == null) {
+                state.error = chains.missingHopError(id, origin)
+                return
+            }
+            if (hop.type == "autoselector") {
+                state.error = vtr(R.string.validation_chain_selector_twice)
+                return
+            }
+            if (hop.isExtraCore() || TypeAccess.isCustomFullConfig(hop) || hop.isXrayFullConfig()) {
+                state.error = vtr(R.string.validation_chain_selector_custom)
+                return
+            }
+        }
+
+        if (exitIds.any { reads.get(it) is app.rawline.mobile.bg.carrier.NativeCarrier }) {
+            state.error = "A native transport must be the directly connected entry of a chain"
+            return
+        }
+
+        var upstreamTag = ""
+        var upstreamResolvesViaDns = false
+        if (upstreamIds.isNotEmpty()) {
+            upstreamTag = chains.buildOutboundChain(ChainRequest(upstreamIds, Tags.SELECTOR_UPSTREAM_PREFIX, origin = origin))
+            if (state.failed) return
+            upstreamResolvesViaDns = reads.get(upstreamIds.first())?.let(chains::resolvesHostnamesViaDnsRules) == true
+        }
+
+        val onlyWarp = exitIds == listOf(WarpHop.PROFILE_ID)
+        val groupTag = when {
+            exitIds.isEmpty() -> Tags.PROXY
+            onlyWarp -> Tags.WARP_BYPASS
+            else -> Tags.CHAIN_SELECTOR
+        }
+        val request = SelectorGroupRequest(groupTag, upstreamTag, upstreamResolvesViaDns, landsOnProxy = exitIds.isNotEmpty())
+        buildAutoSelectorGroup(state, chains, reads, selector, selectorId, plan, request)
+        if (state.failed || exitIds.isEmpty()) return
+        if (onlyWarp) {
+            buildWarpInFrontOfSelector(state)
+            return
+        }
+        chains.buildOutboundChain(
+            ChainRequest(
+                exitIds, Tags.MAIN_CHAIN_PREFIX, includeProxy = true, warpWrap = warpWrap, origin = origin,
+                tailDetour = groupTag, tailResolvesViaDns = request.headsResolveViaDns,
+            ),
+        )
     }
 
     /**
@@ -895,13 +1000,14 @@ class ConfigGenerator @JvmOverloads constructor(
      */
     private fun buildAutoSelectorGroup(
         state: BuildState, chains: ChainBuilder, reads: ProfileProvider, selector: AutoSelector, selectorId: Long,
-        plan: AutoSelectorPlan, warpWrap: Boolean,
+        plan: AutoSelectorPlan, request: SelectorGroupRequest,
     ) {
         if (!plan.ok) {
             state.error = plan.error
             return
         }
-        val groupTag = if (warpWrap) Tags.WARP_BYPASS else Tags.PROXY
+        val groupTag = request.groupTag
+        val viaUpstream = request.upstreamTag.isNotEmpty()
 
         class PlannedMember(val member: SelectorMember, val hopIds: List<Long>, val bridges: MemberBridges, val origin: HopOrigin)
 
@@ -921,6 +1027,9 @@ class ConfigGenerator @JvmOverloads constructor(
             if (memberGroup.landingProxyId > 0) hopIds.add(memberGroup.landingProxyId)
             hopIds.add(id)
             if (memberGroup.frontProxyId > 0) hopIds.add(memberGroup.frontProxyId)
+            if (viaUpstream && (!chains.fitsBeforeUpstream(hopIds) ||
+                    hopIds.any { reads.get(it) is app.rawline.mobile.bg.carrier.NativeCarrier })) continue
+            if (reads.get(hopIds.first())?.let(chains::resolvesHostnamesViaDnsRules) == true) request.headsResolveViaDns = true
             // Separate profiles with the same qWDTT device and peer cannot run together.
             val sessions = hopIds.mapNotNull { hop ->
                 val profile = reads.get(hop) as? app.rawline.mobile.outbound.types.Qwdtt
@@ -930,7 +1039,7 @@ class ConfigGenerator @JvmOverloads constructor(
             if (sessions.map { it.first }.toSet().size != sessions.size ||
                 sessions.any { (key, hop) -> qwdttSessions[key]?.let { it != hop } == true }) continue
             qwdttSessions.putAll(sessions)
-            val bridges = chains.bridgesFor(hopIds)
+            val bridges = chains.bridgesFor(hopIds, viaUpstream)
             bridgeCount += bridges.count
             val origin = HopOrigin(selector, listOf(ChainGroup(memberGroup.name, memberGroup.landingProxyId, memberGroup.frontProxyId)))
             plannedMembers.add(PlannedMember(member, hopIds, bridges, origin))
@@ -957,6 +1066,8 @@ class ConfigGenerator @JvmOverloads constructor(
                     xrayToSingPort = if (bridges.xrayToSing) bridgePorts[portIdx++] else -1,
                     xrayFullConfigPort = if (bridges.xrayFullConfig) bridgePorts[portIdx++] else -1,
                     origin = planned.origin,
+                    tailDetour = request.upstreamTag,
+                    tailResolvesViaDns = request.upstreamResolvesViaDns,
                 ),
             )
             if (state.failed) return
@@ -976,7 +1087,7 @@ class ConfigGenerator @JvmOverloads constructor(
             plan.tierOf[member.id]?.let { tier -> tierTags.getOrNull(tier)?.add(tag) }
             members[tag] = member.id
             if (member.id == selector.pinnedID) pinnedTag = tag
-            if (member.latency != 0 && member.latencyAt > 0 && selector.resultValidityMins > 0) {
+            if (!viaUpstream && member.latency != 0 && member.latencyAt > 0 && selector.resultValidityMins > 0) {
                 val age = builtAt - member.latencyAt
                 if (age >= 0 && age <= selector.resultValidityMins.toLong() * 60) {
                     // rtt 0 is how the core reads "known bad" rather than "never measured".
@@ -1032,7 +1143,8 @@ class ConfigGenerator @JvmOverloads constructor(
             members = members,
             rejected = rejected,
             intervalSec = selector.intervalSec,
-            warp = warpWrap,
+            warp = request.landsOnProxy,
+            upstream = viaUpstream,
         )
     }
 
@@ -1438,7 +1550,7 @@ class ConfigGenerator @JvmOverloads constructor(
         }
         // Bridge rules come first: what Xray hands back must reach its tailing hop before any other rule sees it.
         for (i in state.xrayToSingBridges.indices) {
-            append(jsonObjectOf("inbound" to bridgeTagFor(state.singIngressTags[i]), "action" to "route", "outbound" to state.singIngressTags[i]), RouteRuleOriginKind.XRAY_BRIDGE)
+            append(jsonObjectOf("inbound" to mainBridgeTag(state, i), "action" to "route", "outbound" to state.singIngressTags[i]), RouteRuleOriginKind.XRAY_BRIDGE)
         }
         // SO_BINDTODEVICE can inject ownerless traffic from the tunnel's own address. Basic protection leaves
         // UDP/ICMP and forwarded client addresses alone; strict protection also checks these ownerless flows.

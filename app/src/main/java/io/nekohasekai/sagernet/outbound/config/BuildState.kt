@@ -37,6 +37,8 @@ internal object Tags {
     const val MAIN_CHAIN_PREFIX = "config"
     const val ROUTE_CHAIN_PREFIX = "route"
     const val POOL_CHAIN_PREFIX = "pool"
+    const val SELECTOR_UPSTREAM_PREFIX = "upstream"
+    const val CHAIN_SELECTOR = "auto-selector"
     const val TEST_CHAIN_PREFIX = "proxy"
     const val TEST_XRAY_FULL_PREFIX = "xrayfull"
     const val BRIDGE_PREFIX = "bridge"

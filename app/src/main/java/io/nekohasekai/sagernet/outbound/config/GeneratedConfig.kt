@@ -76,6 +76,7 @@ class AutoSelectorBuild(
     @JvmField val intervalSec: Int,
     /** Built behind the WARP hop: every member's bytes then land on `proxy`. */
     @JvmField val warp: Boolean,
+    @JvmField val upstream: Boolean = false,
 ) {
     val memberIds: List<Long> get() = members.values.toList()
 

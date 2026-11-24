@@ -122,15 +122,32 @@ class ChainSettingsActivity : ProfileSettingsActivity<Chain>(R.layout.layout_cha
         if (proxyList.isEmpty()) return getString(R.string.validation_chain_empty)
         // The picker only refuses circular references; the chain builder refuses this too.
         for ((i, hop) in proxyList.withIndex()) {
-            when (hop.type) {
-                "chain" -> return getString(R.string.validation_chain_hop_chain, i + 1)
-                "autoselector" -> return getString(R.string.validation_chain_hop_autoselector, i + 1)
-            }
+            if (hop.type == "chain") return getString(R.string.validation_chain_hop_chain, i + 1)
         }
         return scanError(proxyList.map { it.outbound })
     }
 
+    /** edit_chain.cpp editChainScanError: the hops above an auto selector and the ones below it are built as two separate chains. */
     private fun scanError(topFirst: List<Outbound>): String {
+        var selectorAt = -1
+        for ((i, hop) in topFirst.withIndex()) {
+            if (hop.type != "autoselector") continue
+            if (selectorAt >= 0) return getString(R.string.validation_chain_selector_twice)
+            selectorAt = i
+        }
+        if (selectorAt < 0) return segmentError(topFirst)
+        if (topFirst.any { it.isXrayFullConfig() || (it as? Custom)?.isFullConfig() == true }) {
+            return getString(R.string.validation_chain_selector_custom)
+        }
+        // The selector stays in the lower part: an Xray hop below it switches back to sing-box to reach it.
+        return segmentError(topFirst.subList(selectorAt, topFirst.size)).ifEmpty { segmentError(topFirst.subList(0, selectorAt)) }
+    }
+
+    /**
+     * edit_chain.cpp editChainSegmentError: generate.cpp's chain scan over the build order, which reads the list
+     * bottom-up. The extra-core rules are left out, Android has no extra cores.
+     */
+    private fun segmentError(topFirst: List<Outbound>): String {
         val count = topFirst.size
         var xrayFullConfigs = 0
         var xrayFullConfigIndex = -1
@@ -566,6 +583,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<Chain>(R.layout.layout_cha
                 replacing = 0
                 selectProfileForAdd.launch(
                     Intent(this@ChainSettingsActivity, ProfileSelectActivity::class.java)
+                        .putExtra(ProfileSelectActivity.EXTRA_ALLOW_AUTO_SELECTORS, true)
                 )
             }
         }
@@ -607,6 +625,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<Chain>(R.layout.layout_cha
                     this@ChainSettingsActivity, ProfileSelectActivity::class.java
                 ).apply {
                     putExtra(ProfileSelectActivity.EXTRA_SELECTED, proxyEntity)
+                    putExtra(ProfileSelectActivity.EXTRA_ALLOW_AUTO_SELECTORS, true)
                 })
             }
 

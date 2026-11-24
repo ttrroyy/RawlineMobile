@@ -2973,4 +2973,7 @@
     </plurals>
     <string name="autosel_row_traffic">Real traffic: %1$d ok / %2$d failed</string>
     <string name="autosel_traffic_first_reply">Time to the first reply: %d ms on average, recent connections counting most.</string>
+    <string name="validation_chain_selector_twice">A chain can hold only one auto selector.</string>
+    <string name="validation_chain_selector_custom">An auto selector cannot share a chain with a custom config.</string>
+    <string name="autosel_notice_exhausted_upstream">Every running profile stopped working through the hops in front of it — rebuilding with the next candidates.</string>
 </resources>

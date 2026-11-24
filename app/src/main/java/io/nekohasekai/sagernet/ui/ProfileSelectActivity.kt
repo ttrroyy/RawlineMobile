@@ -11,6 +11,7 @@ class ProfileSelectActivity : ThemedActivity(R.layout.layout_empty),
     companion object {
         const val EXTRA_SELECTED = "selected"
         const val EXTRA_PROFILE_ID = "id"
+        const val EXTRA_ALLOW_AUTO_SELECTORS = "allowAutoSelectors"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,8 +23,10 @@ class ProfileSelectActivity : ThemedActivity(R.layout.layout_empty),
         supportFragmentManager.beginTransaction()
             .replace(
                 R.id.fragment_holder,
-                // both callers fill fixed-server slots (front / landing proxy, chain hops)
-                ConfigurationFragment.forSelection(selected, R.string.select_profile, hideAutoSelectors = true)
+                ConfigurationFragment.forSelection(
+                    selected, R.string.select_profile,
+                    hideAutoSelectors = !intent.getBooleanExtra(EXTRA_ALLOW_AUTO_SELECTORS, false),
+                )
             )
             .commitAllowingStateLoss()
     }

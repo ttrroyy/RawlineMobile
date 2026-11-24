@@ -2846,4 +2846,7 @@
     </plurals>
     <string name="autosel_row_traffic">Реальный трафик: %1$d ОК / %2$d неудач</string>
     <string name="autosel_traffic_first_reply">Время до первого ответа: в среднем %d мс, недавние соединения учитываются сильнее всего.</string>
+    <string name="validation_chain_selector_twice">В цепочке может быть только один автовыбор.</string>
+    <string name="validation_chain_selector_custom">Автовыбор не может находиться в одной цепочке с пользовательской конфигурацией.</string>
+    <string name="autosel_notice_exhausted_upstream">Все запущенные профили перестали работать через звенья перед ним — пересборка со следующими кандидатами.</string>
 </resources>
