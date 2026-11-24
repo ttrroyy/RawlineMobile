@@ -44,6 +44,8 @@ class AutoSelectorCore(val box: Instance, private val groupTag: String) {
         val lastRoundMs: Long,
         val nextRoundMs: Long,
         val balance: Boolean,
+        val passive: Boolean,
+        val sitesRemembered: Int,
         /** In rank order, by tag (id and name unset). */
         val members: List<AutoSelectorStatus.Member>,
     )
@@ -76,6 +78,9 @@ class AutoSelectorCore(val box: Instance, private val groupTag: String) {
                     lastProbeMs = member.lastProbeMs,
                     cooldownUntilMs = member.cooldownUntilMs,
                     lastError = member.lastError,
+                    firstByteMs = member.firstByteMs,
+                    passiveAnswered = member.passiveAnswered,
+                    passiveFailed = member.passiveFailed,
                 )
             )
         }
@@ -95,6 +100,8 @@ class AutoSelectorCore(val box: Instance, private val groupTag: String) {
             lastRoundMs = lastRoundMs,
             nextRoundMs = nextRoundMs,
             balance = balance,
+            passive = passive,
+            sitesRemembered = sitesRemembered,
             members = list,
         )
     }

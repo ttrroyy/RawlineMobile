@@ -361,6 +361,9 @@ class AutoSelectorStatusActivity : ThemedActivity(), SagerConnection.Callback {
             val next = (status.nextRoundMs - now) / 1000
             if (status.nextRoundMs > 0 && next > 0) parts.add(getString(R.string.autosel_footer_next_round, next))
         }
+        if (status.passive) {
+            parts.add(resources.getQuantityString(R.plurals.autosel_footer_sites, status.sitesRemembered, status.sitesRemembered))
+        }
         status.member(status.pinnedId)?.let { member ->
             val pinned = member.name.ifEmpty { profiles[member.id]?.displayName() ?: member.tag }
             parts.add(
@@ -461,6 +464,12 @@ class AutoSelectorStatusActivity : ThemedActivity(), SagerConnection.Callback {
         }
         note(row).takeIf { it.isNotEmpty() && it != profile?.testError }?.let { lines.add(it) }
 
+        if (status.passive) row.member?.let { member ->
+            if (member.passiveAnswered > 0 || member.passiveFailed > 0) {
+                lines.add(getString(R.string.autosel_row_traffic, member.passiveAnswered, member.passiveFailed))
+            }
+            if (member.firstByteMs > 0) lines.add(getString(R.string.autosel_traffic_first_reply, member.firstByteMs))
+        }
         val builder = MobileAlertDialogBuilder(this).setTitle(row.name)
         val actionable = liveFor(status) && status.phase != AutoSelectorStatus.PHASE_MEASURING
         if (actionable) {

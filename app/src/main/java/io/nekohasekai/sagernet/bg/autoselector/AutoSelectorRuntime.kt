@@ -620,6 +620,8 @@ object AutoSelectorRuntime {
                 lastRoundMs = sample?.lastRoundMs ?: 0,
                 nextRoundMs = sample?.nextRoundMs ?: 0,
                 balance = sample?.balance == true,
+                passive = sample?.passive == true,
+                sitesRemembered = sample?.sitesRemembered ?: 0,
                 exhaustedSinceMs = run.exhaustedSinceMs,
                 members = if (withMembers && sample != null) {
                     sample.members.mapNotNull { member ->

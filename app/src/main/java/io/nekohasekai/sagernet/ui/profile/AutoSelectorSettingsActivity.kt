@@ -85,6 +85,7 @@ class AutoSelectorSettingsActivity : BindingSettingsActivity<AutoSelector>() {
         IntField("toleranceMs", 0, 10000, R.plurals.autosel_milliseconds),
         IntField("maxRTTms", 0, 60000, R.plurals.autosel_milliseconds, R.string.autosel_no_limit),
         IntField("dialRetries", 0, 5),
+        IntField("siteMemoryMins", 1, 1440, R.plurals.autosel_minutes),
         IntField("balanceIntervalSec", 5, 3600, R.plurals.autosel_seconds),
     )
 
@@ -102,6 +103,7 @@ class AutoSelectorSettingsActivity : BindingSettingsActivity<AutoSelector>() {
         pbm.text("countryFilter")
         pbm.bool("excludeUnavailable")
         pbm.bool("interruptOnSwitch")
+        pbm.bool("passive")
         pbm.text("balanceMode")
         pbm.text("testURL")
         pbm.text("connectivityURL")
@@ -237,6 +239,7 @@ class AutoSelectorSettingsActivity : BindingSettingsActivity<AutoSelector>() {
             balanceOn = it
             refreshBalance()
         }
+        onSwitch("passive") { findPreference<Preference>("siteMemoryMins")?.isEnabled = it }
         onMenu("balanceMode") {
             balanceMode = it
             refreshBalance()

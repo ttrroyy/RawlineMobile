@@ -2963,4 +2963,14 @@
     <string name="chain_step_group_proxy_invalid">The group\'s front or landing proxy is not valid; the log has the details</string>
     <string name="chain_step_untestable">Chains with a custom Xray config hop cannot be tested</string>
     <string name="chain_step_selector">Chains with an auto selector cannot be tested hop by hop; test its members instead</string>
+    <string name="autosel_passive">Learn from real connections</string>
+    <string name="autosel_passive_tip">Also judge profiles by the connections your apps make through them, not only by health checks. A connection counts as failed when it gets no reply at all or cannot connect. When recent connections through a profile fail at least as often as they succeed, three times or more, the profile is set aside even though its checks pass: for a minute, twice as long each time it happens again, up to 16 minutes. Each website also sticks with the profile that last worked for it and avoids one that just failed it. While real traffic flows, fewer health checks are sent.</string>
+    <string name="autosel_site_memory">Remember per-site choices for</string>
+    <string name="autosel_site_memory_tip">How long a website keeps using the profile that last worked for it, and keeps avoiding a profile that failed it.</string>
+    <plurals name="autosel_footer_sites">
+        <item quantity="one">Learning from real connections: %d site remembers a profile.</item>
+        <item quantity="other">Learning from real connections: %d sites remember a profile.</item>
+    </plurals>
+    <string name="autosel_row_traffic">Real traffic: %1$d ok / %2$d failed</string>
+    <string name="autosel_traffic_first_reply">Time to the first reply: %d ms on average, recent connections counting most.</string>
 </resources>

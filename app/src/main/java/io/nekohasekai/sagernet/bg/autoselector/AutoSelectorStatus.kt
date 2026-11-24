@@ -37,6 +37,8 @@ data class AutoSelectorStatus(
     val lastRoundMs: Long = 0,
     val nextRoundMs: Long = 0,
     val balance: Boolean = false,
+    val passive: Boolean = false,
+    val sitesRemembered: Int = 0,
     val exhaustedSinceMs: Long = 0,
     val members: List<Member> = emptyList(),
     /** The runtime's last notice (a refused pin, a rebuild), "" = none. */
@@ -69,6 +71,9 @@ data class AutoSelectorStatus(
         val lastProbeMs: Long = 0,
         val cooldownUntilMs: Long = 0,
         val lastError: String = "",
+        val firstByteMs: Int = 0,
+        val passiveAnswered: Int = 0,
+        val passiveFailed: Int = 0,
     ) {
         val isDead: Boolean get() = state == STATE_DEAD
         val isUsable: Boolean get() = state == STATE_OK || state == STATE_DEGRADED
@@ -97,6 +102,9 @@ data class AutoSelectorStatus(
             "last_probe_ms" to lastProbeMs,
             "cooldown_until_ms" to cooldownUntilMs,
             "last_error" to lastError,
+            "first_byte_ms" to firstByteMs,
+            "passive_answered" to passiveAnswered,
+            "passive_failed" to passiveFailed,
         )
 
         internal companion object {
@@ -123,6 +131,9 @@ data class AutoSelectorStatus(
                 lastProbeMs = obj.integer("last_probe_ms"),
                 cooldownUntilMs = obj.integer("cooldown_until_ms"),
                 lastError = obj.string("last_error"),
+                firstByteMs = obj.int("first_byte_ms"),
+                passiveAnswered = obj.int("passive_answered"),
+                passiveFailed = obj.int("passive_failed"),
             )
         }
     }
@@ -155,6 +166,8 @@ data class AutoSelectorStatus(
             "last_round_ms" to lastRoundMs,
             "next_round_ms" to nextRoundMs,
             "balance" to balance,
+            "passive" to passive,
+            "sites_remembered" to sitesRemembered,
             "exhausted_since_ms" to exhaustedSinceMs,
             "notice" to notice,
             "notice_at_ms" to noticeAtMs,
@@ -208,6 +221,8 @@ data class AutoSelectorStatus(
                 lastRoundMs = obj.integer("last_round_ms"),
                 nextRoundMs = obj.integer("next_round_ms"),
                 balance = obj.bool("balance"),
+                passive = obj.bool("passive"),
+                sitesRemembered = obj.int("sites_remembered"),
                 exhaustedSinceMs = obj.integer("exhausted_since_ms"),
                 members = obj.array("members").mapNotNull { (it as? JsonObject)?.let(Member::fromJson) },
                 notice = obj.string("notice"),

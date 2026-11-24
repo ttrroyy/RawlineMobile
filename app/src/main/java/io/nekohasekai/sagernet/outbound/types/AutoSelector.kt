@@ -82,6 +82,9 @@ class AutoSelector : Outbound("autoselector") {
     @JvmField var failbackDelaySec: Int = 60
     @JvmField var failbackInterrupt: Boolean = false
 
+    @JvmField var passive: Boolean = false
+    @JvmField var siteMemoryMins: Int = 60
+
     fun prioritized(): Boolean = strategy == "priority"
 
     /** Ranked member ids of the last client-side sweep, best first. */
@@ -168,6 +171,8 @@ class AutoSelector : Outbound("autoselector") {
         if (obj.contains("failback_checks")) failbackChecks = intOr(obj["failback_checks"], 3)
         if (obj.contains("failback_delay_sec")) failbackDelaySec = intOr(obj["failback_delay_sec"], 60)
         if (obj.contains("failback_interrupt")) failbackInterrupt = boolOr(obj["failback_interrupt"], false)
+        if (obj.contains("passive")) passive = boolOr(obj["passive"], false)
+        if (obj.contains("site_memory_mins")) siteMemoryMins = intOr(obj["site_memory_mins"], 60)
         if (obj.contains("pool")) pool = obj.array("pool").mapTo(ArrayList()) { JsonValues.toInteger(it) }
         if (obj.contains("pool_ranked_at")) poolRankedAt = obj.double("pool_ranked_at").toLong()
         if (obj.contains("pinned_id")) pinnedID = longOr(obj["pinned_id"], -1)
@@ -213,6 +218,8 @@ class AutoSelector : Outbound("autoselector") {
         obj["failback_checks"] = failbackChecks
         obj["failback_delay_sec"] = failbackDelaySec
         obj["failback_interrupt"] = failbackInterrupt
+        obj["passive"] = passive
+        obj["site_memory_mins"] = siteMemoryMins
         obj["pool"] = idArray(pool)
         obj["pool_ranked_at"] = poolRankedAt
         obj["pinned_id"] = pinnedID
@@ -257,6 +264,7 @@ class AutoSelector : Outbound("autoselector") {
         if (strategy != "priority") strategy = "latency"
         if (failbackChecks < 1) failbackChecks = 1
         if (failbackDelaySec < 0) failbackDelaySec = 0
+        siteMemoryMins = siteMemoryMins.coerceIn(1, 1440)
     }
 
     /** autoselector.h:172-179. */

@@ -1011,6 +1011,9 @@ class ConfigGenerator @JvmOverloads constructor(
             group["failback_delay"] = "${selector.failbackDelaySec}s"
             if (selector.failbackInterrupt) group["failback_interrupt"] = true
         }
+        if (selector.passive) {
+            group["passive"] = jsonObjectOf("enabled" to true, "site_memory" to "${selector.siteMemoryMins}m")
+        }
         if (warm.isNotEmpty()) group["warm"] = warm
         if (pinnedTag.isNotEmpty()) group["pinned"] = pinnedTag
         if (selector.maxRTTms > 0) group["max_rtt"] = "${selector.maxRTTms}ms"

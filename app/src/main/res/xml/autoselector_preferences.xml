@@ -151,6 +151,14 @@
             app:summary="@string/autosel_interrupt_tip"
             app:title="@string/autosel_interrupt" />
 
+        <SwitchPreference
+            app:key="passive"
+            app:summary="@string/autosel_passive_tip"
+            app:title="@string/autosel_passive" />
+        <EditTextPreference
+            app:dialogMessage="@string/autosel_site_memory_tip"
+            app:key="siteMemoryMins"
+            app:title="@string/autosel_site_memory" />
     </PreferenceCategory>
 
     <PreferenceCategory
