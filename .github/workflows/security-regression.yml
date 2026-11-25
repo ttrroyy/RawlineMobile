@@ -63,8 +63,15 @@ jobs:
           "$SDK/sdkmanager" "$image" 'emulator' 'platform-tools' >/dev/null
           "$SDK/avdmanager" create avd -n security-test -k "$image" --device "$hardware" --force
           sudo chmod a+rw /dev/kvm
-          "$ANDROID_HOME/emulator/emulator" -avd security-test -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
           ADB="$ANDROID_HOME/platform-tools/adb"
+          if [[ "$DEVICE" == android-tv ]]; then
+            # The TV image authenticates ADB using the key present when the emulator starts.
+            export ADB_VENDOR_KEYS="$ANDROID_USER_HOME/adbkey"
+            "$ADB" keygen "$ADB_VENDOR_KEYS"
+            "$ADB" kill-server
+            "$ADB" start-server
+          fi
+          "$ANDROID_HOME/emulator/emulator" -avd security-test -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
           timeout 180 "$ADB" wait-for-device
           for attempt in $(seq 1 120); do
             if test "$("$ADB" shell getprop sys.boot_completed | tr -d '\r')" = 1; then break; fi
