@@ -2853,6 +2853,7 @@
     <string name="validation_chain_selector_custom">Автовыбор не может находиться в одной цепочке с пользовательской конфигурацией.</string>
     <string name="autosel_notice_exhausted_upstream">Все запущенные профили перестали работать через звенья перед ним — пересборка со следующими кандидатами.</string>
     <string name="connections_empty">Нет активных соединений</string>
+    <string name="connections_stopped">Подключитесь к профилю, чтобы увидеть его соединения.</string>
     <string name="connections_unavailable">Данные о соединениях недоступны</string>
     <string name="connections_unknown_app">Неизвестное приложение</string>
     <string name="service_status_dns_failure">Ошибка DNS</string>

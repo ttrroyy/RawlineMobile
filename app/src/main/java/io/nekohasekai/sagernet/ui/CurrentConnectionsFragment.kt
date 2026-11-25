@@ -73,7 +73,7 @@ class CurrentConnectionsFragment : ToolbarFragment(R.layout.layout_current_conne
             subscription = null
             activeRows = emptyList()
             adapter.submitList(emptyList())
-            showStatus(if (DataStore.serviceState.connected) R.string.connections_unavailable else R.string.dashboard_stopped)
+            showStatus(if (DataStore.serviceState.connected) R.string.connections_unavailable else R.string.connections_stopped)
             return
         }
         val profile = DataStore.currentProfile

@@ -2980,6 +2980,7 @@
     <string name="validation_chain_selector_custom">An auto selector cannot share a chain with a custom config.</string>
     <string name="autosel_notice_exhausted_upstream">Every running profile stopped working through the hops in front of it — rebuilding with the next candidates.</string>
     <string name="connections_empty">No active connections</string>
+    <string name="connections_stopped">Connect to a profile to see its connections.</string>
     <string name="connections_unavailable">Connection data is unavailable</string>
     <string name="connections_unknown_app">Unknown application</string>
     <string name="service_status_dns_failure">DNS failure</string>
