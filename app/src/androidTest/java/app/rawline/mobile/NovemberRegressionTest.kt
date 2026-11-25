@@ -29,6 +29,7 @@ import app.rawline.mobile.database.GroupRepo
 import app.rawline.mobile.database.ProxyGroup
 import app.rawline.mobile.database.SagerDatabase
 import app.rawline.mobile.database.backup.BackupExport
+import app.rawline.mobile.database.backup.BackupRestore
 import app.rawline.mobile.database.backup.RwlBackup
 import app.rawline.mobile.outbound.config.ProfileProvider
 import app.rawline.mobile.outbound.json.JsonObject
@@ -36,6 +37,8 @@ import app.rawline.mobile.outbound.json.JsonInput
 import app.rawline.mobile.outbound.types.DnsTunnel
 import app.rawline.mobile.outbound.types.WireGuard
 import app.rawline.mobile.outbound.types.Socks
+import app.rawline.mobile.outbound.types.AutoSelector
+import app.rawline.mobile.route.RouteProfile
 import app.rawline.mobile.ui.MainActivity
 import app.rawline.mobile.ui.PinnedServers
 import app.rawline.mobile.utils.Theme
@@ -108,6 +111,43 @@ class NovemberRegressionTest {
             DataStore.mobilePinnedProfiles = previousPins
             SagerDatabase.groupDao.deleteById(group.id)
             snapshot.delete()
+        }
+    }
+
+    @Test fun restoredAutoSelectorBuildsWithItsTrackedProfiles() {
+        val members = ProxyGroup(name = "Restored selector members")
+        members.id = SagerDatabase.groupDao.insert(members)
+        val selectors = ProxyGroup(name = "Restored selectors")
+        selectors.id = SagerDatabase.groupDao.insert(selectors)
+        val profiles = SagerDatabase.proxyDao
+        try {
+            val member = ProxyEntity(groupId = members.id).putOutbound(Socks().apply {
+                name = "Restored SOCKS candidate"
+                server = "192.0.2.1"
+                serverPort = 1080
+            })
+            member.id = profiles.addProxy(member)
+            val selector = ProxyEntity(groupId = selectors.id).putOutbound(AutoSelector().apply {
+                name = "Restored selector"
+                gids.add(members.id)
+            })
+            selector.id = profiles.addProxy(selector)
+
+            val snapshot = ByteArrayOutputStream()
+            BackupExport.write(BackupExport.Selection(profiles = true, routes = true, settings = false), snapshot)
+            profiles.deleteByIds(listOf(selector.id, member.id))
+            SagerDatabase.groupDao.deleteById(members.id)
+            assertNull(profiles.getById(selector.id))
+
+            val restored = BackupRestore.load(snapshot.toByteArray().inputStream())
+            BackupRestore.restore(restored, BackupRestore.Choice(profiles = true, routes = true, settings = false))
+            val restoredSelector = requireNotNull(profiles.getById(selector.id))
+            val config = CoreConfigs.buildMain(restoredSelector, deferRuleSets = true, route = RouteProfile.defaultProfile())
+            assertNull("Could not build the restored selector", config.error)
+            assertEquals(listOf(member.id), config.autoSelector?.memberIds)
+        } finally {
+            SagerDatabase.groupDao.deleteById(selectors.id)
+            SagerDatabase.groupDao.deleteById(members.id)
         }
     }
 
