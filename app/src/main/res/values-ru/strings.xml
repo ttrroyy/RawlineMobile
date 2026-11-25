@@ -2858,5 +2858,8 @@
     <string name="service_status_dns_failure">Ошибка DNS</string>
     <string name="service_status_tls_failure">Ошибка TLS</string>
     <string name="service_status_interrupted">Соединение прервано</string>
-    <string name="service_status_short_body">Обрыв на 16–20 КиБ (возможен DPI)</string>
+    <string name="service_status_short_body">Обрыв на 16–20 КиБ</string>
+    <string name="service_status_filter_pattern">Вероятная фильтрация DPI</string>
+    <string name="service_note_repeated_transfer">Контрольный ответ в 1 КиБ получен. Две большие загрузки прервались после %1$s и %2$s байт.</string>
+    <string name="service_note_short_transfer">Получено %1$s из %2$s байт.</string>
 </resources>

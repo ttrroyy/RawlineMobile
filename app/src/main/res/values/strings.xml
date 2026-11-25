@@ -2985,5 +2985,8 @@
     <string name="service_status_dns_failure">DNS failure</string>
     <string name="service_status_tls_failure">TLS failure</string>
     <string name="service_status_interrupted">Connection interrupted</string>
-    <string name="service_status_short_body">Transfer interrupted at 16–20 KiB (possible DPI)</string>
+    <string name="service_status_short_body">Transfer interrupted at 16–20 KiB</string>
+    <string name="service_status_filter_pattern">Likely DPI filtering</string>
+    <string name="service_note_repeated_transfer">1 KiB control passed. Two larger replies stopped after %1$s and %2$s bytes.</string>
+    <string name="service_note_short_transfer">Received %1$s of %2$s bytes.</string>
 </resources>

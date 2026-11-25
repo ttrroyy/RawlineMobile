@@ -18,12 +18,15 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import app.rawline.mobile.R
 import app.rawline.mobile.database.DataStore
+import app.rawline.mobile.database.ProfileManager
 import app.rawline.mobile.widget.applyInsetMargin
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.IOException
 
 class CurrentConnectionsFragment : ToolbarFragment(R.layout.layout_current_connections) {
@@ -33,6 +36,8 @@ class CurrentConnectionsFragment : ToolbarFragment(R.layout.layout_current_conne
     private val expanded = mutableSetOf<String>()
     private var subscription: Job? = null
     private var activeRows = emptyList<ActiveConnection>()
+    private var feedProfile = 0L
+    private var profileName = ""
     private val adapter = ConnectionAdapter { key ->
         if (!expanded.add(key)) expanded.remove(key)
         render()
@@ -71,9 +76,13 @@ class CurrentConnectionsFragment : ToolbarFragment(R.layout.layout_current_conne
             showStatus(if (DataStore.serviceState.connected) R.string.connections_unavailable else R.string.dashboard_stopped)
             return
         }
-        if (subscription?.isActive == true) return
+        val profile = DataStore.currentProfile
+        if (subscription?.isActive == true && profile == feedProfile) return
+        subscription?.cancel()
+        feedProfile = profile
         showStatus(R.string.connecting)
         subscription = viewLifecycleOwner.lifecycleScope.launch {
+            profileName = withContext(Dispatchers.IO) { ProfileManager.getProfile(profile)?.displayName().orEmpty() }
             ConnectionFeed.subscribe(DataStore.coreBoxApiPort, DataStore.coreBoxApiSecret)
                 .conflate()
                 .retryWhen { cause, _ ->
@@ -107,16 +116,21 @@ class CurrentConnectionsFragment : ToolbarFragment(R.layout.layout_current_conne
         val rows = groups.entries.sortedBy { displayProcess(it.key) }.flatMap { (process, connections) ->
             val open = process in expanded
             val title = "${if (open) "▾" else "▸"}  ${displayProcess(process)} (${connections.size})"
-            val route = connections.firstOrNull()?.route.orEmpty()
+            val route = connections.map { displayRoute(it.route) }.distinct().singleOrNull().orEmpty()
             val traffic = traffic(connections.sumOf { it.upload }, connections.sumOf { it.download })
             listOf(Line("group:$process", title, listOf(route, traffic).filter(String::isNotBlank).joinToString("  ·  "), process)) +
                 if (open) connections.map {
-                    Line(it.id, it.destination.ifEmpty { "—" }, listOf(it.protocol, it.route, traffic(it.upload, it.download))
+                    Line(it.id, it.destination.ifEmpty { "—" }, listOf(it.protocol, displayRoute(it.route), traffic(it.upload, it.download))
                         .filter(String::isNotBlank).joinToString("  ·  "))
                 } else emptyList()
         }
         adapter.submitList(rows)
     }
+
+    private fun displayRoute(route: String): String =
+        route.split(" → ").joinToString(" → ") {
+            if (it == "proxy" && profileName.isNotBlank()) profileName else it
+        }
 
     private fun displayProcess(process: String): String {
         if (process.isBlank()) return getString(R.string.connections_unknown_app)

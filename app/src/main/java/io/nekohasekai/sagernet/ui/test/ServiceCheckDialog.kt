@@ -10,8 +10,6 @@ import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.view.View
 import android.widget.LinearLayout
-import android.widget.TableLayout
-import android.widget.TableRow
 import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.annotation.StyleRes
@@ -24,6 +22,7 @@ import app.rawline.mobile.ktx.dp2px
 import app.rawline.mobile.outbound.json.JsonInput
 import app.rawline.mobile.outbound.json.JsonObject
 import app.rawline.mobile.ui.MobileAlertDialogBuilder
+import app.rawline.mobile.ui.MobilePalette
 
 /**
  * A profile's stored service check (ServiceCheckHtml::details): one section per category with each service's status,
@@ -74,15 +73,9 @@ internal object ServiceCheckDialog {
             for (category in root.array("cats").mapNotNull { it as? JsonObject }) {
                 val id = category.string("id")
                 add(text(category.string("name"), HEADING), top = 12)
-                val table = TableLayout(context).apply {
-                    setColumnShrinkable(0, true)
-                    setColumnShrinkable(2, true)
-                }
                 for (check in checks) {
-                    if (check.string("cat") != id) continue
-                    table.addView(checkRow(check))
+                    if (check.string("cat") == id) add(checkRow(check), top = 4)
                 }
-                add(table, top = 2)
             }
             val ip = root.array("ip").mapNotNull { it as? JsonObject }
             if (ip.isNotEmpty()) {
@@ -94,32 +87,41 @@ internal object ServiceCheckDialog {
             return layout
         }
 
-        private fun checkRow(check: JsonObject): TableRow {
+        private fun checkRow(check: JsonObject): LinearLayout {
             val status = check.string("status")
-            val color = statusColor(status)
-            val name = text(check.string("name"), BODY).apply {
-                setTextColor(color)
-                setTypeface(typeface, Typeface.BOLD)
-                updatePaddingRelative(end = dp2px(12))
+            val region = check.string("region")
+            val note = diagnosticNote(check.string("note"))
+            return LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                background = MobilePalette.rowShape(context)
+                setPadding(dp2px(12), dp2px(7), dp2px(12), dp2px(7))
+                addView(text(check.string("name"), BODY).apply { setTypeface(typeface, Typeface.BOLD) })
+                addView(text(listOf(statusText(status), region).filter(String::isNotEmpty).joinToString("  ·  "), BODY)
+                    .apply { setTextColor(statusColor(status)) })
+                if (note.isNotBlank()) addView(text(note, BODY).apply { setTextColor(muted) })
             }
-            val state = text(statusText(status), BODY).apply {
-                setTextColor(color)
-                updatePaddingRelative(end = dp2px(12))
+        }
+
+        private fun diagnosticNote(note: String): String {
+            REPEATED_TRANSFER.matchEntire(note)?.let {
+                return context.getString(R.string.service_note_repeated_transfer, it.groupValues[1], it.groupValues[2])
             }
-            val extra = listOf(check.string("region"), check.string("note")).filter { it.isNotEmpty() }
-            return TableRow(context).apply {
-                updatePadding(top = dp2px(2), bottom = dp2px(2))
-                addView(name)
-                addView(state)
-                addView(text(extra.joinToString(" — "), BODY))
+            SHORT_TRANSFER.matchEntire(note)?.let {
+                return context.getString(R.string.service_note_short_transfer, it.groupValues[1], it.groupValues[2])
             }
+            return note
+        }
+
+        private companion object {
+            val REPEATED_TRANSFER = Regex("""^1024-byte control passed; long replies stopped at (\d+) and (\d+) bytes$""")
+            val SHORT_TRANSFER = Regex("""^(\d+) of (\d+) bytes received$""")
         }
 
         /** Unknown and failed checks are muted. */
         @ColorInt
         private fun statusColor(status: String): Int = when (status) {
             STATUS_AVAILABLE -> success
-            STATUS_PARTIAL, "short_body", "interrupted" -> warning
+            STATUS_PARTIAL, "short_body", "interrupted", "filter_pattern" -> warning
             STATUS_RESTRICTED, STATUS_BLOCKED, "dns_failure", "tls_failure" -> danger
             else -> muted
         }
@@ -135,6 +137,7 @@ internal object ServiceCheckDialog {
             "tls_failure" -> context.getString(R.string.service_status_tls_failure)
             "interrupted" -> context.getString(R.string.service_status_interrupted)
             "short_body" -> context.getString(R.string.service_status_short_body)
+            "filter_pattern" -> context.getString(R.string.service_status_filter_pattern)
             else -> status
         }
 
