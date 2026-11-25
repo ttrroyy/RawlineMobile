@@ -641,22 +641,15 @@
     <!-- notification actions -->
     <string-array name="notification_action_entries">
         <item>@string/stop</item>
-        <item>@string/notification_previous</item>
-        <item>@string/notification_next</item>
         <item>@string/notification_switch</item>
+        <item>@string/notification_ping</item>
         <item>@string/reset_connections</item>
     </string-array>
     <string-array name="notification_action_values" translatable="false">
         <item>stop</item>
-        <item>previous</item>
-        <item>next</item>
         <item>switch</item>
+        <item>ping</item>
         <item>reset</item>
-    </string-array>
-    <string-array name="notification_action_defaults" translatable="false">
-        <item>stop</item>
-        <item>next</item>
-        <item>switch</item>
     </string-array>
 
     <!-- auto selector -->

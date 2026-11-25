@@ -1478,7 +1478,11 @@ class MobileHomeFragment : ToolbarFragment() {
                                     }
                                 }
                             }
-                        }) }).apply { onOpened={ opened -> openSwipe?.takeIf { it!==opened }?.closeActions(); openSwipe=opened } }
+                        }) }).apply {
+                        trailingActionCount = 2
+                        autoCloseMs = 3000
+                        onOpened={ opened -> openSwipe?.takeIf { it!==opened }?.closeActions(); openSwipe=opened }
+                    }
                     profileDrag.bind(row,swipe,profile.id)
                     if(activeProfileDrag?.draggedId==profile.id) swipe.visibility=View.INVISIBLE
                     rows.addView(swipe, LinearLayout.LayoutParams(-1,-2).apply { setMargins(dp(5),0,dp(5),dp(3)) })

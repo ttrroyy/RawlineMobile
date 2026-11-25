@@ -191,6 +191,7 @@ class AppearanceSettingsFragment : SettingsScreenFragment(R.xml.settings_appeara
         val checkboxes = resources.getStringArray(R.array.notification_action_entries).mapIndexed { i, label ->
             AppCompatCheckBox(dialogContext).apply {
                 text = label
+                isSingleLine = false
                 isChecked = values[i] in chosen
                 rows.addView(this, LinearLayout.LayoutParams(-1, -2))
             }

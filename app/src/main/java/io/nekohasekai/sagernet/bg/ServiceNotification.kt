@@ -18,7 +18,6 @@ import app.rawline.mobile.R
 import app.rawline.mobile.SagerNet
 import app.rawline.mobile.aidl.SpeedDisplayData
 import app.rawline.mobile.database.DataStore
-import app.rawline.mobile.database.ProfileOrder
 import app.rawline.mobile.database.ProxyEntity
 import app.rawline.mobile.database.SagerDatabase
 import app.rawline.core.mobile.Mobile
@@ -30,9 +29,11 @@ import app.rawline.mobile.ui.SwitchActivity
 import app.rawline.mobile.ui.test.TestFormat
 import app.rawline.mobile.widget.ExitIp
 import app.rawline.mobile.utils.Theme
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 /**
  * User can customize visibility of notification since Android 8.
@@ -56,12 +57,11 @@ class ServiceNotification(
         // notificationActions entries; the template shows at most three buttons, in this order.
         const val MAX_ACTIONS = 3
         const val ACTION_STOP = "stop"
-        const val ACTION_PREVIOUS = "previous"
-        const val ACTION_NEXT = "next"
+        const val ACTION_PING = "ping"
         const val ACTION_SWITCH = "switch"
         const val ACTION_RESET = "reset"
         val DEFAULT_ACTIONS = listOf(ACTION_STOP)
-        private val ACTION_ORDER = listOf(ACTION_STOP, ACTION_PREVIOUS, ACTION_NEXT, ACTION_SWITCH, ACTION_RESET)
+        private val ACTION_ORDER = listOf(ACTION_STOP, ACTION_SWITCH, ACTION_PING, ACTION_RESET)
 
         fun notificationActions(): List<String> {
             val chosen = DataStore.configurationStore.getStringList(Key.NOTIFICATION_ACTIONS, DEFAULT_ACTIONS)
@@ -83,7 +83,32 @@ class ServiceNotification(
     private var location: String? = null
     private var speedText: String? = null
 
-    private fun bodyText(): String? = listOfNotNull(location, speedText).joinToString("\n").ifEmpty { null }
+    private var latency: String? = null
+    private var pingRunning = false
+
+    private fun bodyText(): String? {
+        val place = listOfNotNull(location, latency).joinToString(", ").ifEmpty { null }
+        return listOfNotNull(place, speedText).joinToString("\n").ifEmpty { null }
+    }
+
+    suspend fun ping() {
+        val running = service.data.proxy ?: return
+        if (pingRunning || !service.data.state.connected) return
+        pingRunning = true
+        try {
+            val elapsed = withContext(Dispatchers.IO) {
+                runCatching { service.data.binder.urlTest() }.getOrNull()
+            }
+            if (service.data.proxy !== running || !service.data.state.connected) return
+            val context = service as Context
+            latency = if (elapsed != null && elapsed >= 0) context.getString(R.string.notification_latency, elapsed)
+                else context.getString(R.string.notification_ping_unavailable)
+            useBuilder { applyBody(it) }
+            update()
+        } finally {
+            pingRunning = false
+        }
+    }
 
     private fun applyBody(builder: NotificationCompat.Builder) {
         val body = bodyText()
@@ -159,6 +184,7 @@ class ServiceNotification(
         updateActions()
         ExitIp.clear()
         location = null
+        latency = null
         speedText = null
         useBuilder {
             shownTitle = newTitle
@@ -257,27 +283,11 @@ class ServiceNotification(
     private suspend fun updateActions() {
         service as Context
         val actions = notificationActions()
-        val profileId = service.data.proxy?.profile?.id ?: DataStore.selectedProxy
-        val canCycle = (ACTION_NEXT in actions || ACTION_PREVIOUS in actions) && ProfileOrder.canCycle(profileId)
         useBuilder {
             it.clearActions()
             for (action in actions) when (action) {
                 ACTION_STOP -> it.addAction(
                     broadcastAction(R.drawable.ic_notification_stop, service.getText(R.string.stop), Action.CLOSE, 1)
-                )
-
-                ACTION_PREVIOUS -> if (canCycle) it.addAction(
-                    broadcastAction(
-                        R.drawable.ic_notification_previous, service.getText(R.string.notification_previous),
-                        Action.SWITCH_PREVIOUS, 2,
-                    )
-                )
-
-                ACTION_NEXT -> if (canCycle) it.addAction(
-                    broadcastAction(
-                        R.drawable.ic_notification_next, service.getText(R.string.notification_next),
-                        Action.SWITCH_NEXT, 3,
-                    )
                 )
 
                 ACTION_SWITCH -> it.addAction(
@@ -289,6 +299,10 @@ class ServiceNotification(
                             flags,
                         )
                     ).setShowsUserInterface(true).build()
+                )
+
+                ACTION_PING -> it.addAction(
+                    broadcastAction(R.drawable.ic_mobile_test, service.getText(R.string.notification_ping), Action.PING_CURRENT, 6)
                 )
 
                 ACTION_RESET -> it.addAction(

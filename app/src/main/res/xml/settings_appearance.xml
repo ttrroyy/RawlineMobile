@@ -7,8 +7,8 @@
  </PreferenceCategory>
  <PreferenceCategory app:title="@string/cag_notification">
   <SwitchPreference app:defaultValue="false" app:key="qmobileNotificationSpeed" app:icon="@drawable/ic_baseline_speed_24" app:title="@string/qmobile_notification_speed" />
-  <SwitchPreference app:defaultValue="true" app:key="showDirectSpeed" app:dependency="qmobileNotificationSpeed" app:title="@string/show_direct_speed" app:summary="@string/show_direct_speed_sum" />
-  <SwitchPreference app:defaultValue="false" app:key="showGroupInNotification" app:title="@string/show_group_in_notification" />
-  <Preference app:key="notificationActions" app:title="@string/notification_actions" app:persistent="false" app:widgetLayout="@layout/qmobile_preference_arrow" />
+  <SwitchPreference app:defaultValue="true" app:key="showDirectSpeed" app:icon="@drawable/ic_baseline_upload_24" app:dependency="qmobileNotificationSpeed" app:title="@string/show_direct_speed" app:summary="@string/show_direct_speed_sum" />
+  <SwitchPreference app:defaultValue="true" app:key="showGroupInNotification" app:icon="@drawable/ic_baseline_folder_open_24" app:title="@string/show_group_in_notification" />
+  <Preference app:key="notificationActions" app:icon="@drawable/ic_baseline_tune_24" app:title="@string/notification_actions" app:persistent="false" app:widgetLayout="@layout/qmobile_preference_arrow" />
  </PreferenceCategory>
 </PreferenceScreen>

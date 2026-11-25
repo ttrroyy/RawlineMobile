@@ -1788,7 +1788,10 @@
     <!-- Notification -->
     <string name="notification_next">Next</string>
     <string name="notification_previous">Previous</string>
-    <string name="notification_switch">Switch…</string>
+    <string name="notification_switch">Switch</string>
+    <string name="notification_ping">Ping</string>
+    <string name="notification_ping_unavailable">Ping unavailable</string>
+    <string name="notification_latency">%1$d ms</string>
     <string name="notification_switching">Switching…</string>
     <string name="notification_actions">Notification buttons</string>
     <string name="notification_actions_too_many">Choose at most 3 buttons</string>

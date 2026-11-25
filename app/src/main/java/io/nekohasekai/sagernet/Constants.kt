@@ -89,6 +89,7 @@ object Action {
     const val RELOAD = "app.rawline.mobile.RELOAD"
 
     // const val SWITCH_WAKE_LOCK = "app.rawline.mobile.SWITCH_WAKELOCK"
+    const val PING_CURRENT = "app.rawline.mobile.PING_CURRENT"
     const val RESET_UPSTREAM_CONNECTIONS = "app.rawline.mobile.RESET_UPSTREAM_CONNECTIONS"
 
     // Every action of the service receiver needs its own branch there: its fallback does nothing.

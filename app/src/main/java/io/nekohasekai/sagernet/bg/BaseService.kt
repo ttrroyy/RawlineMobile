@@ -94,6 +94,7 @@ class BaseService {
                 Action.SWITCH_PROFILE -> service.switchProfile(intent.getLongExtra(Action.EXTRA_PROFILE_ID, 0L))
                 Action.REFRESH_WIFI_STATE -> afterStart { refreshWifiState(ctx) }
                 Action.REFRESH_NOTIFICATION -> refreshNotification()
+                Action.PING_CURRENT -> runOnMainDispatcher { notification?.ping() }
                 Action.AUTO_SELECTOR_AUTOMATIC -> AutoSelectorRuntime.releasePin(intent.getLongExtra(Action.EXTRA_PROFILE_ID, 0L))
                 PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED -> afterStart { applyIdleMode() }
                 Intent.ACTION_SCREEN_OFF -> { screenOffAt = SystemClock.elapsedRealtime(); proxy?.cancelWakeCheck() }
@@ -730,6 +731,7 @@ class BaseService {
                     addAction(Action.SWITCH_PROFILE)
                     addAction(Action.REFRESH_WIFI_STATE)
                     addAction(Action.REFRESH_NOTIFICATION)
+                    addAction(Action.PING_CURRENT)
                     addAction(Action.AUTO_SELECTOR_AUTOMATIC)
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

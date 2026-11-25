@@ -134,9 +134,8 @@
 
     <string-array name="notification_action_entries">
         <item>@string/stop</item>
-        <item>@string/notification_previous</item>
-        <item>@string/notification_next</item>
         <item>@string/notification_switch</item>
+        <item>@string/notification_ping</item>
         <item>@string/reset_connections</item>
     </string-array>
 

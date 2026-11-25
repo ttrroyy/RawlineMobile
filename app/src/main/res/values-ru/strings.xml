@@ -870,7 +870,10 @@
     <string name="notification_permission_blocked">Заблокировано: служебное уведомление и его кнопки скрыты. Нажмите, чтобы разрешить.</string>
     <string name="notification_permission_rationale">Пока работает VPN, Rawline показывает уведомление с кнопками остановки и переключения серверов. Разрешите уведомления, чтобы его видеть.</string>
     <string name="notification_previous">Назад</string>
-    <string name="notification_switch">Переключить…</string>
+    <string name="notification_switch">Переключить</string>
+    <string name="notification_ping">Пинг</string>
+    <string name="notification_ping_unavailable">Пинг недоступен</string>
+    <string name="notification_latency">%1$d мс</string>
     <string name="notification_switching">Переключение…</string>
     <string name="ntp_interval">Интервал синхронизации</string>
     <string name="ntp_outbound">Исходящий</string>
