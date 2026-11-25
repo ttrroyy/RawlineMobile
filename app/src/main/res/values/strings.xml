@@ -2982,4 +2982,8 @@
     <string name="connections_empty">No active connections</string>
     <string name="connections_unavailable">Connection data is unavailable</string>
     <string name="connections_unknown_app">Unknown application</string>
+    <string name="service_status_dns_failure">DNS failure</string>
+    <string name="service_status_tls_failure">TLS failure</string>
+    <string name="service_status_interrupted">Connection interrupted</string>
+    <string name="service_status_short_body">Transfer interrupted at 16–20 KiB (possible DPI)</string>
 </resources>

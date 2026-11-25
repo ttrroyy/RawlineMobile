@@ -2855,4 +2855,8 @@
     <string name="connections_empty">Нет активных соединений</string>
     <string name="connections_unavailable">Данные о соединениях недоступны</string>
     <string name="connections_unknown_app">Неизвестное приложение</string>
+    <string name="service_status_dns_failure">Ошибка DNS</string>
+    <string name="service_status_tls_failure">Ошибка TLS</string>
+    <string name="service_status_interrupted">Соединение прервано</string>
+    <string name="service_status_short_body">Обрыв на 16–20 КиБ (возможен DPI)</string>
 </resources>

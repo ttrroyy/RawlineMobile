@@ -119,8 +119,8 @@ internal object ServiceCheckDialog {
         @ColorInt
         private fun statusColor(status: String): Int = when (status) {
             STATUS_AVAILABLE -> success
-            STATUS_PARTIAL -> warning
-            STATUS_RESTRICTED, STATUS_BLOCKED -> danger
+            STATUS_PARTIAL, "short_body", "interrupted" -> warning
+            STATUS_RESTRICTED, STATUS_BLOCKED, "dns_failure", "tls_failure" -> danger
             else -> muted
         }
 
@@ -131,6 +131,10 @@ internal object ServiceCheckDialog {
             STATUS_BLOCKED -> context.getString(R.string.service_status_blocked)
             STATUS_UNKNOWN -> context.getString(R.string.service_status_unknown)
             STATUS_FAILED -> context.getString(R.string.service_status_failed)
+            "dns_failure" -> context.getString(R.string.service_status_dns_failure)
+            "tls_failure" -> context.getString(R.string.service_status_tls_failure)
+            "interrupted" -> context.getString(R.string.service_status_interrupted)
+            "short_body" -> context.getString(R.string.service_status_short_body)
             else -> status
         }
 

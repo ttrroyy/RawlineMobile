@@ -73,13 +73,13 @@ class SwitchActivity : ThemedActivity(R.layout.layout_current_connections) {
         }
         page.addView(groupButton, LinearLayout.LayoutParams(-1, -2))
         val search = SearchView(this).apply {
-            isIconifiedByDefault = false
+            setIconifiedByDefault(false)
             queryHint = getString(R.string.search_apps)
             clearFocus()
             setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(text: String?) = false
                 override fun onQueryTextChange(text: String?): Boolean {
-                    query = text.orEmpty()
+                    this@SwitchActivity.query = text.orEmpty()
                     render()
                     return true
                 }

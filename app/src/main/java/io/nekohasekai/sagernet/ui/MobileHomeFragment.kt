@@ -1094,7 +1094,7 @@ class MobileHomeFragment : ToolbarFragment() {
                     currentCheck=text(currentPing ?: getString(R.string.qmobile_check_connection),12f,muted).apply {
                         id = R.id.current_connection_check
                         // Text taller than its box gets a scroll bar on some phones, so it always fits.
-                        maxLines=2;includeFontPadding=false;setPadding(dp(2),0,dp(2),0);gravity=Gravity.BOTTOM
+                        setLines(2);includeFontPadding=false;setPadding(dp(2),0,dp(2),0);gravity=Gravity.BOTTOM
                         isFocusable=true
                         tag=MobileFeedback.NONE
                         setOnClickListener { checkCurrentConnection() }
@@ -1120,7 +1120,7 @@ class MobileHomeFragment : ToolbarFragment() {
                 geoBanner!!.addView(geoCheck,LinearLayout.LayoutParams(dp(24),dp(24)))
                 // Under the decoration, right above the subscriptions it is about.
                 // In the new style the check sits beside the speed, under the button.
-                subscriptionTop?.let { if(dockLeft!=null) { currentCheck?.maxLines=3; currentCheck?.let { check -> fitWords(check,12f) }; it.layoutParams=FrameLayout.LayoutParams(-1,-2); dockLeft?.addView(it) } else if(statusRow!=null) {
+                subscriptionTop?.let { if(dockLeft!=null) { currentCheck?.setLines(3); currentCheck?.let { check -> fitWords(check,12f) }; it.layoutParams=FrameLayout.LayoutParams(-1,-2); dockLeft?.addView(it) } else if(statusRow!=null) {
                     // A narrow column (tablets, split screen) wraps the label onto a third line the row cuts off: it shrinks instead.
                     it.layoutParams=LinearLayout.LayoutParams(0,-1,1f); statusRow?.addView(it,0)
                     currentCheck?.let { check -> check.layoutParams=FrameLayout.LayoutParams(-1,-1); check.gravity=Gravity.START or Gravity.CENTER_VERTICAL; androidx.core.widget.TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(check,8,12,1,android.util.TypedValue.COMPLEX_UNIT_SP) }
@@ -1700,23 +1700,32 @@ class MobileHomeFragment : ToolbarFragment() {
         latencyViews.forEach { (id, holder) ->
             val result=state.rows[id].takeUnless { state.testCurrent }
             val busy=id in TestSessionClient.queuedProfiles.value || (state.running && result != null && result.phase != app.rawline.mobile.ui.test.RowPhase.DONE)
-            val latency=result?.takeIf { it.ok }?.latency ?: (holder.tag as? Int ?: 0)
-            // A failed test is stored as -1: the mark stays after the session that made it is gone.
-            val unavailable=result?.failed==true || (result?.error?.isNotEmpty()==true && !ProxyEntity.isTestAborted(result.error)) ||
-                (result==null && !busy && holder.tag as? Int == -1)
-            val label=if(unavailable) getString(R.string.qmobile_unavailable) else if(latency>0) "$latency ms" else ""
             val serviceCheck = busy && state.kind == TestSpec.KIND_SERVICE
-            val marker = if (serviceCheck) "service" else if (busy) "busy" else label
+            val pingResult = result.takeUnless { state.kind == TestSpec.KIND_SERVICE }
+            val latency=pingResult?.takeIf { it.ok }?.latency ?: (holder.tag as? Int ?: 0)
+            // A failed test is stored as -1: the mark stays after the session that made it is gone.
+            val unavailable=pingResult?.failed==true || (pingResult?.error?.isNotEmpty()==true && !ProxyEntity.isTestAborted(pingResult.error)) ||
+                (pingResult==null && !busy && holder.tag as? Int == -1)
+            val label=if(unavailable) getString(R.string.qmobile_unavailable) else if(latency>0) "$latency ms" else ""
+            val marker = if (serviceCheck) "service:$label" else if (busy) "busy" else label
             val previous=holder.contentDescription?.toString()
             if(previous==marker) return@forEach
             holder.contentDescription=marker
+            val labelWidth = if (label.isEmpty()) 0 else
+                (android.text.TextPaint().apply { textSize=12f*resources.displayMetrics.scaledDensity }.measureText(label)+dp(8)).toInt().coerceAtMost(dp(90))
             holder.layoutParams=holder.layoutParams.apply {
-                width=if(busy) dp(28) else if(label.isEmpty()) 0 else
-                    (android.text.TextPaint().apply { textSize=12f*resources.displayMetrics.scaledDensity }.measureText(label)+dp(8)).toInt().coerceAtMost(dp(90))
+                width = if (serviceCheck) dp(24) + labelWidth else if (busy) dp(28) else labelWidth
             }
             holder.removeAllViews()
-            if (serviceCheck) holder.addView(ServiceCheckIndicator(requireContext()),
-                FrameLayout.LayoutParams(dp(24), dp(24), Gravity.CENTER))
+            if (serviceCheck) holder.addView(LinearLayout(requireContext()).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                addView(ServiceCheckIndicator(context), LinearLayout.LayoutParams(dp(24), dp(24)))
+                if (labelWidth > 0) addView(text(label, 12f, ProxyEntity.latencyColor(latency)).apply {
+                    gravity = Gravity.CENTER
+                    setPadding(0, 0, 0, 0)
+                    includeFontPadding = false
+                }, LinearLayout.LayoutParams(labelWidth, -1))
+            }, FrameLayout.LayoutParams(-1, -1))
             else if(busy) holder.addView(ProgressBar(requireContext()).apply {
                 indeterminateTintList=android.content.res.ColorStateList.valueOf(blue)
             },FrameLayout.LayoutParams(dp(20),dp(20),Gravity.CENTER))
