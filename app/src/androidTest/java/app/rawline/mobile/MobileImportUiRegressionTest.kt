@@ -48,13 +48,13 @@ class MobileImportUiRegressionTest {
     }
     private fun descendants(view: View): List<View> = listOf(view) +
         if (view is ViewGroup) (0 until view.childCount).flatMap { descendants(view.getChildAt(it)) } else emptyList()
-    private fun await(check: () -> Boolean) {
+    private fun await(message: String = "Dashboard did not finish layout", check: () -> Boolean) {
         val deadline = SystemClock.elapsedRealtime() + 15_000
         while (SystemClock.elapsedRealtime() < deadline) {
             if (check()) return
             Thread.sleep(50)
         }
-        fail("Dashboard did not finish layout")
+        fail(message)
     }
 
     @Test fun rawlineAndPastelColorsRemainReadableInDayAndNightModes() {
@@ -168,15 +168,22 @@ class MobileImportUiRegressionTest {
         try {
             fun last() = descendants(activity.window.decorView).filterIsInstance<TextView>().firstOrNull { it.text == "bottom-fixture-7" }
             await { ui { last() != null } }
-            ui {
+            val row = ui {
                 assertEquals(View.INVISIBLE, activity.findViewById<View>(R.id.stats).visibility)
-                var parent = last()!!.parent
+                val profileRow = last()!!.parent.parent as View
+                var parent = profileRow.parent
                 while (parent !is ScrollView) parent = parent.parent
-                parent.fullScroll(View.FOCUS_DOWN)
+                parent.scrollTo(0, parent.getChildAt(0).height)
+                profileRow
             }
             instrumentation.waitForIdleSync()
-            val bounds = Rect()
-            await { ui { (last()!!.parent.parent as View).getGlobalVisibleRect(bounds) && bounds.height() > 20 } }
+            val bounds = ui {
+                val visible = Rect()
+                assertTrue("The bottom row must be visible before it is tapped", row.getLocalVisibleRect(visible))
+                val screenLocation = IntArray(2).also(row::getLocationOnScreen)
+                visible.apply { offset(screenLocation[0], screenLocation[1]) }
+            }
+            assertTrue(bounds.height() > 20)
             val x = (bounds.right - 64 * context.resources.displayMetrics.density).coerceAtLeast(bounds.left.toFloat() + 1)
             val y = bounds.centerY().toFloat()
             val time = SystemClock.uptimeMillis()
@@ -184,7 +191,9 @@ class MobileImportUiRegressionTest {
                 val event = MotionEvent.obtain(time, SystemClock.uptimeMillis(), action, x, y, 0)
                 try { instrumentation.sendPointerSync(event) } finally { event.recycle() }
             }
-            await { DataStore.selectedProxy == ids.last() }
+            await("Tap on the visible part of the bottom row did not select the profile") {
+                DataStore.selectedProxy == ids.last()
+            }
         } finally {
             ui { activity.finish() }
             DataStore.selectedProxy = selected
