@@ -117,12 +117,16 @@ jobs:
         if: always()
         run: |
           mkdir -p security-results
-          "$ANDROID_HOME/platform-tools/adb" logcat -d > security-results/logcat.txt
-          PACKAGE=$("$ANDROID_HOME/platform-tools/adb" shell pm list packages | sed -n 's/^package:\(app.rawline.mobile[^[:space:]]*\)/\1/p' | grep -v '\.test$' | tr -d '\r')
-          "$ANDROID_HOME/platform-tools/adb" shell run-as "$PACKAGE" ls files | tr -d '\r' | while read -r file; do
-            case "$file" in core.log|core.log.prev|*.png) "$ANDROID_HOME/platform-tools/adb" exec-out run-as "$PACKAGE" cat "files/$file" > "security-results/$file";; esac
-          done
-          cp "$RUNNER_TEMP/emulator.log" security-results/
+          ADB="$ANDROID_HOME/platform-tools/adb"
+          if test -f "$RUNNER_TEMP/emulator.log"; then cp "$RUNNER_TEMP/emulator.log" security-results/; fi
+          if ! timeout 10 "$ADB" get-state | grep -qx device; then exit 0; fi
+          timeout 20 "$ADB" logcat -d > security-results/logcat.txt || true
+          PACKAGE=$(timeout 10 "$ADB" shell pm list packages | sed -n 's/^package:\(app.rawline.mobile[^[:space:]]*\)/\1/p' | grep -v '\.test$' | tr -d '\r')
+          if test -n "$PACKAGE"; then
+            timeout 10 "$ADB" shell run-as "$PACKAGE" ls files | tr -d '\r' | while read -r file; do
+              case "$file" in core.log|core.log.prev|*.png) timeout 10 "$ADB" exec-out run-as "$PACKAGE" cat "files/$file" > "security-results/$file";; esac
+            done
+          fi
           if test -d ui-screenshots; then cp -r ui-screenshots security-results/; fi
       - uses: actions/upload-artifact@v7
         if: always()
