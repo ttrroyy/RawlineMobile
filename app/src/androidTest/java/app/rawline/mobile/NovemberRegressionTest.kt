@@ -553,6 +553,29 @@ class NovemberRegressionTest {
         }
     }
 
+    @Test fun currentConnectionsOpensWithoutADashboardWebView() {
+        val context = instrumentation.targetContext
+        val activity = instrumentation.startActivitySync(Intent(context, MainActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)) as MainActivity
+        try {
+            instrumentation.runOnMainSync {
+                val screen = app.rawline.mobile.ui.CurrentConnectionsFragment()
+                activity.displayFragment(screen)
+                activity.supportFragmentManager.executePendingTransactions()
+                assertEquals(context.getString(R.string.home_connections), screen.toolbar?.title?.toString())
+                val root = screen.requireView()
+                assertNotNull(root.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.current_connection_list))
+                fun hasWebView(view: View): Boolean =
+                    view is android.webkit.WebView || (view is ViewGroup &&
+                        (0 until view.childCount).any { hasWebView(view.getChildAt(it)) })
+                assertFalse(hasWebView(root))
+                assertEquals(0, screen.toolbar?.menu?.size())
+            }
+        } finally {
+            instrumentation.runOnMainSync { activity.finish() }
+        }
+    }
+
     @Test fun combinedConnectionStatusSurvivesEditorLayoutsAndReconnects() {
         val context = instrumentation.targetContext
         val previousStyle = DataStore.uiStyle
