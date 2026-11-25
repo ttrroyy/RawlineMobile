@@ -9,10 +9,14 @@ on:
         description: Test the explicit System TUN stack
         type: boolean
         default: false
-      android17:
-        description: Run on Android 17 instead of the compatibility matrix
-        type: boolean
-        default: false
+      device:
+        description: Select the emulator coverage
+        type: choice
+        default: phones
+        options:
+          - phones
+          - android17
+          - android-tv
 permissions:
   contents: read
   actions: read
@@ -21,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        api: ${{ fromJSON(inputs.android17 && '["37.0"]' || '[29, 33, 35]') }}
+        api: ${{ fromJSON(inputs.device == 'android17' && '["37.0"]' || inputs.device == 'android-tv' && '[36]' || '[29, 33, 35]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -40,14 +44,24 @@ jobs:
           github-token: ${{ github.token }}
       - name: Prepare emulator
         shell: bash
+        env:
+          SDK_API: ${{ matrix.api }}
+          DEVICE: ${{ inputs.device }}
         run: |
           set -euo pipefail
           export ANDROID_USER_HOME="$RUNNER_TEMP/security-android"
           export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
           mkdir -p "$ANDROID_AVD_HOME"
           SDK="$ANDROID_HOME/cmdline-tools/latest/bin"
-          "$SDK/sdkmanager" 'system-images;android-${{ matrix.api }};google_apis;x86_64' 'emulator' 'platform-tools' >/dev/null
-          "$SDK/avdmanager" create avd -n security-test -k 'system-images;android-${{ matrix.api }};google_apis;x86_64' --device pixel_6 --force
+          image_tag=google_apis
+          hardware=pixel_6
+          if [[ "$DEVICE" == android-tv ]]; then
+            image_tag=android-tv
+            hardware=tv_1080p
+          fi
+          image="system-images;android-$SDK_API;$image_tag;x86_64"
+          "$SDK/sdkmanager" "$image" 'emulator' 'platform-tools' >/dev/null
+          "$SDK/avdmanager" create avd -n security-test -k "$image" --device "$hardware" --force
           sudo chmod a+rw /dev/kvm
           "$ANDROID_HOME/emulator/emulator" -avd security-test -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
           ADB="$ANDROID_HOME/platform-tools/adb"
@@ -61,7 +75,7 @@ jobs:
           "$ADB" install -r "$(find tested-apk -name '*x86_64*.apk' -print -quit)"
           "$ADB" install -r "$(find test-apk -name '*.apk' -print -quit)"
           PACKAGE=$("$ADB" shell pm list packages | sed -n 's/^package:\(app.rawline.mobile[^[:space:]]*\)/\1/p' | grep -v '\.test$' | tr -d '\r')
-          if test '${{ matrix.api }}' -ge 33; then "$ADB" shell pm grant "$PACKAGE" android.permission.POST_NOTIFICATIONS; fi
+          if [[ "${SDK_API%%.*}" -ge 33 ]]; then "$ADB" shell pm grant "$PACKAGE" android.permission.POST_NOTIFICATIONS; fi
           "$ADB" shell dumpsys deviceidle whitelist +"$PACKAGE"
           "$ADB" shell settings put global window_animation_scale 0
           "$ADB" shell settings put global transition_animation_scale 0
@@ -76,7 +90,12 @@ jobs:
           ADB="$ANDROID_HOME/platform-tools/adb"
           COMPONENT="$("$ADB" shell pm list instrumentation | sed -n 's/^instrumentation:\([^ ]*\/androidx.test.runner.AndroidJUnitRunner\).*/\1/p' | tr -d '\r')"
           test -n "$COMPONENT"
-          "$ADB" shell am instrument -w -r "$COMPONENT" | tee security-results/instrumentation.txt
+          args=()
+          if [[ "${{ inputs.device }}" == android-tv ]]; then
+            test "$("$ADB" shell pm has-feature android.software.leanback | tr -d '\r')" = true
+            args=(-e class 'app.rawline.mobile.NovemberRegressionTest#restoredAutoSelectorBuildsWithItsTrackedProfiles')
+          fi
+          "$ADB" shell am instrument -w -r "${args[@]}" "$COMPONENT" | tee security-results/instrumentation.txt
           grep -E 'OK \([0-9]+ tests\)' security-results/instrumentation.txt
           ! grep -E 'FAILURES|INSTRUMENTATION_FAILED|Process crashed' security-results/instrumentation.txt
       - name: Preserve palette screenshots before the isolated VPN test clears app data
@@ -88,6 +107,7 @@ jobs:
             case "$file" in core.log|core.log.prev|home-*.png) "$ADB" exec-out run-as "$PACKAGE" cat "files/$file" > "security-results/$file";; esac
           done
       - name: Short VPN and unauthorized command check
+        if: inputs.device != 'android-tv'
         env:
           TEST_SYSTEM_TUN: ${{ inputs.system_tun }}
         run: |
