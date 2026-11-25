@@ -558,11 +558,21 @@ class NovemberRegressionTest {
         val activity = instrumentation.startActivitySync(Intent(context, MainActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)) as MainActivity
         try {
+            val screen = app.rawline.mobile.ui.CurrentConnectionsFragment()
             instrumentation.runOnMainSync {
-                val screen = app.rawline.mobile.ui.CurrentConnectionsFragment()
                 activity.displayFragment(screen)
                 activity.supportFragmentManager.executePendingTransactions()
-                assertEquals(context.getString(R.string.home_connections), screen.toolbar?.title?.toString())
+            }
+            instrumentation.waitForIdleSync()
+            instrumentation.runOnMainSync {
+                val toolbar = requireNotNull(screen.toolbar)
+                val title = context.getString(R.string.home_connections)
+                assertEquals(title, toolbar.title?.toString())
+                val heading = (0 until toolbar.childCount).map(toolbar::getChildAt)
+                    .filterIsInstance<android.widget.TextView>().single { it.text.toString() == title }
+                val visibleBounds = android.graphics.Rect()
+                assertTrue(heading.getGlobalVisibleRect(visibleBounds))
+                assertEquals(heading.height, visibleBounds.height())
                 val root = screen.requireView()
                 assertNotNull(root.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.current_connection_list))
                 fun hasWebView(view: View): Boolean =

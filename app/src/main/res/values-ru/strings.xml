@@ -2794,11 +2794,11 @@
     <string name="service_check_summary_results">результаты в меню каждого профиля</string>
     <string name="service_check_summary_none">ничего не проверено</string>
     <string name="service_status_available">Доступно</string>
-    <string name="service_status_partial">Частично</string>
-    <string name="service_status_restricted">Ограничено</string>
-    <string name="service_status_blocked">Заблокировано</string>
-    <string name="service_status_unknown">Неизвестно</string>
-    <string name="service_status_failed">Сбой</string>
+    <string name="service_status_partial">Частичная доступность</string>
+    <string name="service_status_restricted">Доступ ограничен</string>
+    <string name="service_status_blocked">Доступ отклонён</string>
+    <string name="service_status_unknown">Результат не определён</string>
+    <string name="service_status_failed">Ошибка проверки</string>
     <string name="service_ip_datacenter">IP дата-центра</string>
     <string name="service_ip_mobile">Мобильный IP</string>
     <string name="service_ip_business">Корпоративный IP</string>
@@ -2856,11 +2856,11 @@
     <string name="connections_stopped">Подключитесь к профилю, чтобы увидеть его соединения.</string>
     <string name="connections_unavailable">Данные о соединениях недоступны</string>
     <string name="connections_unknown_app">Неизвестное приложение</string>
-    <string name="service_status_dns_failure">Ошибка DNS</string>
-    <string name="service_status_tls_failure">Ошибка TLS</string>
+    <string name="service_status_dns_failure">Ошибка разрешения имени (DNS)</string>
+    <string name="service_status_tls_failure">Ошибка рукопожатия TLS</string>
     <string name="service_status_interrupted">Соединение прервано</string>
-    <string name="service_status_short_body">Обрыв на 16–20 КиБ</string>
-    <string name="service_status_filter_pattern">Вероятная фильтрация DPI</string>
+    <string name="service_status_short_body">Передача прервана после 16–20 КиБ</string>
+    <string name="service_status_filter_pattern">Признаки фильтрации трафика (DPI)</string>
     <string name="service_note_repeated_transfer">Контрольный ответ в 1 КиБ получен. Две большие загрузки прервались после %1$s и %2$s байт.</string>
     <string name="service_note_short_transfer">Получено %1$s из %2$s байт.</string>
 </resources>

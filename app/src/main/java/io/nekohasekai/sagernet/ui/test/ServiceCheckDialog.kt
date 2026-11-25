@@ -13,8 +13,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.annotation.StyleRes
-import androidx.core.view.updatePadding
-import androidx.core.view.updatePaddingRelative
 import androidx.core.widget.NestedScrollView
 import androidx.core.widget.TextViewCompat
 import app.rawline.mobile.R
@@ -37,7 +35,10 @@ internal object ServiceCheckDialog {
         val content = Builder(context).build(profileName, root)
         MobileAlertDialogBuilder(context)
             .setTitle(R.string.service_check_results)
-            .setView(NestedScrollView(context).apply { addView(content) })
+            .setView(NestedScrollView(context).apply {
+                addView(content)
+                MobilePalette.showScrollIndicator(this)
+            })
             .setPositiveButton(android.R.string.ok, null)
             .show()
     }
@@ -58,7 +59,7 @@ internal object ServiceCheckDialog {
 
         private val layout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp2px(24), dp2px(8), dp2px(24), dp2px(8))
+            setPadding(dp2px(16), dp2px(8), dp2px(16), dp2px(8))
         }
 
         fun build(profileName: String, root: JsonObject): LinearLayout {
@@ -95,10 +96,10 @@ internal object ServiceCheckDialog {
                 orientation = LinearLayout.VERTICAL
                 background = MobilePalette.rowShape(context)
                 setPadding(dp2px(12), dp2px(7), dp2px(12), dp2px(7))
-                addView(text(check.string("name"), BODY).apply { setTypeface(typeface, Typeface.BOLD) })
+                addView(text(check.string("name"), BODY).apply { setTypeface(typeface, Typeface.BOLD) }, -1, -2)
                 addView(text(listOf(statusText(status), region).filter(String::isNotEmpty).joinToString("  ·  "), BODY)
-                    .apply { setTextColor(statusColor(status)) })
-                if (note.isNotBlank()) addView(text(note, BODY).apply { setTextColor(muted) })
+                    .apply { setTextColor(statusColor(status)) }, -1, -2)
+                if (note.isNotBlank()) addView(text(note, BODY).apply { setTextColor(muted) }, -1, -2)
             }
         }
 
@@ -138,7 +139,7 @@ internal object ServiceCheckDialog {
             "interrupted" -> context.getString(R.string.service_status_interrupted)
             "short_body" -> context.getString(R.string.service_status_short_body)
             "filter_pattern" -> context.getString(R.string.service_status_filter_pattern)
-            else -> status
+            else -> context.getString(R.string.service_status_unknown)
         }
 
         /** Every provider's answer merged: the network kind, then the anonymizing or abuse flags any of them saw. */
