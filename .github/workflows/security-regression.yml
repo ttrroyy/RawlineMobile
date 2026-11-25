@@ -9,6 +9,10 @@ on:
         description: Test the explicit System TUN stack
         type: boolean
         default: false
+      android17:
+        description: Run on Android 17 instead of the compatibility matrix
+        type: boolean
+        default: false
 permissions:
   contents: read
   actions: read
@@ -17,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        api: [29, 33, 35]
+        api: ${{ fromJSON(inputs.android17 && '["37.0"]' || '[29, 33, 35]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
