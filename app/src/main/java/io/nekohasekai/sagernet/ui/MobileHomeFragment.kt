@@ -1339,15 +1339,9 @@ class MobileHomeFragment : ToolbarFragment() {
                 names.addView(text(group.displayName(), 17f).apply {
                     setPadding(0, 0, 0, 0)
                     ellipsize = android.text.TextUtils.TruncateAt.END
-                    if (text.none(Char::isWhitespace)) {
-                        maxLines = 1
-                        androidx.core.widget.TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
-                            this, 15, 17, 1, android.util.TypedValue.COMPLEX_UNIT_SP,
-                        )
-                    } else {
-                        maxLines = 3
-                        breakStrategy = android.text.Layout.BREAK_STRATEGY_BALANCED
-                    }
+                    maxLines = 3
+                    breakStrategy = android.text.Layout.BREAK_STRATEGY_SIMPLE
+                    if (android.os.Build.VERSION.SDK_INT >= 26) tooltipText = group.displayName()
                 })
                 if(group.isSubscription && group.subLastUpdate>0) names.addView(text(java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT,java.text.DateFormat.SHORT).format(java.util.Date(group.subLastUpdate*1000)),10f,muted).apply { setPadding(0,dp(3),0,0) })
                 heading.addView(names,LinearLayout.LayoutParams(0,-2,1f))

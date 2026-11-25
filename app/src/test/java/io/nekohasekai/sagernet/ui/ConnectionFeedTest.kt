@@ -1,6 +1,5 @@
 package app.rawline.mobile.ui
 
-import com.sun.net.httpserver.HttpServer
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -9,8 +8,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
-import java.net.InetSocketAddress
-import java.util.concurrent.atomic.AtomicReference
+import java.net.InetAddress
+import java.net.ServerSocket
+import java.util.concurrent.FutureTask
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
 class ConnectionFeedTest {
     private fun Buffer.varint(value: Int): Buffer {
@@ -42,29 +44,35 @@ class ConnectionFeedTest {
     }
 
     @Test fun readsAStreamFromTheAuthenticatedLoopbackEndpoint() {
-        val seenAuth = AtomicReference<String>()
-        val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
-        server.createContext("/daemon.StartedService/SubscribeConnections") { exchange ->
-            seenAuth.set(exchange.requestHeaders.getFirst("Authorization"))
-            val row = Buffer().text(8, "example.org")
-            val response = Buffer().message(1, Buffer().text(2, "auth-id").message(3, row))
-            val frame = Buffer().writeByte(0).writeInt(response.size.toInt()).apply {
-                write(response, response.size)
-            }.readByteArray()
-            exchange.requestBody.close()
-            exchange.responseHeaders.set("Content-Type", "application/grpc-web+proto")
-            exchange.sendResponseHeaders(200, frame.size.toLong())
-            exchange.responseBody.use { it.write(frame) }
-        }
-        server.start()
-        try {
-            val rows = runBlocking {
-                withTimeout(5_000) { ConnectionFeed.subscribe(server.address.port, "fixture-key").first() }
+        val row = Buffer().text(8, "example.org")
+        val response = Buffer().message(1, Buffer().text(2, "auth-id").message(3, row))
+        val frame = Buffer().writeByte(0).writeInt(response.size.toInt()).apply {
+            write(response, response.size)
+        }.readByteArray()
+        ServerSocket(0, 1, InetAddress.getByName("127.0.0.1")).use { server ->
+            server.soTimeout = 5_000
+            val request = FutureTask {
+                server.accept().use { socket ->
+                    socket.soTimeout = 5_000
+                    val headers = socket.getInputStream().bufferedReader(Charsets.US_ASCII)
+                    val lines = generateSequence { headers.readLine() }.takeWhile { it.isNotEmpty() }.toList()
+                    repeat(5) { assertEquals(0, headers.read()) }
+                    val output = socket.getOutputStream()
+                    output.write(("HTTP/1.1 200 OK\r\nContent-Type: application/grpc-web+proto\r\n" +
+                        "Content-Length: ${frame.size}\r\nConnection: close\r\n\r\n").toByteArray(Charsets.US_ASCII))
+                    output.write(frame)
+                    output.flush()
+                    lines
+                }
             }
-            assertEquals("Bearer fixture-key", seenAuth.get())
+            thread(isDaemon = true) { request.run() }
+            val rows = runBlocking {
+                withTimeout(5_000) { ConnectionFeed.subscribe(server.localPort, "fixture-key").first() }
+            }
+            val headers = request.get(5, TimeUnit.SECONDS)
+            assertEquals("POST /daemon.StartedService/SubscribeConnections HTTP/1.1", headers.first())
+            assertTrue(headers.any { it.equals("Authorization: Bearer fixture-key", ignoreCase = true) })
             assertEquals("example.org", rows.single().destination)
-        } finally {
-            server.stop(0)
         }
     }
 

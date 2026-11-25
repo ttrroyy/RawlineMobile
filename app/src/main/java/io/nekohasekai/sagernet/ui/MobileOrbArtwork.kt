@@ -226,26 +226,56 @@ class MobileOrbArtwork(context: Context, private val idleText: String) : MobileP
         }
     }
 
-    /** One line when both names fit; otherwise each name gets the full width of its own line. */
+    private val serverTextPaint = android.text.TextPaint(Paint.ANTI_ALIAS_FLAG)
+    private var fittedCaption: FittedCaption? = null
+
+    private data class FittedCaption(
+        val group: String, val server: String, val lines: Int, val available: Float, val size: Float,
+        val first: String, val second: String, val firstSize: Float, val secondSize: Float,
+        val firstWidth: Float, val secondWidth: Float,
+    )
+
+    /** Keep the original name if it fits at a readable size, then elide only the remaining excess. */
     private fun serverLine(canvas: Canvas, cx: Float, y: Float, size: Float, wide: Float, ink: Int) {
-        val text = android.text.TextPaint(paint).apply { textSize = size; textAlign = Paint.Align.LEFT; isFakeBoldText = false }
-        val separator = if (groupText.isNotEmpty() && serverText.isNotEmpty()) "  ·  " else ""
-        var group = groupText
-        var server = serverText
+        val text = serverTextPaint
+        text.typeface = font
+        val caption = fittedCaption?.takeIf {
+            it.group == groupText && it.server == serverText && it.lines == serverLines &&
+                it.available == wide && it.size == size
+        } ?: run {
+            val separator = if (groupText.isNotEmpty() && serverText.isNotEmpty()) "  ·  " else ""
+            val head = groupText + separator
+            if (serverLines == 2 || groupText.isEmpty() || serverText.isEmpty()) {
+                fun fit(value: String): Triple<String, Float, Float> {
+                    text.textSize = size
+                    val measured = text.measureText(value)
+                    if (measured > wide && measured > 0f)
+                        text.textSize = (size * wide / measured).coerceAtLeast(size * .76f)
+                    val clipped = android.text.TextUtils.ellipsize(value, text, wide,
+                        android.text.TextUtils.TruncateAt.END).toString()
+                    return Triple(clipped, text.textSize, text.measureText(clipped))
+                }
+                val (first, firstSize, firstWidth) = fit(groupText)
+                val (second, secondSize, secondWidth) = fit(serverText)
+                FittedCaption(groupText, serverText, serverLines, wide, size, first, second, firstSize, secondSize,
+                    firstWidth, secondWidth)
+            } else {
+                text.textSize = size
+                FittedCaption(groupText, serverText, serverLines, wide, size, head, serverText, size, size,
+                    text.measureText(head), text.measureText(serverText))
+            }
+        }.also { fittedCaption = it }
+        val firstX = cx - (if (serverLines == 2) caption.firstWidth else caption.firstWidth + caption.secondWidth) / 2
+        text.textSize = caption.firstSize
+        text.color = MobilePalette.muted
+        canvas.drawText(caption.first, firstX, y, text)
+        text.textSize = caption.secondSize
+        text.color = ink
         if (serverLines == 2) {
-            val cut = { value: String -> android.text.TextUtils.ellipsize(value, text, wide, android.text.TextUtils.TruncateAt.END).toString() }
-            val first = cut(group); val second = cut(server)
-            text.color = MobilePalette.muted; canvas.drawText(first, cx - text.measureText(first) / 2, y, text)
-            text.color = ink; canvas.drawText(second, cx - text.measureText(second) / 2, y + size * 1.35f, text)
-            return
+            canvas.drawText(caption.second, cx - caption.secondWidth / 2, y + size * 1.35f, text)
+        } else {
+            canvas.drawText(caption.second, firstX + caption.firstWidth, y, text)
         }
-        val head = group + separator
-        if (text.measureText(head + server) > wide)
-            server = android.text.TextUtils.ellipsize(server, text, (wide - text.measureText(head)).coerceAtLeast(0f), android.text.TextUtils.TruncateAt.END).toString()
-        var x = cx - text.measureText(head + server) / 2
-        text.color = MobilePalette.muted; canvas.drawText(head, x, y, text)
-        x += text.measureText(head)
-        text.color = ink; canvas.drawText(server, x, y, text)
     }
 
     companion object {
