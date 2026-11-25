@@ -96,7 +96,7 @@ jobs:
             args=(-e class 'app.rawline.mobile.NovemberRegressionTest#restoredAutoSelectorBuildsWithItsTrackedProfiles')
           fi
           "$ADB" shell am instrument -w -r "${args[@]}" "$COMPONENT" | tee security-results/instrumentation.txt
-          grep -E 'OK \([0-9]+ tests\)' security-results/instrumentation.txt
+          grep -E 'OK \([0-9]+ tests?\)' security-results/instrumentation.txt
           ! grep -E 'FAILURES|INSTRUMENTATION_FAILED|Process crashed' security-results/instrumentation.txt
       - name: Preserve palette screenshots before the isolated VPN test clears app data
         run: |
