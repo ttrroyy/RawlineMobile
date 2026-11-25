@@ -72,7 +72,7 @@ import kotlin.math.roundToInt
 
 /**
  * The profiles screen: one tab per group in `display_order` (the desktop main window's group tabs), the current tab is
- * `current_group`. Also the profile picker of [ProfileSelectActivity] / [SwitchActivity] ([forSelection]).
+ * `current_group`. Also the profile picker of [ProfileSelectActivity] ([forSelection]).
  * The pieces live in `ui/profiles`: pages and rows, the group menu, the multi-selection, the row menu, imports.
  */
 class ConfigurationFragment : ToolbarFragment(R.layout.layout_group_list),

@@ -2979,4 +2979,7 @@
     <string name="validation_chain_selector_twice">A chain can hold only one auto selector.</string>
     <string name="validation_chain_selector_custom">An auto selector cannot share a chain with a custom config.</string>
     <string name="autosel_notice_exhausted_upstream">Every running profile stopped working through the hops in front of it — rebuilding with the next candidates.</string>
+    <string name="connections_empty">No active connections</string>
+    <string name="connections_unavailable">Connection data is unavailable</string>
+    <string name="connections_unknown_app">Unknown application</string>
 </resources>

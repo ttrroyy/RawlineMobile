@@ -44,8 +44,6 @@ import org.json.JSONObject
  * The page is the copy the app bundles ([SingBoxDashboard]): a 404 means the build has none, or unpacking it failed.
  */
 class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard), Toolbar.OnMenuItemClickListener {
-    private val openConnections get() = arguments?.getBoolean(ARG_CONNECTIONS) == true
-
     private var binding: LayoutDashboardBinding? = null
     private var webView: WebView? = null
 
@@ -83,7 +81,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard), Toolbar.On
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        toolbar?.setTitle(if (openConnections) R.string.home_connections else R.string.menu_dashboard)
+        toolbar?.setTitle(R.string.menu_dashboard)
         toolbar?.inflateMenu(R.menu.dashboard_menu)
         toolbar?.setOnMenuItemClickListener(this)
         val binding = LayoutDashboardBinding.bind(view)
@@ -197,7 +195,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard), Toolbar.On
         mainFrameStatus = 0
         clearHistory = true
         showProgress(R.string.dashboard_loading)
-        webView.loadUrl(if (openConnections) "$origin/dashboard/#/connections" else "$origin/dashboard/")
+        webView.loadUrl("$origin/dashboard/")
     }
 
     /** Stops the page, whose streams would otherwise keep knocking on a port nothing serves. */
@@ -420,12 +418,6 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard), Toolbar.On
     }
 
     companion object {
-        private const val ARG_CONNECTIONS = "connections"
-
-        fun connections() = DashboardFragment().apply {
-            arguments = Bundle().apply { putBoolean(ARG_CONNECTIONS, true) }
-        }
-
         /**
          * The bundle's build target (Vite's default, Chromium 111, which color-mix() also needs); its :has(), dvh and
          * script features are older. dashboard_css.py lowers the media ranges (Chromium 104) at build time.

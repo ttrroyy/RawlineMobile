@@ -548,6 +548,7 @@ class MainActivity : ThemedActivity(),
             is MobileHomeFragment -> fragment.updateState()
             is RouteFragment -> fragment.onServiceStateChanged()
             is DashboardFragment -> fragment.onServiceStateChanged()
+            is CurrentConnectionsFragment -> fragment.onServiceStateChanged()
         }
 
         binding.fab.changeState(state, DataStore.serviceState, animate)

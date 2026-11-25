@@ -444,7 +444,7 @@ class TestPanelController(
                 when (s.kind) {
                     TestSpec.KIND_IP -> R.drawable.ic_test_ip_24
                     TestSpec.KIND_SPEED -> R.drawable.ic_test_speed_24
-                    TestSpec.KIND_SERVICE -> R.drawable.ic_baseline_check_circle_24
+                    TestSpec.KIND_SERVICE -> R.drawable.ic_service_check
                     else -> R.drawable.ic_test_latency_24
                 }
             )

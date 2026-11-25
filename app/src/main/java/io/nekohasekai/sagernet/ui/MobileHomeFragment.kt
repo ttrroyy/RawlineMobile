@@ -1445,7 +1445,7 @@ class MobileHomeFragment : ToolbarFragment() {
                     val badge=flagBadge(displayName)
                     row.addView(badge,LinearLayout.LayoutParams(dp(28),dp(28)).apply { marginStart=dp(10) })
                     val labels = LinearLayout(requireContext()).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(10), dp(6), dp(6), dp(6)) }
-                    labels.addView(text(shownFlag?.let { displayName.removeRange(it.range).replace("  "," ").trim() } ?: displayName, 15f).apply { setTypeface(typeface,Typeface.BOLD); includeFontPadding=false; setPadding(0,0,0,dp(3)); maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END })
+                    labels.addView(text(shownFlag?.let { displayName.removeRange(it.range).replace("  "," ").trim() } ?: displayName, 15f).apply { setTypeface(typeface,Typeface.BOLD); includeFontPadding=false; setPadding(0,0,0,dp(3)); setLines(2); gravity=Gravity.BOTTOM; ellipsize = android.text.TextUtils.TruncateAt.END })
                     labels.addView(text(profile.displayProtocol(), 12f, muted).apply { includeFontPadding=false; setPadding(0,0,0,0); maxLines=1 })
                     row.addView(labels, LinearLayout.LayoutParams(0, -2, 1f))
                     val pinnedServer=profile.id in pinnedProfileIds
@@ -1462,7 +1462,7 @@ class MobileHomeFragment : ToolbarFragment() {
                             openSwipe?.closeActions(); startActivity(AutoSelectorStatusActivity.intent(requireContext(),profile.id))
                         } else null,
                         iconAction(R.drawable.ic_mobile_test,getString(R.string.qmobile_tests),Color.rgb(36,171,85)) { openSwipe?.closeActions(); testMenu(longArrayOf(profile.id),profile.displayName(),group.id) },
-                        iconAction(R.drawable.ic_baseline_check_circle_24, getString(R.string.service_check), Color.rgb(78,110,171)) {
+                        iconAction(R.drawable.ic_service_check, getString(R.string.service_check), Color.rgb(78,110,171)) {
                             openSwipe?.closeActions()
                             profileServiceCheck(profile)
                         },
@@ -1673,7 +1673,7 @@ class MobileHomeFragment : ToolbarFragment() {
     private var runningServerCache: Pair<Pair<Long,Long>,Pair<String,String>>?=null
     private fun openConnections() {
         if (DataStore.serviceState.connected && !powerCovered())
-            host().displayFragment(DashboardFragment.connections())
+            host().displayFragment(CurrentConnectionsFragment())
     }
     /** The subscription and the server in use, looked up once per selection. */
     private fun runningServer(): Pair<String,String> {
@@ -1705,7 +1705,8 @@ class MobileHomeFragment : ToolbarFragment() {
             val unavailable=result?.failed==true || (result?.error?.isNotEmpty()==true && !ProxyEntity.isTestAborted(result.error)) ||
                 (result==null && !busy && holder.tag as? Int == -1)
             val label=if(unavailable) getString(R.string.qmobile_unavailable) else if(latency>0) "$latency ms" else ""
-            val marker=if(busy) "busy" else label
+            val serviceCheck = busy && state.kind == TestSpec.KIND_SERVICE
+            val marker = if (serviceCheck) "service" else if (busy) "busy" else label
             val previous=holder.contentDescription?.toString()
             if(previous==marker) return@forEach
             holder.contentDescription=marker
@@ -1714,7 +1715,9 @@ class MobileHomeFragment : ToolbarFragment() {
                     (android.text.TextPaint().apply { textSize=12f*resources.displayMetrics.scaledDensity }.measureText(label)+dp(8)).toInt().coerceAtMost(dp(90))
             }
             holder.removeAllViews()
-            if(busy) holder.addView(ProgressBar(requireContext()).apply {
+            if (serviceCheck) holder.addView(ServiceCheckIndicator(requireContext()),
+                FrameLayout.LayoutParams(dp(24), dp(24), Gravity.CENTER))
+            else if(busy) holder.addView(ProgressBar(requireContext()).apply {
                 indeterminateTintList=android.content.res.ColorStateList.valueOf(blue)
             },FrameLayout.LayoutParams(dp(20),dp(20),Gravity.CENTER))
             else holder.addView(text(label,12f,if(unavailable) muted else ProxyEntity.latencyColor(latency)).apply {
