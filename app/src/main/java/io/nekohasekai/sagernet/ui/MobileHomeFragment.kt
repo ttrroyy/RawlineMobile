@@ -1376,7 +1376,7 @@ class MobileHomeFragment : ToolbarFragment() {
                     setCompoundDrawablesRelative(icon,null,null,null)
                     contentDescription=signature.route
                     isFocusable=true;setOnClickListener { routePicker() };MobileFeedback.apply(this,radius=12f)
-                },LinearLayout.LayoutParams(-2,-2).apply { marginStart=dp(6);bottomMargin=dp(4) })
+                },LinearLayout.LayoutParams(-2,-2).apply { marginStart=dp(12);bottomMargin=dp(4) })
                 if (group.isSubscription && group.subOptions.showInfoCard) {
                     val quota=group.subInfo
                     val traffic=LinearLayout(requireContext()).apply { gravity=Gravity.CENTER_VERTICAL; setPadding(dp(12),0,dp(12),dp(8)) }
