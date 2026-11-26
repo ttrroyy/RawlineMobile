@@ -1450,7 +1450,6 @@ class MobileHomeFragment : ToolbarFragment() {
                         setPadding(0, 0, 0, dp(2))
                         maxLines = 1
                         ellipsize = android.text.TextUtils.TruncateAt.END
-                        if (android.os.Build.VERSION.SDK_INT >= 26) tooltipText = displayName
                     })
                     labels.addView(text(profile.displayProtocol(), 12f, muted).apply {
                         includeFontPadding = false
