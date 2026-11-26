@@ -1423,6 +1423,7 @@ class MobileHomeFragment : ToolbarFragment() {
                     if(previousStructure!=null && profileIndex>0 && profileIndex%12==0) kotlinx.coroutines.delay(1)
                     val row = LinearLayout(requireContext()).apply {
                         gravity = Gravity.CENTER_VERTICAL; background = tile(profile.id == selected)
+                        minimumHeight = dp(48)
                         isFocusable = true
                         setOnClickListener {
                             val previous = DataStore.selectedProxy
@@ -1438,9 +1439,25 @@ class MobileHomeFragment : ToolbarFragment() {
                     val shownFlag=MobileCountryFlags.first(displayName)
                     val badge=flagBadge(displayName)
                     row.addView(badge,LinearLayout.LayoutParams(dp(28),dp(28)).apply { marginStart=dp(10) })
-                    val labels = LinearLayout(requireContext()).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(10), dp(6), dp(6), dp(6)) }
-                    labels.addView(text(shownFlag?.let { displayName.removeRange(it.range).replace("  "," ").trim() } ?: displayName, 15f).apply { setTypeface(typeface,Typeface.BOLD); includeFontPadding=false; setPadding(0,0,0,dp(3)); setLines(2); gravity=Gravity.BOTTOM; ellipsize = android.text.TextUtils.TruncateAt.END })
-                    labels.addView(text(profile.displayProtocol(), 12f, muted).apply { includeFontPadding=false; setPadding(0,0,0,0); maxLines=1 })
+                    val labels = LinearLayout(requireContext()).apply {
+                        orientation = LinearLayout.VERTICAL
+                        setPadding(dp(8), dp(5), dp(6), dp(5))
+                    }
+                    val title = shownFlag?.let { displayName.removeRange(it.range).replace("  ", " ").trim() } ?: displayName
+                    labels.addView(text(title, 15f).apply {
+                        setTypeface(typeface, Typeface.BOLD)
+                        includeFontPadding = false
+                        setPadding(0, 0, 0, dp(2))
+                        maxLines = 1
+                        ellipsize = android.text.TextUtils.TruncateAt.END
+                        if (android.os.Build.VERSION.SDK_INT >= 26) tooltipText = displayName
+                    })
+                    labels.addView(text(profile.displayProtocol(), 12f, muted).apply {
+                        includeFontPadding = false
+                        setPadding(0, 0, 0, 0)
+                        maxLines = 1
+                        ellipsize = android.text.TextUtils.TruncateAt.END
+                    })
                     row.addView(labels, LinearLayout.LayoutParams(0, -2, 1f))
                     val pinnedServer=profile.id in pinnedProfileIds
                     if(pinnedServer) row.addView(ImageView(requireContext()).apply { setImageResource(R.drawable.ic_mobile_pin); imageTintList=android.content.res.ColorStateList.valueOf(muted); contentDescription=getString(R.string.qmobile_pinned) },LinearLayout.LayoutParams(dp(16),dp(16)))
@@ -1479,7 +1496,7 @@ class MobileHomeFragment : ToolbarFragment() {
                     }
                     profileDrag.bind(row,swipe,profile.id)
                     if(activeProfileDrag?.draggedId==profile.id) swipe.visibility=View.INVISIBLE
-                    rows.addView(swipe, LinearLayout.LayoutParams(-1,-2).apply { setMargins(dp(5),0,dp(5),dp(3)) })
+                    rows.addView(swipe, LinearLayout.LayoutParams(-1,-2).apply { setMargins(dp(8),0,dp(8),dp(3)) })
                 }
                 if(!signature.collapsed && profiles.size>MobileProfilePaging.PAGE_SIZE) {
                     val paging=LinearLayout(requireContext()).apply { gravity=Gravity.CENTER_VERTICAL }
